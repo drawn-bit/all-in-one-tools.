@@ -18,78 +18,85 @@ const tools = [
 {name:"AI Tools",desc:"Kumpulan alat berbasis AI.",icon:"✧",vip:true}
 ];
 
-let currentUser = null;
+let supabaseClient;
+let currentUser;
 let currentRole = "member";
-let supabaseClient = null;
 
 function normalizeRole(role) {
-const value = String(role || "").trim().toLowerCase();
-
-if (value === "owner") return "owner";
-if (value === "vip") return "vip";
-
-// Role yang tidak dikenal dianggap FREE.
-return "member";
-
+role = String(role || "").trim().toLowerCase();
+return ["owner", "vip"].includes(role) ? role : "member";
 }
 
-function labelRole(role) {
-if (role === "owner") return "OWNER";
-if (role === "vip") return "VIP";
+function labelRole() {
+if (currentRole === "owner") return "OWNER";
+if (currentRole === "vip") return "VIP";
 return "FREE";
 }
 
-function isOwner() {
-return currentRole === "owner";
+function notice(message) {
+const box = $("settingsNotice");
+if (box) {
+box.textContent = message;
+box.classList.add("show");
+} else {
+alert(message);
+}
 }
 
-function applyOwnerAccess() {
+function setOwnerVisibility() {
 const ownerNav = $("ownerNav");
 const ownerPage = $("page-owner");
+const allowed = currentRole === "owner";
 
-// Pakai style.display juga agar aman di browser mobile.
 if (ownerNav) {
-  ownerNav.hidden = !isOwner();
-  ownerNav.style.display = isOwner() ? "" : "none";
-  ownerNav.setAttribute("aria-hidden", String(!isOwner()));
+  ownerNav.hidden = !allowed;
+  ownerNav.style.display = allowed ? "" : "none";
 }
 
-if (!isOwner() && ownerPage) {
-  ownerPage.classList.remove("active");
-}
-
-}
-
-function showNotice(message) {
-const box = $("settingsNotice");
-
-if (box) {
-  box.textContent = message;
-  box.classList.add("show");
-} else {
-  alert(message);
+if (ownerPage) {
+  ownerPage.hidden = !allowed;
+  if (!allowed) ownerPage.classList.remove("active");
 }
 
 }
 
-function renderGrid(targetId, vipOnly, search = "") {
-const target = $(targetId);
-if (!target) return;
+function openPage(name) {
+if (name === "owner" && currentRole !== "owner") {
+name = "menu";
+notice("Akses ditolak. Panel Owner hanya untuk OWNER.");
+}
 
-const filtered = tools.filter(tool => {
-  const matchesRole = tool.vip === vipOnly;
-  const matchesSearch = (tool.name + " " + tool.desc)
-    .toLowerCase()
-    .includes(search.toLowerCase());
+const valid = ["menu", "tools", "profile", "settings", "updates", "owner"];
+if (!valid.includes(name)) name = "menu";
 
-  return matchesRole && matchesSearch;
+document.querySelectorAll(".page").forEach(page => {
+  page.classList.toggle("active", page.id === "page-" + name);
 });
+
+document.querySelectorAll(".nav[data-page]").forEach(link => {
+  link.classList.toggle("active", link.dataset.page === name);
+});
+
+const dropdown = $("dropdown");
+if (dropdown) dropdown.classList.remove("open");
+
+window.scrollTo({top: 0, behavior: "smooth"});
+
+}
+
+function renderGrid(id, vipOnly, search = "") {
+const target = $(id);
+if (!target) return;
 
 target.replaceChildren();
 
-filtered.forEach(tool => {
-  const unlocked =
-    !tool.vip || currentRole === "vip" || isOwner();
+tools.filter(tool =>
+  tool.vip === vipOnly &&
+  (tool.name + " " + tool.desc).toLowerCase().includes(search.toLowerCase())
+).forEach(tool => {
+  const unlocked = !tool.vip ||
+    currentRole === "vip" ||
+    currentRole === "owner";
 
   const card = document.createElement("article");
   card.className = "tool-card";
@@ -104,38 +111,32 @@ filtered.forEach(tool => {
   const badge = document.createElement("span");
   badge.className = "pill " + (tool.vip ? "vip" : "free");
   badge.textContent = tool.vip ? "VIP" : "FREE";
-
   top.append(icon, badge);
 
   const title = document.createElement("h3");
   title.textContent = tool.name;
 
-  const description = document.createElement("p");
-  description.textContent = tool.desc;
+  const desc = document.createElement("p");
+  desc.textContent = tool.desc;
 
   const button = document.createElement("button");
   button.className = "tool-open" + (!unlocked ? " locked" : "");
-  button.textContent = !unlocked
-    ? "🔒 Khusus VIP"
-    : "Buka Tools →";
+  button.textContent = unlocked ? "Buka Tools →" : "🔒 Khusus VIP";
 
   button.addEventListener("click", () => {
-    if (tool.vip && currentRole !== "vip" && !isOwner()) {
+    if (!unlocked) {
       window.open(
         "https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.",
-        "_blank",
-        "noopener"
+        "_blank"
       );
       return;
     }
 
-    showNotice(
-      "Tools " + tool.name +
-      " belum dihubungkan ke halaman/fungsi aslinya."
-    );
+    notice("Tools " + tool.name +
+      " belum terhubung ke fungsi aslinya.");
   });
 
-  card.append(top, title, description, button);
+  card.append(top, title, desc, button);
   target.appendChild(card);
 });
 
@@ -148,100 +149,20 @@ renderGrid("freeGrid2", false, search);
 renderGrid("vipGrid2", true, search);
 
 if ($("freeCount")) {
-  $("freeCount").textContent =
-    tools.filter(tool => !tool.vip).length;
+  $("freeCount").textContent = tools.filter(t => !t.vip).length;
 }
-
 if ($("vipCount")) {
-  $("vipCount").textContent =
-    tools.filter(tool => tool.vip).length;
+  $("vipCount").textContent = tools.filter(t => t.vip).length;
 }
-
-}
-
-function openPage(pageName) {
-const allowedPages = [
-"menu", "tools", "profile", "settings", "updates"
-];
-
-// Halaman owner hanya untuk role OWNER.
-if (pageName === "owner" && !isOwner()) {
-  applyOwnerAccess();
-
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.toggle("active", page.id === "page-menu");
-  });
-
-  document.querySelectorAll(".nav[data-page]").forEach(link => {
-    link.classList.toggle("active", link.dataset.page === "menu");
-  });
-
-  if (location.hash === "#owner") {
-    history.replaceState(null, "", location.pathname + location.search);
-  }
-
-  showNotice("Akses ditolak. Panel Owner hanya untuk akun OWNER.");
-  return;
-}
-
-if (!allowedPages.includes(pageName) &&
-    !(pageName === "owner" && isOwner())) {
-  pageName = "menu";
-}
-
-document.querySelectorAll(".page").forEach(page => {
-  page.classList.toggle(
-    "active",
-    page.id === "page-" + pageName
-  );
-});
-
-document.querySelectorAll(".nav[data-page]").forEach(link => {
-  link.classList.toggle(
-    "active",
-    link.dataset.page === pageName
-  );
-});
-
-if ($("dropdown")) {
-  $("dropdown").classList.remove("open");
-}
-
-window.scrollTo({top: 0, behavior: "smooth"});
 
 }
 
 async function initialize() {
-if ($("year")) {
-$("year").textContent = new Date().getFullYear();
-}
-
-const now = new Date();
-
-if ($("dateText")) {
-  $("dateText").textContent = now.toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+if (!window.VEXORA_CONFIG || !window.supabase) {
+throw new Error("Supabase atau config.js tidak ditemukan.");
 }
 
 const config = window.VEXORA_CONFIG;
-
-if (
-  !config ||
-  !config.SUPABASE_URL ||
-  !config.SUPABASE_ANON_KEY ||
-  !window.supabase
-) {
-  document.body.innerHTML =
-    '<div style="padding:30px;color:white;font-family:Arial">' +
-    '<h2>VEXORA</h2>' +
-    '<p>Konfigurasi Supabase tidak ditemukan. Periksa config.js.</p>' +
-    '</div>';
-  return;
-}
 
 supabaseClient = window.supabase.createClient(
   config.SUPABASE_URL,
@@ -250,53 +171,55 @@ supabaseClient = window.supabase.createClient(
 
 const {data, error} = await supabaseClient.auth.getSession();
 
-if (error || !data.session) {
+if (error) throw error;
+
+if (!data.session) {
   window.location.replace("index.html");
   return;
 }
 
 currentUser = data.session.user;
-
-// Role dibaca dari app_metadata, bukan user_metadata.
 currentRole = normalizeRole(currentUser.app_metadata?.role);
 
-applyOwnerAccess();
+setOwnerVisibility();
+
+if ($("year")) $("year").textContent = new Date().getFullYear();
+
+if ($("dateText")) {
+  $("dateText").textContent = new Date().toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
 
 if ($("greetingText")) {
-  const prefix = currentUser.email
-    ? currentUser.email.split("@")[0]
-    : "User";
-
-  $("greetingText").textContent = "Welcome, " + prefix + "!";
+  $("greetingText").textContent =
+    "Welcome, " + (currentUser.email?.split("@")[0] || "User") + "!";
 }
 
 if ($("profileEmail")) {
   $("profileEmail").textContent = currentUser.email || "-";
 }
 
-if ($("profileRole")) {
-  $("profileRole").textContent = labelRole(currentRole);
-}
-
-if ($("roleValue")) {
-  $("roleValue").textContent = labelRole(currentRole);
-}
+if ($("profileRole")) $("profileRole").textContent = labelRole();
+if ($("roleValue")) $("roleValue").textContent = labelRole();
 
 renderTools();
 
+// Navigasi utama.
 document.querySelectorAll(".nav[data-page]").forEach(link => {
   link.addEventListener("click", event => {
     event.preventDefault();
-
-    const pageName = link.dataset.page;
-
-    if (pageName === "owner" && !isOwner()) {
-      openPage("owner");
-      return;
-    }
-
-    openPage(pageName);
+    openPage(link.dataset.page);
   });
+});
+
+// Menu titik tiga.
+$("dotsBtn")?.addEventListener("click", event => {
+  event.stopPropagation();
+  $("dropdown")?.classList.toggle("open");
 });
 
 document.querySelectorAll("[data-go]").forEach(button => {
@@ -305,24 +228,20 @@ document.querySelectorAll("[data-go]").forEach(button => {
   });
 });
 
-$("dotsBtn")?.addEventListener("click", () => {
-  $("dropdown")?.classList.toggle("open");
-});
-
 document.addEventListener("click", event => {
   if (!event.target.closest(".menu-wrap")) {
     $("dropdown")?.classList.remove("open");
   }
 });
 
+// Logout.
 async function logout() {
   if (!confirm("Yakin ingin logout dari VEXORA?")) return;
 
-  const {error: logoutError} =
-    await supabaseClient.auth.signOut();
+  const result = await supabaseClient.auth.signOut();
 
-  if (logoutError) {
-    alert("Logout gagal: " + logoutError.message);
+  if (result.error) {
+    alert("Logout gagal: " + result.error.message);
     return;
   }
 
@@ -336,15 +255,17 @@ $("logoutBtn")?.addEventListener("click", event => {
 
 $("dropdownLogout")?.addEventListener("click", logout);
 
+// Pencarian tools.
 $("toolSearch")?.addEventListener("input", event => {
   renderTools(event.target.value.trim());
 });
 
 $("refreshBtn")?.addEventListener("click", () => {
   renderTools($("toolSearch")?.value.trim() || "");
-  showNotice("Dashboard berhasil diperbarui.");
+  notice("Dashboard berhasil diperbarui.");
 });
 
+// Kontrol video banner.
 const video = $("bannerVideo");
 
 $("playVideo")?.addEventListener("click", async () => {
@@ -355,7 +276,7 @@ $("playVideo")?.addEventListener("click", async () => {
       await video.play();
       $("playVideo").textContent = "Ⅱ Pause";
     } catch {
-      showNotice("Video belum bisa diputar. Coba tekan lagi.");
+      notice("Video belum bisa diputar. Periksa file banner.mp4.");
     }
   } else {
     video.pause();
@@ -367,36 +288,26 @@ $("muteVideo")?.addEventListener("click", () => {
   if (!video) return;
 
   video.muted = !video.muted;
-  $("muteVideo").textContent =
-    video.muted ? "♩ Unmute" : "♩ Mute";
+  $("muteVideo").textContent = video.muted ? "♩ Unmute" : "♩ Mute";
 });
 
-video?.addEventListener("error", () => {
-  showNotice(
-    "File banner.mp4 belum ditemukan. " +
-    "Letakkan banner.mp4 di folder yang sama dengan dashboard.html."
-  );
-});
+// Mencegah akses Panel Owner lewat hash URL.
+const hashPage = window.location.hash.replace(/^#/, "");
 
-// URL #owner tidak boleh membuka panel untuk FREE/VIP.
-const requestedPage = location.hash.replace(/^#/, "");
-
-if (requestedPage === "owner" && !isOwner()) {
-  openPage("owner");
+if (hashPage === "owner" && currentRole !== "owner") {
+  openPage("menu");
+  history.replaceState(null, "", location.pathname + location.search);
 } else if (
-  ["menu", "tools", "owner", "profile", "settings", "updates"]
-    .includes(requestedPage)
+  ["menu", "tools", "profile", "settings", "updates", "owner"].includes(hashPage)
 ) {
-  openPage(requestedPage);
+  openPage(hashPage);
 }
 
 }
 
 initialize().catch(error => {
 console.error("VEXORA dashboard error:", error);
-alert(
-"Dashboard gagal dimuat. Periksa koneksi dan config.js, " +
-"lalu coba login ulang."
-);
+alert("Dashboard gagal dimuat: " + error.message +
+". Periksa config.js dan koneksi internet, lalu login ulang.");
 });
 })();
