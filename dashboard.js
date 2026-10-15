@@ -1,259 +1,402 @@
 "use strict";
 
 (() => {
-  const $ = (id) => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
-  const tools = [
-    {name:"Kalkulator",desc:"Hitung angka dengan mudah.",icon:"＋",vip:false},
-    {name:"Password Generator",desc:"Buat password acak secara lokal.",icon:"◇",vip:false},
-    {name:"Morse Code",desc:"Konversi teks dan kode Morse.",icon:"⌁",vip:false},
-    {name:"QR Code",desc:"Generator QR code.",icon:"▦",vip:false},
-    {name:"Image Tools",desc:"Alat bantu pengolahan gambar.",icon:"▧",vip:false},
-    {name:"TikTok Downloader",desc:"Download video TikTok.",icon:"♪",vip:true},
-    {name:"Instagram Downloader",desc:"Alat untuk konten Instagram.",icon:"◎",vip:true},
-    {name:"YouTube Tools",desc:"Utilitas video YouTube.",icon:"▶",vip:true},
-    {name:"Spotify Tools",desc:"Informasi musik dan lagu.",icon:"♫",vip:true},
-    {name:"BRAT Generator",desc:"Generator gambar gaya BRAT.",icon:"✦",vip:true},
-    {name:"Quote Generator",desc:"Buat kutipan menarik.",icon:"❝",vip:true},
-    {name:"AI Tools",desc:"Kumpulan alat berbasis AI.",icon:"✧",vip:true}
-  ];
+const tools = [
+{name:"Kalkulator",desc:"Hitung angka dengan mudah.",icon:"＋",vip:false},
+{name:"Password Generator",desc:"Buat password acak secara lokal.",icon:"◇",vip:false},
+{name:"Morse Code",desc:"Konversi teks dan kode Morse.",icon:"⌁",vip:false},
+{name:"QR Code",desc:"Generator QR code.",icon:"▦",vip:false},
+{name:"Image Tools",desc:"Alat bantu pengolahan gambar.",icon:"▧",vip:false},
+{name:"TikTok Downloader",desc:"Download video TikTok.",icon:"♪",vip:true},
+{name:"Instagram Downloader",desc:"Alat untuk konten Instagram.",icon:"◎",vip:true},
+{name:"YouTube Tools",desc:"Utilitas video YouTube.",icon:"▶",vip:true},
+{name:"Spotify Tools",desc:"Informasi musik dan lagu.",icon:"♫",vip:true},
+{name:"BRAT Generator",desc:"Generator gambar gaya BRAT.",icon:"✦",vip:true},
+{name:"Quote Generator",desc:"Buat kutipan menarik.",icon:"❝",vip:true},
+{name:"AI Tools",desc:"Kumpulan alat berbasis AI.",icon:"✧",vip:true}
+];
 
-  let currentUser = null;
-  let currentRole = "member";
-  let supabaseClient = null;
+let currentUser = null;
+let currentRole = "member";
+let supabaseClient = null;
 
-  function normalizeRole(role) {
-    const value = String(role || "").toLowerCase();
-    return ["owner", "vip", "member"].includes(value) ? value : "member";
-  }
+function normalizeRole(role) {
+const value = String(role || "").trim().toLowerCase();
 
-  function labelRole(role) {
-    if (role === "owner") return "OWNER";
-    if (role === "vip") return "VIP";
-    return "FREE";
-  }
+if (value === "owner") return "owner";
+if (value === "vip") return "vip";
 
-  function showNotice(message) {
-    const box = $("settingsNotice");
-    if (box) {
-      box.textContent = message;
-      box.classList.add("show");
-    } else {
-      alert(message);
-    }
-  }
+// Role yang tidak dikenal dianggap FREE.
+return "member";
 
-  function renderGrid(targetId, vipOnly, search = "") {
-    const target = $(targetId);
-    if (!target) return;
+}
 
-    const filtered = tools.filter(tool => {
-      const matchesRole = tool.vip === vipOnly;
-      const matchesSearch = (tool.name + " " + tool.desc)
-        .toLowerCase().includes(search.toLowerCase());
-      return matchesRole && matchesSearch;
-    });
+function labelRole(role) {
+if (role === "owner") return "OWNER";
+if (role === "vip") return "VIP";
+return "FREE";
+}
 
-    target.innerHTML = "";
+function isOwner() {
+return currentRole === "owner";
+}
 
-    filtered.forEach(tool => {
-      const unlocked = !tool.vip || currentRole === "vip" || currentRole === "owner";
-      const card = document.createElement("article");
-      card.className = "tool-card";
+function applyOwnerAccess() {
+const ownerNav = $("ownerNav");
+const ownerPage = $("page-owner");
 
-      const top = document.createElement("div");
-      top.className = "tool-top";
+// Pakai style.display juga agar aman di browser mobile.
+if (ownerNav) {
+  ownerNav.hidden = !isOwner();
+  ownerNav.style.display = isOwner() ? "" : "none";
+  ownerNav.setAttribute("aria-hidden", String(!isOwner()));
+}
 
-      const icon = document.createElement("div");
-      icon.className = "tool-icon";
-      icon.textContent = tool.icon;
+if (!isOwner() && ownerPage) {
+  ownerPage.classList.remove("active");
+}
 
-      const badge = document.createElement("span");
-      badge.className = "pill " + (tool.vip ? "vip" : "free");
-      badge.textContent = tool.vip ? "VIP" : "FREE";
-      top.append(icon, badge);
+}
 
-      const title = document.createElement("h3");
-      title.textContent = tool.name;
+function showNotice(message) {
+const box = $("settingsNotice");
 
-      const description = document.createElement("p");
-      description.textContent = tool.desc;
+if (box) {
+  box.textContent = message;
+  box.classList.add("show");
+} else {
+  alert(message);
+}
 
-      const button = document.createElement("button");
-      button.className = "tool-open" + (!unlocked ? " locked" : "");
-      button.textContent = !unlocked ? "🔒 Khusus VIP" : "Buka Tools →";
+}
 
-      button.addEventListener("click", () => {
-        if (!unlocked) {
-          window.open(
-            "https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.",
-            "_blank",
-            "noopener"
-          );
-          return;
-        }
+function renderGrid(targetId, vipOnly, search = "") {
+const target = $(targetId);
+if (!target) return;
 
-        showNotice(
-          "Tools " + tool.name +
-          " belum dihubungkan ke halaman/fungsi aslinya. Hubungkan ke file tools lama agar bisa digunakan."
-        );
-      });
+const filtered = tools.filter(tool => {
+  const matchesRole = tool.vip === vipOnly;
+  const matchesSearch = (tool.name + " " + tool.desc)
+    .toLowerCase()
+    .includes(search.toLowerCase());
 
-      card.append(top, title, description, button);
-      target.appendChild(card);
-    });
-  }
+  return matchesRole && matchesSearch;
+});
 
-  function renderTools(search = "") {
-    renderGrid("freeGrid", false, search);
-    renderGrid("vipGrid", true, search);
-    renderGrid("freeGrid2", false, search);
-    renderGrid("vipGrid2", true, search);
+target.replaceChildren();
 
-    if ($("freeCount")) {
-      $("freeCount").textContent = tools.filter(t => !t.vip).length;
-    }
-    if ($("vipCount")) {
-      $("vipCount").textContent = tools.filter(t => t.vip).length;
-    }
-  }
+filtered.forEach(tool => {
+  const unlocked =
+    !tool.vip || currentRole === "vip" || isOwner();
 
-  function openPage(pageName) {
-    document.querySelectorAll(".page").forEach(page => {
-      page.classList.toggle("active", page.id === "page-" + pageName);
-    });
+  const card = document.createElement("article");
+  card.className = "tool-card";
 
-    document.querySelectorAll(".nav[data-page]").forEach(link => {
-      link.classList.toggle("active", link.dataset.page === pageName);
-    });
+  const top = document.createElement("div");
+  top.className = "tool-top";
 
-    if ($("dropdown")) $("dropdown").classList.remove("open");
-    window.scrollTo({top: 0, behavior: "smooth"});
-  }
+  const icon = document.createElement("div");
+  icon.className = "tool-icon";
+  icon.textContent = tool.icon;
 
-  async function initialize() {
-    $("year").textContent = new Date().getFullYear();
-    if ($("currentYear")) $("currentYear").textContent = new Date().getFullYear();
+  const badge = document.createElement("span");
+  badge.className = "pill " + (tool.vip ? "vip" : "free");
+  badge.textContent = tool.vip ? "VIP" : "FREE";
 
-    const now = new Date();
-    if ($("dateText")) {
-      $("dateText").textContent = now.toLocaleDateString("id-ID", {
-        weekday: "long", day: "numeric", month: "long", year: "numeric"
-      });
-    }
+  top.append(icon, badge);
 
-    const config = window.VEXORA_CONFIG;
-    if (!config || !config.SUPABASE_URL || !config.SUPABASE_ANON_KEY ||
-        !window.supabase) {
-      document.body.innerHTML =
-        '<div style="padding:30px;color:white;font-family:Arial">' +
-        '<h2>VEXORA</h2><p>Konfigurasi Supabase tidak ditemukan. Periksa config.js.</p></div>';
+  const title = document.createElement("h3");
+  title.textContent = tool.name;
+
+  const description = document.createElement("p");
+  description.textContent = tool.desc;
+
+  const button = document.createElement("button");
+  button.className = "tool-open" + (!unlocked ? " locked" : "");
+  button.textContent = !unlocked
+    ? "🔒 Khusus VIP"
+    : "Buka Tools →";
+
+  button.addEventListener("click", () => {
+    if (tool.vip && currentRole !== "vip" && !isOwner()) {
+      window.open(
+        "https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.",
+        "_blank",
+        "noopener"
+      );
       return;
     }
 
-    supabaseClient = window.supabase.createClient(
-      config.SUPABASE_URL,
-      config.SUPABASE_ANON_KEY
+    showNotice(
+      "Tools " + tool.name +
+      " belum dihubungkan ke halaman/fungsi aslinya."
     );
+  });
 
-    const {data, error} = await supabaseClient.auth.getSession();
-    if (error || !data.session) {
-      window.location.replace("index.html");
+  card.append(top, title, description, button);
+  target.appendChild(card);
+});
+
+}
+
+function renderTools(search = "") {
+renderGrid("freeGrid", false, search);
+renderGrid("vipGrid", true, search);
+renderGrid("freeGrid2", false, search);
+renderGrid("vipGrid2", true, search);
+
+if ($("freeCount")) {
+  $("freeCount").textContent =
+    tools.filter(tool => !tool.vip).length;
+}
+
+if ($("vipCount")) {
+  $("vipCount").textContent =
+    tools.filter(tool => tool.vip).length;
+}
+
+}
+
+function openPage(pageName) {
+const allowedPages = [
+"menu", "tools", "profile", "settings", "updates"
+];
+
+// Halaman owner hanya untuk role OWNER.
+if (pageName === "owner" && !isOwner()) {
+  applyOwnerAccess();
+
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === "page-menu");
+  });
+
+  document.querySelectorAll(".nav[data-page]").forEach(link => {
+    link.classList.toggle("active", link.dataset.page === "menu");
+  });
+
+  if (location.hash === "#owner") {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+
+  showNotice("Akses ditolak. Panel Owner hanya untuk akun OWNER.");
+  return;
+}
+
+if (!allowedPages.includes(pageName) &&
+    !(pageName === "owner" && isOwner())) {
+  pageName = "menu";
+}
+
+document.querySelectorAll(".page").forEach(page => {
+  page.classList.toggle(
+    "active",
+    page.id === "page-" + pageName
+  );
+});
+
+document.querySelectorAll(".nav[data-page]").forEach(link => {
+  link.classList.toggle(
+    "active",
+    link.dataset.page === pageName
+  );
+});
+
+if ($("dropdown")) {
+  $("dropdown").classList.remove("open");
+}
+
+window.scrollTo({top: 0, behavior: "smooth"});
+
+}
+
+async function initialize() {
+if ($("year")) {
+$("year").textContent = new Date().getFullYear();
+}
+
+const now = new Date();
+
+if ($("dateText")) {
+  $("dateText").textContent = now.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+const config = window.VEXORA_CONFIG;
+
+if (
+  !config ||
+  !config.SUPABASE_URL ||
+  !config.SUPABASE_ANON_KEY ||
+  !window.supabase
+) {
+  document.body.innerHTML =
+    '<div style="padding:30px;color:white;font-family:Arial">' +
+    '<h2>VEXORA</h2>' +
+    '<p>Konfigurasi Supabase tidak ditemukan. Periksa config.js.</p>' +
+    '</div>';
+  return;
+}
+
+supabaseClient = window.supabase.createClient(
+  config.SUPABASE_URL,
+  config.SUPABASE_ANON_KEY
+);
+
+const {data, error} = await supabaseClient.auth.getSession();
+
+if (error || !data.session) {
+  window.location.replace("index.html");
+  return;
+}
+
+currentUser = data.session.user;
+
+// Role dibaca dari app_metadata, bukan user_metadata.
+currentRole = normalizeRole(currentUser.app_metadata?.role);
+
+applyOwnerAccess();
+
+if ($("greetingText")) {
+  const prefix = currentUser.email
+    ? currentUser.email.split("@")[0]
+    : "User";
+
+  $("greetingText").textContent = "Welcome, " + prefix + "!";
+}
+
+if ($("profileEmail")) {
+  $("profileEmail").textContent = currentUser.email || "-";
+}
+
+if ($("profileRole")) {
+  $("profileRole").textContent = labelRole(currentRole);
+}
+
+if ($("roleValue")) {
+  $("roleValue").textContent = labelRole(currentRole);
+}
+
+renderTools();
+
+document.querySelectorAll(".nav[data-page]").forEach(link => {
+  link.addEventListener("click", event => {
+    event.preventDefault();
+
+    const pageName = link.dataset.page;
+
+    if (pageName === "owner" && !isOwner()) {
+      openPage("owner");
       return;
     }
 
-    currentUser = data.session.user;
-    currentRole = normalizeRole(currentUser.app_metadata?.role);
+    openPage(pageName);
+  });
+});
 
-    if ($("greetingText")) {
-      const prefix = currentUser.email ? currentUser.email.split("@")[0] : "User";
-      $("greetingText").textContent = "Welcome, " + prefix + "!";
-    }
-    if ($("profileEmail")) $("profileEmail").textContent = currentUser.email || "-";
-    if ($("profileRole")) $("profileRole").textContent = labelRole(currentRole);
-    if ($("roleValue")) $("roleValue").textContent = labelRole(currentRole);
+document.querySelectorAll("[data-go]").forEach(button => {
+  button.addEventListener("click", () => {
+    openPage(button.dataset.go);
+  });
+});
 
-    if (currentRole === "owner" && $("ownerNav")) {
-      $("ownerNav").hidden = false;
-    }
+$("dotsBtn")?.addEventListener("click", () => {
+  $("dropdown")?.classList.toggle("open");
+});
 
-    renderTools();
+document.addEventListener("click", event => {
+  if (!event.target.closest(".menu-wrap")) {
+    $("dropdown")?.classList.remove("open");
+  }
+});
 
-    document.querySelectorAll(".nav[data-page]").forEach(link => {
-      link.addEventListener("click", event => {
-        event.preventDefault();
-        openPage(link.dataset.page);
-      });
-    });
+async function logout() {
+  if (!confirm("Yakin ingin logout dari VEXORA?")) return;
 
-    document.querySelectorAll("[data-go]").forEach(button => {
-      button.addEventListener("click", () => openPage(button.dataset.go));
-    });
+  const {error: logoutError} =
+    await supabaseClient.auth.signOut();
 
-    $("dotsBtn")?.addEventListener("click", () => {
-      $("dropdown")?.classList.toggle("open");
-    });
-
-    document.addEventListener("click", event => {
-      if (!event.target.closest(".menu-wrap")) {
-        $("dropdown")?.classList.remove("open");
-      }
-    });
-
-    async function logout() {
-      if (!confirm("Yakin ingin logout dari VEXORA?")) return;
-      const {error: logoutError} = await supabaseClient.auth.signOut();
-      if (logoutError) {
-        alert("Logout gagal: " + logoutError.message);
-        return;
-      }
-      window.location.replace("index.html");
-    }
-
-    $("logoutBtn")?.addEventListener("click", event => {
-      event.preventDefault();
-      logout();
-    });
-    $("dropdownLogout")?.addEventListener("click", logout);
-
-    $("toolSearch")?.addEventListener("input", event => {
-      renderTools(event.target.value.trim());
-    });
-
-    $("refreshBtn")?.addEventListener("click", () => {
-      renderTools($("toolSearch")?.value.trim() || "");
-      showNotice("Dashboard berhasil diperbarui.");
-    });
-
-    const video = $("bannerVideo");
-    $("playVideo")?.addEventListener("click", async () => {
-      if (!video) return;
-      if (video.paused) {
-        try {
-          await video.play();
-          $("playVideo").textContent = "Ⅱ Pause";
-        } catch {
-          showNotice("Video belum bisa diputar. Tekan tombol sekali lagi.");
-        }
-      } else {
-        video.pause();
-        $("playVideo").textContent = "▶ Play";
-      }
-    });
-
-    $("muteVideo")?.addEventListener("click", () => {
-      if (!video) return;
-      video.muted = !video.muted;
-      $("muteVideo").textContent = video.muted ? "♩ Unmute" : "♩ Mute";
-    });
-
-    video?.addEventListener("error", () => {
-      showNotice("File banner.mp4 belum ditemukan. Letakkan banner.mp4 di folder yang sama dengan dashboard.html.");
-    });
+  if (logoutError) {
+    alert("Logout gagal: " + logoutError.message);
+    return;
   }
 
-  initialize().catch(error => {
-    console.error("VEXORA dashboard error:", error);
-    alert("Dashboard gagal dimuat. Periksa koneksi dan config.js, lalu coba login ulang.");
-  });
+  window.location.replace("index.html");
+}
+
+$("logoutBtn")?.addEventListener("click", event => {
+  event.preventDefault();
+  logout();
+});
+
+$("dropdownLogout")?.addEventListener("click", logout);
+
+$("toolSearch")?.addEventListener("input", event => {
+  renderTools(event.target.value.trim());
+});
+
+$("refreshBtn")?.addEventListener("click", () => {
+  renderTools($("toolSearch")?.value.trim() || "");
+  showNotice("Dashboard berhasil diperbarui.");
+});
+
+const video = $("bannerVideo");
+
+$("playVideo")?.addEventListener("click", async () => {
+  if (!video) return;
+
+  if (video.paused) {
+    try {
+      await video.play();
+      $("playVideo").textContent = "Ⅱ Pause";
+    } catch {
+      showNotice("Video belum bisa diputar. Coba tekan lagi.");
+    }
+  } else {
+    video.pause();
+    $("playVideo").textContent = "▶ Play";
+  }
+});
+
+$("muteVideo")?.addEventListener("click", () => {
+  if (!video) return;
+
+  video.muted = !video.muted;
+  $("muteVideo").textContent =
+    video.muted ? "♩ Unmute" : "♩ Mute";
+});
+
+video?.addEventListener("error", () => {
+  showNotice(
+    "File banner.mp4 belum ditemukan. " +
+    "Letakkan banner.mp4 di folder yang sama dengan dashboard.html."
+  );
+});
+
+// URL #owner tidak boleh membuka panel untuk FREE/VIP.
+const requestedPage = location.hash.replace(/^#/, "");
+
+if (requestedPage === "owner" && !isOwner()) {
+  openPage("owner");
+} else if (
+  ["menu", "tools", "owner", "profile", "settings", "updates"]
+    .includes(requestedPage)
+) {
+  openPage(requestedPage);
+}
+
+}
+
+initialize().catch(error => {
+console.error("VEXORA dashboard error:", error);
+alert(
+"Dashboard gagal dimuat. Periksa koneksi dan config.js, " +
+"lalu coba login ulang."
+);
+});
 })();
