@@ -4,82 +4,866 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#070814">
-  <meta name="description" content="VEXORA — All-in-One Tools. Developer: Z4M OFFICIAL.">
-  <title>VEXORA — All-in-One Tools</title>
+  <meta name="description" content="VEXORA — All-in-one digital tools platform.">
+  <title>VEXORA — Welcome</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script type="module" src="auth.js"></script>
-  <script defer src="script.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #070814;
+      --panel: rgba(17, 20, 39, 0.88);
+      --panel-light: #14182b;
+      --cyan: #48e6ff;
+      --cyan-dark: #16a9d0;
+      --amber: #ffbd59;
+      --text: #f3f6ff;
+      --muted: #929bb5;
+      --border: rgba(151, 171, 220, 0.15);
+      --danger: #ff727f;
+      --success: #67f5b0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 15%, rgba(22, 169, 208, 0.13), transparent 36%),
+        radial-gradient(ellipse at 85% 85%, rgba(255, 189, 89, 0.08), transparent 35%),
+        var(--bg);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.17;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 35px 35px;
+      mask-image: linear-gradient(to bottom, black, transparent 90%);
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      width: min(1120px, 100%);
+      margin: auto;
+      padding: 25px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 43px;
+      height: 43px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      font-family: "Orbitron", sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      background: linear-gradient(145deg, #182e43, #101425);
+      border: 1px solid rgba(72, 230, 255, 0.4);
+      box-shadow: 0 0 28px rgba(72, 230, 255, 0.12);
+    }
+
+    .brand-name {
+      font-family: "Orbitron", sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .brand-name span {
+      color: var(--cyan);
+    }
+
+    .brand-caption {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 2.2px;
+      margin-top: 4px;
+    }
+
+    .top-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.025);
+      padding: 9px 13px;
+      border-radius: 30px;
+      color: #cbd3e9;
+      font-size: 11px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px rgba(103,245,176,.65);
+    }
+
+    .main {
+      flex: 1;
+      width: min(1120px, 100%);
+      margin: auto;
+      padding: 30px 24px 65px;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 70px;
+      align-items: center;
+    }
+
+    .hero {
+      padding: 20px 0;
+      animation: rise .7s ease both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--cyan);
+      border: 1px solid rgba(72,230,255,.24);
+      background: rgba(72,230,255,.055);
+      padding: 9px 13px;
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-bottom: 25px;
+    }
+
+    .eyebrow-mark {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--amber);
+      transform: rotate(45deg);
+    }
+
+    .hero h1 {
+      font-family: "Orbitron", sans-serif;
+      font-size: clamp(39px, 5.4vw, 68px);
+      line-height: 1.12;
+      letter-spacing: -2px;
+      font-weight: 800;
+      margin-bottom: 23px;
+    }
+
+    .hero h1 .highlight {
+      display: block;
+      color: var(--cyan);
+      text-shadow: 0 0 35px rgba(72,230,255,.16);
+    }
+
+    .hero-description {
+      max-width: 460px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .feature-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 32px;
+      max-width: 465px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 14px;
+      border-radius: 13px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid var(--border);
+    }
+
+    .feature-icon {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(72,230,255,.08);
+      color: var(--cyan);
+      font-size: 16px;
+    }
+
+    .feature strong {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .feature small {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .credit {
+      color: #747d98;
+      font-size: 11px;
+      margin-top: 30px;
+    }
+
+    .credit strong {
+      color: var(--amber);
+      letter-spacing: 1px;
+    }
+
+    .auth-card {
+      width: 100%;
+      padding: 32px;
+      border-radius: 23px;
+      background: var(--panel);
+      border: 1px solid rgba(157,180,225,.17);
+      box-shadow: 0 25px 90px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.035);
+      backdrop-filter: blur(18px);
+      animation: rise .8s .1s ease both;
+    }
+
+    .card-heading {
+      margin-bottom: 27px;
+    }
+
+    .card-heading .mini-label {
+      color: var(--cyan);
+      font-size: 10px;
+      letter-spacing: 2px;
+      font-weight: 800;
+      margin-bottom: 11px;
+    }
+
+    .card-heading h2 {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -.7px;
+      margin-bottom: 9px;
+    }
+
+    .card-heading p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 5px;
+      border-radius: 12px;
+      background: #090b18;
+      border: 1px solid var(--border);
+      margin-bottom: 25px;
+    }
+
+    .mode-btn {
+      border: 0;
+      color: var(--muted);
+      background: transparent;
+      padding: 12px 8px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+
+    .mode-btn.active {
+      background: #19283a;
+      color: var(--cyan);
+      box-shadow: inset 0 0 0 1px rgba(72,230,255,.17);
+    }
+
+    .form-group {
+      margin-bottom: 17px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #d5dbee;
+      margin-bottom: 9px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px;
+      outline: none;
+      border-radius: 11px;
+      border: 1px solid rgba(157,180,225,.16);
+      background: rgba(5,7,17,.65);
+      color: var(--text);
+      font-size: 12px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .input-wrap input::placeholder {
+      color: #606a85;
+    }
+
+    .input-wrap input:focus {
+      border-color: rgba(72,230,255,.65);
+      box-shadow: 0 0 0 3px rgba(72,230,255,.07);
+    }
+
+    .password-input {
+      padding-right: 68px !important;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 4px 0 21px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .remember input {
+      accent-color: var(--cyan);
+    }
+
+    .primary-btn {
+      width: 100%;
+      min-height: 49px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 11px;
+      color: #071019;
+      background: linear-gradient(100deg, #48e6ff, #8cefff);
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 8px 28px rgba(72,230,255,.13);
+      transition: transform .2s, filter .2s, opacity .2s;
+    }
+
+    .primary-btn:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:disabled {
+      opacity: .6;
+      cursor: wait;
+      transform: none;
+    }
+
+    .form-message {
+      display: none;
+      padding: 12px 13px;
+      margin-bottom: 16px;
+      border-radius: 10px;
+      font-size: 11px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .form-message.show {
+      display: block;
+    }
+
+    .form-message.error {
+      color: #ffb5bd;
+      background: rgba(255,114,127,.08);
+      border: 1px solid rgba(255,114,127,.2);
+    }
+
+    .form-message.success {
+      color: #a5ffd0;
+      background: rgba(103,245,176,.07);
+      border: 1px solid rgba(103,245,176,.2);
+    }
+
+    .security-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin-top: 20px;
+      padding-top: 17px;
+      border-top: 1px solid var(--border);
+      color: #7f89a4;
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .security-note span {
+      color: var(--success);
+    }
+
+    .terms {
+      color: #6f7892;
+      font-size: 9px;
+      line-height: 1.7;
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .terms a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .footer {
+      width: min(1120px, 100%);
+      margin: auto;
+      padding: 20px 24px 27px;
+      border-top: 1px solid rgba(157,180,225,.08);
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      color: #6e7892;
+      font-size: 10px;
+    }
+
+    .footer strong {
+      color: #aeb8d1;
+      font-weight: 600;
+    }
+
+    .intro {
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #070814;
+      transition: opacity .65s ease, visibility .65s ease;
+    }
+
+    .intro.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .intro-content {
+      text-align: center;
+      padding: 25px;
+    }
+
+    .intro-logo {
+      width: 80px;
+      height: 80px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(72,230,255,.45);
+      background: linear-gradient(145deg, #172c40, #0d1020);
+      color: var(--cyan);
+      font-family: "Orbitron", sans-serif;
+      font-size: 35px;
+      font-weight: 800;
+      box-shadow: 0 0 55px rgba(72,230,255,.13);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    .intro-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: 5px;
+    }
+
+    .intro-title span {
+      color: var(--cyan);
+    }
+
+    .intro-subtitle {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 3px;
+      margin-top: 10px;
+    }
+
+    .loader-track {
+      width: 200px;
+      height: 3px;
+      border-radius: 5px;
+      background: #20243a;
+      margin: 28px auto 12px;
+      overflow: hidden;
+    }
+
+    .loader-bar {
+      width: 0;
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--cyan), var(--amber));
+      animation: load 1.8s ease forwards;
+    }
+
+    .loading-text {
+      color: #69738f;
+      font-size: 9px;
+      letter-spacing: 2px;
+    }
+
+    @keyframes load {
+      to { width: 100%; }
+    }
+
+    @keyframes pulse {
+      50% { transform: scale(1.04); box-shadow: 0 0 75px rgba(72,230,255,.23); }
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr 400px;
+        gap: 30px;
+      }
+
+      .hero h1 {
+        font-size: clamp(36px, 5vw, 52px);
+      }
+
+      .feature-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        padding: 19px 18px;
+      }
+
+      .top-status {
+        font-size: 9px;
+        padding: 8px 10px;
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 27px;
+        padding: 25px 18px 45px;
+      }
+
+      .hero {
+        padding: 0;
+      }
+
+      .eyebrow {
+        margin-bottom: 18px;
+      }
+
+      .hero h1 {
+        font-size: clamp(39px, 10vw, 54px);
+        letter-spacing: -1.8px;
+        margin-bottom: 15px;
+      }
+
+      .hero-description {
+        font-size: 12px;
+      }
+
+      .feature-list {
+        display: none;
+      }
+
+      .credit {
+        margin-top: 17px;
+      }
+
+      .auth-card {
+        padding: 25px 21px;
+        border-radius: 19px;
+      }
+
+      .footer {
+        padding: 18px;
+        font-size: 9px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .brand-name {
+        font-size: 16px;
+      }
+
+      .brand-caption {
+        font-size: 8px;
+      }
+
+      .top-status {
+        font-size: 8px;
+      }
+
+      .auth-card {
+        padding: 22px 16px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-  <div class="intro" id="intro" aria-label="Memuat VEXORA">
-    <div class="intro-orbit"><div class="intro-core">V</div></div>
-    <div class="intro-brand">VEX<span>ORA</span></div>
-    <div class="intro-sub">ALL-IN-ONE TOOLS</div>
-    <div class="loader-track"><div class="loader-fill" id="loaderFill"></div></div>
-    <div class="loader-meta"><span id="loaderLabel">MENYIAPKAN SISTEM</span><strong id="loaderPercent">0%</strong></div>
-    <div class="intro-dev">DEVELOPED BY <b>Z4M OFFICIAL</b></div>
+  <div class="intro" id="intro">
+    <div class="intro-content">
+      <div class="intro-logo">V</div>
+      <div class="intro-title">VE<span>X</span>ORA</div>
+      <div class="intro-subtitle">ALL-IN-ONE TOOLS PLATFORM</div>
+      <div class="loader-track">
+        <div class="loader-bar"></div>
+      </div>
+      <div class="loading-text" id="loadingText">INITIALIZING VEXORA...</div>
+    </div>
   </div>
 
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="VEXORA beranda"><span class="brand-mark">V</span><span>VEXORA</span></a>
-    <div class="topbar-right"><span class="status-dot"></span><span class="status-text">SYSTEM ONLINE</span></div>
-  </header>
-
-  <main class="page-shell">
-    <section class="hero">
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-pulse"></span> YOUR DIGITAL TOOLSPACE</div>
-        <h1>Powerful tools.<br><span>One VEXORA.</span></h1>
-        <p class="hero-desc">Tempat praktis untuk tools digital pilihanmu. Cepat, simpel, dan dirancang untuk menemani kreativitasmu.</p>
-        <div class="hero-points">
-          <span><i>✦</i> Satu tempat</span><span><i>✦</i> Mudah digunakan</span><span><i>✦</i> Tampilan responsif</span>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">V</div>
+        <div>
+          <div class="brand-name">VE<span>X</span>ORA</div>
+          <div class="brand-caption">DIGITAL TOOLKIT</div>
         </div>
-        <div class="dev-chip"><span class="dev-avatar">Z</span><span><small>DEVELOPER</small><b>Z4M OFFICIAL</b></span><span class="verified">✦</span></div>
       </div>
 
-      <section class="auth-card" aria-label="Akun VEXORA">
-        <div class="card-topline"><span class="mini-orb">V</span><span class="secure-label"><span class="status-dot"></span> SECURE ACCESS</span></div>
-        <div class="auth-heading">
-          <p class="kicker" id="formKicker">WELCOME TO VEXORA</p>
-          <h2 id="formTitle">Masuk ke akunmu</h2>
-          <p id="formSubtitle">Lanjutkan perjalanan tools digitalmu.</p>
+      <div class="top-status">
+        <span class="status-dot"></span>
+        PLATFORM ONLINE
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="hero">
+        <div class="eyebrow">
+          <span class="eyebrow-mark"></span>
+          YOUR DIGITAL WORKSPACE
         </div>
 
-        <div class="tabs" role="tablist" aria-label="Login atau daftar">
-          <button class="tab active" type="button" id="loginTab" role="tab" aria-selected="true">Masuk</button>
-          <button class="tab" type="button" id="registerTab" role="tab" aria-selected="false">Buat akun</button>
-        </div>
+        <h1>
+          Build more.
+          <span class="highlight">Do it smarter.</span>
+        </h1>
 
-        <form id="authForm">
-          <label for="email">Email</label>
-          <div class="input-wrap"><span class="input-icon">✉</span><input id="email" name="email" type="email" placeholder="nama@email.com" autocomplete="email" required></div>
-          <label for="password">Password</label>
-          <div class="input-wrap"><span class="input-icon">⌑</span><input id="password" name="password" type="password" placeholder="Minimal 8 karakter" minlength="8" autocomplete="current-password" required><button type="button" class="show-password" id="togglePassword" aria-label="Tampilkan password">◉</button></div>
-          <div class="password-hint" id="passwordHint">Gunakan password yang kuat dan unik.</div>
-          <div class="turnstile-wrap">
-            <div id="turnstileWidget"></div>
-            <p id="captchaHint">Verifikasi Cloudflare akan aktif setelah konfigurasi.</p>
+        <p class="hero-description">
+          Selamat datang di VEXORA. Satu tempat untuk mengakses berbagai
+          tools digital dengan tampilan modern, pengalaman simpel, dan
+          workspace yang dirancang untuk produktivitas kamu.
+        </p>
+
+        <div class="feature-list">
+          <div class="feature">
+            <div class="feature-icon">⌘</div>
+            <div>
+              <strong>All-in-One Tools</strong>
+              <small>Berbagai tools dalam satu tempat</small>
+            </div>
           </div>
-          <button class="primary-btn" id="submitButton" type="submit"><span id="submitText">Masuk ke VEXORA</span><span class="btn-arrow">↗</span></button>
-          <p class="message" id="authMessage" role="status" aria-live="polite"></p>
-        </form>
-        <p class="terms">Dengan melanjutkan, kamu menyetujui penggunaan layanan VEXORA.</p>
-      </section>
-    </section>
 
-    <section class="feature-strip">
-      <article><span class="feature-icon purple">⌘</span><div><b>TOOLS DALAM SATU TEMPAT</b><p>Ruang untuk tools pilihanmu.</p></div></article>
-      <article><span class="feature-icon blue">◈</span><div><b>AKUN LEBIH AMAN</b><p>Autentikasi lewat Supabase.</p></div></article>
-      <article><span class="feature-icon teal">▣</span><div><b>SIAP DI BERBAGAI LAYAR</b><p>Nyaman di HP maupun desktop.</p></div></article>
-    </section>
-    <footer><span>© 2026 VEXORA</span><span>DEVELOPED BY <b>Z4M OFFICIAL</b></span></footer>
-  </main>
-</body>
-</html>
+          <div class="feature">
+            <div class="feature-icon">◇</div>
+            <div>
+              <strong>Modern Workspace</strong>
+              <small>Antarmuka cepat dan nyaman</small>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">↗</div>
+            <div>
+              <strong>Easy Access</strong>
+              <small>Akses tools dengan mudah</small>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">⬡</div>
+            <div>
+              <strong>Account System</strong>
+              <small>Login melalui akun kamu</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="credit">
+          Developed by <strong>Z4M OFFICIAL</strong>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="card-heading">
+          <div class="mini-label">MEMBER ACCESS / 01</div>
+          <h2 id="formTitle">Welcome back.</h2>
+          <p id="formSubtitle">Masuk ke akun kamu untuk melanjutkan.</p>
+        </div>
+
+        <div class="mode-switch">
+          <button class="mode-btn active" id="loginTab" type="button">
+            Login
+          </button>
+          <button class="mode-btn" id="registerTab" type="button">
+            Register
+          </button>
+        </div>
+
+        <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
+
+        <form id="authForm" novalidate>
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <div class="input-wrap">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="nama@email.com"
+                autocomplete="email"
+                maxlength="254"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input
+                class="password-input"
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+                minlength="6"
+                maxlength="128"
+                required
+              >
+              <button class="toggle-password" id="togglePassword" type="button">
+                LIHAT
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" id="confirmGroup" hidden>
+            <label for="confirmPassword">Konfirmasi password</label>
+            <div class="input-wrap">
+              <input
+                class="password-input"
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Ulangi password"
+                autocomplete="new-password"
+                minlength="6"
+                maxlength="128"
+              >
+            </div>
+          </div>
+
+          <div class="form-options" id="loginOptions">
+            <label class="remember">
+              <input id="rememberMe" type="checkbox" checked>
+              Ingat sesi login
+            </label>
+          </div>
+
+          <button class="primary-btn" id="submitBtn" type="submit">
+            <span id="submitText">Masuk ke Dashboard</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+        </form>
+
+        <div class="security-note">
+          <span aria-hidden="true">●</span>
+          <div>
+            Gunakan email dan password milik kamu sendiri.
+            Jangan bagikan password kepada siapa pun.
+          </div>
+        </div>
+
+        <p class="terms">
+          Dengan melanjutkan, kamu setuju menggunakan platform secara
+          bertanggung jawab. <br>
+          <span>VEXORA</span> · <a href="#" id="switchLink">Belum punya akun? Daftar</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>© <span id="currentYear"></span> <strong>VEXORA</stro
