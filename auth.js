@@ -1,150 +1,261 @@
+(function () {
+  "use strict";
 
-const cfg = window.VEXORA_CONFIG || {};
+  const config = window.VEXORA_CONFIG;
 
-const isConfigured = () =>
-  cfg.SUPABASE_URL &&
-  cfg.SUPABASE_ANON_KEY &&
-  !cfg.SUPABASE_URL.startsWith("ISI_") &&
-  !cfg.SUPABASE_ANON_KEY.startsWith("ISI_");
+  const form = document.getElementById("authForm");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const confirmInput = document.getElementById("confirmPassword");
 
-let supabaseClient = null;
+  const confirmGroup = document.getElementById("confirmGroup");
+  const loginOptions = document.getElementById("loginOptions");
 
-if (isConfigured() && window.supabase?.createClient) {
-  supabaseClient = window.supabase.createClient(
-    cfg.SUPABASE_URL,
-    cfg.SUPABASE_ANON_KEY
-  );
-}
+  const loginTab = document.getElementById("loginTab");
+  const registerTab = document.getElementById("registerTab");
+  const switchLink = document.getElementById("switchLink");
 
-let authMode = "login";
-const $ = (id) => document.getElementById(id);
+  const formTitle = document.getElementById("formTitle");
+  const formSubtitle = document.getElementById("formSubtitle");
+  const submitBtn = document.getElementById("submitBtn");
+  const submitText = document.getElementById("submitText");
+  const messageBox = document.getElementById("formMessage");
+  const togglePassword = document.getElementById("togglePassword");
 
-function setMessage(message, type = "") {
-  const el = $("authMessage");
-  if (!el) return;
-  el.textContent = message;
-  el.className = `message ${type}`;
-}
+  let mode = "login";
+  let supabaseClient = null;
 
-function setMode(mode) {
-  authMode = mode;
-  const registering = mode === "register";
-
-  $("loginTab").classList.toggle("active", !registering);
-  $("registerTab").classList.toggle("active", registering);
-  $("loginTab").setAttribute("aria-selected", String(!registering));
-  $("registerTab").setAttribute("aria-selected", String(registering));
-
-  $("formKicker").textContent = registering
-    ? "JOIN THE TOOLSPACE" : "WELCOME TO VEXORA";
-  $("formTitle").textContent = registering
-    ? "Buat akun baru" : "Masuk ke akunmu";
-  $("formSubtitle").textContent = registering
-    ? "Buat akun untuk mulai menjelajahi VEXORA."
-    : "Lanjutkan perjalanan tools digitalmu.";
-  $("submitText").textContent = registering
-    ? "Buat akun VEXORA" : "Masuk ke VEXORA";
-  $("password").autocomplete = registering
-    ? "new-password" : "current-password";
-  $("passwordHint").textContent = registering
-    ? "Gunakan minimal 8 karakter dan password unik."
-    : "Gunakan password yang kuat dan unik.";
-
-  setMessage("");
-}
-
-function friendlyError(error) {
-  const msg = String(error?.message || "Terjadi kesalahan.");
-
-  if (/invalid login credentials/i.test(msg))
-    return "Email atau password salah.";
-  if (/email not confirmed/i.test(msg))
-    return "Konfirmasi email lu dulu sebelum login.";
-  if (/already registered/i.test(msg))
-    return "Email sudah terdaftar. Silakan login.";
-
-  return msg;
-}
-
-async function handleAuth(event) {
-  event.preventDefault();
-  setMessage("");
-
-  const email = $("email").value.trim();
-  const password = $("password").value;
-
-  if (!email) {
-    setMessage("Masukkan email lu.", "error");
-    return;
+  function showMessage(message, type) {
+    messageBox.textContent = message;
+    messageBox.className = "form-message show " + type;
   }
 
-  if (password.length < 8) {
-    setMessage("Password minimal 8 karakter.", "error");
-    return;
+  function clearMessage() {
+    messageBox.textContent = "";
+    messageBox.className = "form-message";
   }
 
-  if (!supabaseClient) {
-    setMessage(
-      "Supabase belum siap. Periksa config.js dan library Supabase.",
-      "error"
-    );
-    return;
+  function setLoading(loading) {
+    submitBtn.disabled = loading;
+    loginTab.disabled = loading;
+    registerTab.disabled = loading;
+
+    submitText.textContent = loading
+      ? "Memproses..."
+      : mode === "login"
+        ? "Masuk ke Dashboard"
+        : "Buat Akun";
   }
 
-  const button = $("submitButton");
-  button.disabled = true;
-  $("submitText").textContent = "Memproses...";
+  function setMode(nextMode) {
+    mode = nextMode;
+    clearMessage();
 
-  try {
-    let result;
+    const registering = mode === "register";
 
-    if (authMode === "register") {
-      result = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
-      });
+    loginTab.classList.toggle("active", !registering);
+    registerTab.classList.toggle("active", registering);
 
-      if (result.error) throw result.error;
+    confirmGroup.hidden = !registering;
+    confirmInput.required = registering;
+    loginOptions.hidden = registering;
 
-      if (result.data.session) {
-        setMessage("Akun berhasil dibuat!", "success");
-        window.location.href = "dashboard.html";
-      } else {
-        setMessage(
-          "Pendaftaran diterima. Cek email untuk konfirmasi, lalu login.",
-          "success"
-        );
-      }
-    } else {
-      result = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+    formTitle.textContent = registering
+      ? "Create account."
+      : "Welcome back.";
 
-      if (result.error) throw result.error;
+    formSubtitle.textContent = registering
+      ? "Daftar untuk mulai menggunakan VEXORA."
+      : "Masuk ke akun kamu untuk melanjutkan.";
 
-      setMessage("Login berhasil. Mengalihkan...", "success");
-      window.location.href = "dashboard.html";
+    passwordInput.autocomplete = registering
+      ? "new-password"
+      : "current-password";
+
+    submitText.textContent = registering
+      ? "Buat Akun"
+      : "Masuk ke Dashboard";
+
+    switchLink.textContent = registering
+      ? "Sudah punya akun? Login"
+      : "Belum punya akun? Daftar";
+  }
+
+  function readableError(error) {
+    const message = String(error?.message || "").toLowerCase();
+
+    if (message.includes("invalid login credentials")) {
+      return "Email atau password salah.";
     }
-  } catch (error) {
-    setMessage(friendlyError(error), "error");
-  } finally {
-    button.disabled = false;
-    $("submitText").textContent =
-      authMode === "register" ? "Buat akun VEXORA" : "Masuk ke VEXORA";
+
+    if (message.includes("email not confirmed")) {
+      return "Email belum dikonfirmasi. Periksa inbox email kamu.";
+    }
+
+    if (
+      message.includes("user already registered") ||
+      message.includes("already been registered")
+    ) {
+      return "Email ini sudah terdaftar. Silakan login.";
+    }
+
+    if (message.includes("password should be at least")) {
+      return "Password terlalu pendek.";
+    }
+
+    if (message.includes("rate limit")) {
+      return "Terlalu banyak percobaan. Coba lagi nanti.";
+    }
+
+    if (
+      message.includes("failed to fetch") ||
+      message.includes("network")
+    ) {
+      return "Koneksi gagal. Periksa internet dan konfigurasi Supabase.";
+    }
+
+    return error?.message || "Terjadi kesalahan. Coba lagi.";
   }
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-  $("loginTab").addEventListener("click", () => setMode("login"));
-  $("registerTab").addEventListener("click", () => setMode("register"));
-  $("authForm").addEventListener("submit", handleAuth);
+  function initSupabase() {
+    if (!window.supabase || !window.supabase.createClient) {
+      showMessage(
+        "Library Supabase gagal dimuat. Periksa koneksi internet lalu refresh.",
+        "error"
+      );
+      return false;
+    }
 
-  $("togglePassword").addEventListener("click", () => {
-    const input = $("password");
-    input.type = input.type === "password" ? "text" : "password";
+    if (
+      !config ||
+      !config.SUPABASE_URL ||
+      !config.SUPABASE_ANON_KEY
+    ) {
+      showMessage(
+        "Konfigurasi Supabase belum lengkap. Periksa file config.js.",
+        "error"
+      );
+      return false;
+    }
+
+    try {
+      supabaseClient = window.supabase.createClient(
+        config.SUPABASE_URL,
+        config.SUPABASE_ANON_KEY
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Supabase initialization error:", error);
+      showMessage("Supabase gagal diinisialisasi. Periksa config.js.", "error");
+      return false;
+    }
+  }
+
+  loginTab.addEventListener("click", function () {
+    setMode("login");
   });
-});
+
+  registerTab.addEventListener("click", function () {
+    setMode("register");
+  });
+
+  switchLink.addEventListener("click", function (event) {
+    event.preventDefault();
+    setMode(mode === "login" ? "register" : "login");
+  });
+
+  togglePassword.addEventListener("click", function () {
+    const visible = passwordInput.type === "password";
+
+    passwordInput.type = visible ? "text" : "password";
+    togglePassword.textContent = visible ? "SEMBUNYIKAN" : "LIHAT";
+  });
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    clearMessage();
+
+    if (!initSupabase()) {
+      return;
+    }
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+      showMessage("Isi email dan password terlebih dahulu.", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      showMessage("Password minimal 6 karakter.", "error");
+      return;
+    }
+
+    if (mode === "register") {
+      if (password !== confirmInput.value) {
+        showMessage("Konfirmasi password tidak cocok.", "error");
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      if (mode === "register") {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+          showMessage("Pendaftaran berhasil! Mengalihkan ke dashboard...", "success");
+
+          window.location.replace("dashboard.html");
+        } else {
+          showMessage(
+            "Pendaftaran berhasil. Periksa email kamu untuk konfirmasi akun, lalu login.",
+            "success"
+          );
+
+          setMode("login");
+          emailInput.value = email;
+          passwordInput.value = "";
+          confirmInput.value = "";
+        }
+      } else {
+        const { data, error } =
+          await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
+
+        if (error) throw error;
+
+        if (!data.session) {
+          showMessage(
+            "Login belum menghasilkan sesi. Coba lagi.",
+            "error"
+          );
+          return;
+        }
+
+        showMessage("Login berhasil! Membuka dashboard...", "success");
+
+        window.location.replace("dashboard.html");
+      }
+    } catch (error) {
+      console.error("VEXORA authentication error:", error);
+      showMessage(readableError(error), "error");
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  // Persiapkan form dan cek konfigurasi tanpa menahan intro loading.
+  setMode("login");
+  initSupabase();
+})();
