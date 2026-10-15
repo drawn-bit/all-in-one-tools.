@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#070814">
-  <meta name="description" content="VEXORA — All-in-one digital tools platform.">
-  <title>VEXORA — Welcome</title>
+  <meta name="description" content="VEXORA - All-in-One Digital Tools">
+  <title>VEXORA — Digital Workspace</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,16 +14,13 @@
   <style>
     :root {
       --bg: #070814;
-      --panel: rgba(17, 20, 39, 0.88);
-      --panel-light: #14182b;
+      --panel: #111426;
       --cyan: #48e6ff;
-      --cyan-dark: #16a9d0;
       --amber: #ffbd59;
       --text: #f3f6ff;
       --muted: #929bb5;
-      --border: rgba(151, 171, 220, 0.15);
-      --danger: #ff727f;
-      --success: #67f5b0;
+      --border: rgba(151,171,220,.16);
+      --green: #67f5b0;
     }
 
     * {
@@ -32,27 +29,18 @@
       padding: 0;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       min-height: 100vh;
       font-family: "Inter", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(ellipse at 15% 15%, rgba(22, 169, 208, 0.13), transparent 36%),
-        radial-gradient(ellipse at 85% 85%, rgba(255, 189, 89, 0.08), transparent 35%),
+        radial-gradient(ellipse at 12% 10%, rgba(22,169,208,.14), transparent 38%),
+        radial-gradient(ellipse at 90% 90%, rgba(255,189,89,.07), transparent 35%),
         var(--bg);
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.17;
-      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-      background-size: 35px 35px;
-      mask-image: linear-gradient(to bottom, black, transparent 90%);
     }
 
     button, input {
@@ -67,18 +55,19 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      position: relative;
-      z-index: 1;
+    }
+
+    .topbar, .main, .footer {
+      width: min(1120px, 100%);
+      margin: 0 auto;
     }
 
     .topbar {
-      width: min(1120px, 100%);
-      margin: auto;
-      padding: 25px 24px;
+      padding: 24px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      align-items: center;
+      gap: 15px;
     }
 
     .brand {
@@ -88,22 +77,22 @@
     }
 
     .brand-icon {
-      width: 43px;
-      height: 43px;
-      border-radius: 13px;
+      width: 44px;
+      height: 44px;
       display: grid;
       place-items: center;
+      border: 1px solid rgba(72,230,255,.45);
+      border-radius: 13px;
       color: var(--cyan);
-      font-family: "Orbitron", sans-serif;
-      font-size: 20px;
+      background: linear-gradient(145deg,#193047,#101322);
+      font-family: "Orbitron",sans-serif;
+      font-size: 21px;
       font-weight: 800;
-      background: linear-gradient(145deg, #182e43, #101425);
-      border: 1px solid rgba(72, 230, 255, 0.4);
-      box-shadow: 0 0 28px rgba(72, 230, 255, 0.12);
+      box-shadow: 0 0 28px rgba(72,230,255,.1);
     }
 
     .brand-name {
-      font-family: "Orbitron", sans-serif;
+      font-family: "Orbitron",sans-serif;
       font-size: 19px;
       font-weight: 800;
       letter-spacing: 2px;
@@ -115,63 +104,59 @@
 
     .brand-caption {
       color: var(--muted);
-      font-size: 10px;
-      letter-spacing: 2.2px;
+      font-size: 9px;
+      letter-spacing: 2px;
       margin-top: 4px;
     }
 
-    .top-status {
+    .online {
       display: flex;
       align-items: center;
       gap: 8px;
       border: 1px solid var(--border);
-      background: rgba(255,255,255,.025);
-      padding: 9px 13px;
       border-radius: 30px;
+      padding: 10px 13px;
+      font-size: 10px;
       color: #cbd3e9;
-      font-size: 11px;
     }
 
-    .status-dot {
+    .online-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: var(--success);
-      box-shadow: 0 0 10px rgba(103,245,176,.65);
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
     }
 
     .main {
       flex: 1;
-      width: min(1120px, 100%);
-      margin: auto;
-      padding: 30px 24px 65px;
+      padding: 35px 24px 60px;
       display: grid;
-      grid-template-columns: 1fr 440px;
-      gap: 70px;
+      grid-template-columns: 1fr 430px;
+      gap: 65px;
       align-items: center;
     }
 
     .hero {
-      padding: 20px 0;
-      animation: rise .7s ease both;
+      animation: enter .7s ease both;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 9px;
-      color: var(--cyan);
-      border: 1px solid rgba(72,230,255,.24);
-      background: rgba(72,230,255,.055);
       padding: 9px 13px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(72,230,255,.23);
       border-radius: 30px;
+      background: rgba(72,230,255,.05);
+      color: var(--cyan);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 1.5px;
-      margin-bottom: 25px;
     }
 
-    .eyebrow-mark {
+    .eyebrow i {
       width: 7px;
       height: 7px;
       border-radius: 2px;
@@ -180,32 +165,31 @@
     }
 
     .hero h1 {
-      font-family: "Orbitron", sans-serif;
-      font-size: clamp(39px, 5.4vw, 68px);
-      line-height: 1.12;
+      font-family: "Orbitron",sans-serif;
+      font-size: clamp(39px,5.4vw,66px);
+      line-height: 1.15;
       letter-spacing: -2px;
-      font-weight: 800;
-      margin-bottom: 23px;
+      margin-bottom: 22px;
     }
 
-    .hero h1 .highlight {
+    .hero h1 span {
       display: block;
       color: var(--cyan);
-      text-shadow: 0 0 35px rgba(72,230,255,.16);
+      text-shadow: 0 0 35px rgba(72,230,255,.15);
     }
 
     .hero-description {
-      max-width: 460px;
+      max-width: 455px;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.9;
     }
 
-    .feature-list {
+    .features {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-top: 32px;
+      margin-top: 30px;
       max-width: 465px;
     }
 
@@ -213,16 +197,16 @@
       display: flex;
       align-items: center;
       gap: 11px;
-      padding: 14px;
+      padding: 13px;
+      border: 1px solid var(--border);
       border-radius: 13px;
       background: rgba(255,255,255,.025);
-      border: 1px solid var(--border);
     }
 
     .feature-icon {
-      flex-shrink: 0;
       width: 34px;
       height: 34px;
+      flex-shrink: 0;
       display: grid;
       place-items: center;
       border-radius: 10px;
@@ -233,7 +217,7 @@
 
     .feature strong {
       display: block;
-      font-size: 11px;
+      font-size: 10px;
       margin-bottom: 5px;
     }
 
@@ -243,9 +227,9 @@
     }
 
     .credit {
-      color: #747d98;
+      margin-top: 27px;
+      color: #7c86a0;
       font-size: 11px;
-      margin-top: 30px;
     }
 
     .credit strong {
@@ -254,33 +238,27 @@
     }
 
     .auth-card {
-      width: 100%;
-      padding: 32px;
-      border-radius: 23px;
-      background: var(--panel);
+      padding: 30px;
       border: 1px solid rgba(157,180,225,.17);
-      box-shadow: 0 25px 90px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.035);
-      backdrop-filter: blur(18px);
-      animation: rise .8s .1s ease both;
+      border-radius: 22px;
+      background: rgba(17,20,38,.91);
+      box-shadow: 0 25px 80px rgba(0,0,0,.28);
+      backdrop-filter: blur(15px);
+      animation: enter .8s .1s ease both;
     }
 
-    .card-heading {
-      margin-bottom: 27px;
-    }
-
-    .card-heading .mini-label {
+    .mini-label {
+      margin-bottom: 11px;
       color: var(--cyan);
       font-size: 10px;
-      letter-spacing: 2px;
       font-weight: 800;
-      margin-bottom: 11px;
+      letter-spacing: 2px;
     }
 
     .card-heading h2 {
-      font-size: 25px;
-      font-weight: 800;
-      letter-spacing: -.7px;
       margin-bottom: 9px;
+      font-size: 25px;
+      letter-spacing: -.7px;
     }
 
     .card-heading p {
@@ -292,27 +270,27 @@
     .mode-switch {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin: 24px 0;
       padding: 5px;
+      border: 1px solid var(--border);
       border-radius: 12px;
       background: #090b18;
-      border: 1px solid var(--border);
-      margin-bottom: 25px;
     }
 
     .mode-btn {
+      padding: 12px;
       border: 0;
-      color: var(--muted);
-      background: transparent;
-      padding: 12px 8px;
       border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
       font-size: 12px;
       font-weight: 700;
-      transition: .2s ease;
     }
 
     .mode-btn.active {
-      background: #19283a;
       color: var(--cyan);
+      background: #19283a;
       box-shadow: inset 0 0 0 1px rgba(72,230,255,.17);
     }
 
@@ -322,10 +300,10 @@
 
     .form-group label {
       display: block;
+      margin-bottom: 9px;
+      color: #d5dbee;
       font-size: 11px;
       font-weight: 700;
-      color: #d5dbee;
-      margin-bottom: 9px;
     }
 
     .input-wrap {
@@ -336,32 +314,31 @@
       width: 100%;
       height: 48px;
       padding: 0 14px;
-      outline: none;
-      border-radius: 11px;
       border: 1px solid rgba(157,180,225,.16);
-      background: rgba(5,7,17,.65);
+      border-radius: 11px;
+      outline: none;
+      background: #090b17;
       color: var(--text);
       font-size: 12px;
-      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .input-wrap input:focus {
+      border-color: rgba(72,230,255,.7);
+      box-shadow: 0 0 0 3px rgba(72,230,255,.07);
     }
 
     .input-wrap input::placeholder {
       color: #606a85;
     }
 
-    .input-wrap input:focus {
-      border-color: rgba(72,230,255,.65);
-      box-shadow: 0 0 0 3px rgba(72,230,255,.07);
-    }
-
     .password-input {
-      padding-right: 68px !important;
+      padding-right: 65px !important;
     }
 
     .toggle-password {
       position: absolute;
-      right: 12px;
       top: 50%;
+      right: 12px;
       transform: translateY(-50%);
       border: 0;
       background: transparent;
@@ -374,8 +351,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      margin: 4px 0 21px;
+      margin: 2px 0 20px;
       color: var(--muted);
       font-size: 10px;
     }
@@ -394,21 +370,20 @@
       width: 100%;
       min-height: 49px;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       gap: 10px;
       border: 0;
       border-radius: 11px;
+      background: linear-gradient(100deg,var(--cyan),#8cefff);
       color: #071019;
-      background: linear-gradient(100deg, #48e6ff, #8cefff);
       font-size: 12px;
       font-weight: 800;
-      box-shadow: 0 8px 28px rgba(72,230,255,.13);
-      transition: transform .2s, filter .2s, opacity .2s;
+      transition: .2s;
     }
 
     .primary-btn:hover {
-      filter: brightness(1.06);
+      filter: brightness(1.07);
       transform: translateY(-1px);
     }
 
@@ -420,8 +395,8 @@
 
     .form-message {
       display: none;
-      padding: 12px 13px;
       margin-bottom: 16px;
+      padding: 12px;
       border-radius: 10px;
       font-size: 11px;
       line-height: 1.6;
@@ -433,12 +408,14 @@
     }
 
     .form-message.error {
+      display: block;
       color: #ffb5bd;
       background: rgba(255,114,127,.08);
       border: 1px solid rgba(255,114,127,.2);
     }
 
     .form-message.success {
+      display: block;
       color: #a5ffd0;
       background: rgba(103,245,176,.07);
       border: 1px solid rgba(103,245,176,.2);
@@ -446,7 +423,6 @@
 
     .security-note {
       display: flex;
-      align-items: flex-start;
       gap: 9px;
       margin-top: 20px;
       padding-top: 17px;
@@ -457,15 +433,15 @@
     }
 
     .security-note span {
-      color: var(--success);
+      color: var(--green);
     }
 
     .terms {
-      color: #6f7892;
-      font-size: 9px;
-      line-height: 1.7;
+      margin-top: 17px;
+      color: #7c86a0;
       text-align: center;
-      margin-top: 18px;
+      font-size: 9px;
+      line-height: 1.8;
     }
 
     .terms a {
@@ -474,30 +450,31 @@
     }
 
     .footer {
-      width: min(1120px, 100%);
-      margin: auto;
-      padding: 20px 24px 27px;
-      border-top: 1px solid rgba(157,180,225,.08);
       display: flex;
       justify-content: space-between;
       gap: 15px;
+      padding: 20px 24px 25px;
+      border-top: 1px solid rgba(157,180,225,.08);
       color: #6e7892;
       font-size: 10px;
     }
 
     .footer strong {
-      color: #aeb8d1;
+      color: #b5bfd8;
       font-weight: 600;
     }
 
+    /* Intro loading */
     .intro {
       position: fixed;
-      z-index: 1000;
       inset: 0;
+      z-index: 99999;
       display: grid;
       place-items: center;
       background: #070814;
-      transition: opacity .65s ease, visibility .65s ease;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .45s ease, visibility .45s ease;
     }
 
     .intro.hide {
@@ -507,29 +484,29 @@
     }
 
     .intro-content {
-      text-align: center;
       padding: 25px;
+      text-align: center;
     }
 
     .intro-logo {
-      width: 80px;
-      height: 80px;
+      width: 78px;
+      height: 78px;
       display: grid;
       place-items: center;
-      margin: 0 auto 24px;
-      border-radius: 24px;
+      margin: 0 auto 23px;
       border: 1px solid rgba(72,230,255,.45);
-      background: linear-gradient(145deg, #172c40, #0d1020);
+      border-radius: 23px;
+      background: linear-gradient(145deg,#193047,#101322);
       color: var(--cyan);
-      font-family: "Orbitron", sans-serif;
+      font-family: "Orbitron",sans-serif;
       font-size: 35px;
       font-weight: 800;
-      box-shadow: 0 0 55px rgba(72,230,255,.13);
+      box-shadow: 0 0 50px rgba(72,230,255,.13);
       animation: pulse 1.4s ease-in-out infinite;
     }
 
     .intro-title {
-      font-family: "Orbitron", sans-serif;
+      font-family: "Orbitron",sans-serif;
       font-size: 27px;
       font-weight: 800;
       letter-spacing: 5px;
@@ -540,31 +517,31 @@
     }
 
     .intro-subtitle {
+      margin-top: 10px;
       color: var(--muted);
       font-size: 10px;
       letter-spacing: 3px;
-      margin-top: 10px;
     }
 
     .loader-track {
       width: 200px;
       height: 3px;
+      margin: 28px auto 13px;
+      overflow: hidden;
       border-radius: 5px;
       background: #20243a;
-      margin: 28px auto 12px;
-      overflow: hidden;
     }
 
     .loader-bar {
       width: 0;
       height: 100%;
       border-radius: 5px;
-      background: linear-gradient(90deg, var(--cyan), var(--amber));
+      background: linear-gradient(90deg,var(--cyan),var(--amber));
       animation: load 1.8s ease forwards;
     }
 
     .loading-text {
-      color: #69738f;
+      color: #7c86a0;
       font-size: 9px;
       letter-spacing: 2px;
     }
@@ -574,58 +551,44 @@
     }
 
     @keyframes pulse {
-      50% { transform: scale(1.04); box-shadow: 0 0 75px rgba(72,230,255,.23); }
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 0 70px rgba(72,230,255,.23);
+      }
     }
 
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(18px); }
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 850px) {
       .main {
-        grid-template-columns: 1fr 400px;
-        gap: 30px;
+        grid-template-columns: 1fr 390px;
+        gap: 28px;
       }
 
-      .hero h1 {
-        font-size: clamp(36px, 5vw, 52px);
-      }
-
-      .feature-list {
+      .features {
         grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 700px) {
       .topbar {
-        padding: 19px 18px;
-      }
-
-      .top-status {
-        font-size: 9px;
-        padding: 8px 10px;
+        padding: 18px;
       }
 
       .main {
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 27px;
-        padding: 25px 18px 45px;
-      }
-
-      .hero {
-        padding: 0;
-      }
-
-      .eyebrow {
-        margin-bottom: 18px;
+        gap: 28px;
+        padding: 25px 18px 40px;
       }
 
       .hero h1 {
-        font-size: clamp(39px, 10vw, 54px);
-        letter-spacing: -1.8px;
+        font-size: clamp(38px,10vw,54px);
+        letter-spacing: -1.7px;
         margin-bottom: 15px;
       }
 
@@ -633,17 +596,16 @@
         font-size: 12px;
       }
 
-      .feature-list {
+      .features {
         display: none;
       }
 
       .credit {
-        margin-top: 17px;
+        margin-top: 16px;
       }
 
       .auth-card {
-        padding: 25px 21px;
-        border-radius: 19px;
+        padding: 24px 20px;
       }
 
       .footer {
@@ -652,22 +614,11 @@
       }
     }
 
-    @media (max-width: 380px) {
-      .brand-name {
-        font-size: 16px;
-      }
-
-      .brand-caption {
-        font-size: 8px;
-      }
-
-      .top-status {
-        font-size: 8px;
-      }
-
-      .auth-card {
-        padding: 22px 16px;
-      }
+    @media (max-width: 370px) {
+      .brand-name { font-size: 16px; }
+      .brand-caption { font-size: 8px; }
+      .online { font-size: 8px; padding: 8px; }
+      .auth-card { padding: 21px 15px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -681,6 +632,7 @@
 </head>
 
 <body>
+  <!-- Intro: tidak bergantung pada Supabase atau auth.js -->
   <div class="intro" id="intro">
     <div class="intro-content">
       <div class="intro-logo">V</div>
@@ -703,8 +655,8 @@
         </div>
       </div>
 
-      <div class="top-status">
-        <span class="status-dot"></span>
+      <div class="online">
+        <span class="online-dot"></span>
         PLATFORM ONLINE
       </div>
     </header>
@@ -712,13 +664,13 @@
     <main class="main">
       <section class="hero">
         <div class="eyebrow">
-          <span class="eyebrow-mark"></span>
+          <i></i>
           YOUR DIGITAL WORKSPACE
         </div>
 
         <h1>
           Build more.
-          <span class="highlight">Do it smarter.</span>
+          <span>Do it smarter.</span>
         </h1>
 
         <p class="hero-description">
@@ -727,7 +679,7 @@
           workspace yang dirancang untuk produktivitas kamu.
         </p>
 
-        <div class="feature-list">
+        <div class="features">
           <div class="feature">
             <div class="feature-icon">⌘</div>
             <div>
@@ -740,7 +692,7 @@
             <div class="feature-icon">◇</div>
             <div>
               <strong>Modern Workspace</strong>
-              <small>Antarmuka cepat dan nyaman</small>
+              <small>Antarmuka modern dan nyaman</small>
             </div>
           </div>
 
@@ -774,12 +726,8 @@
         </div>
 
         <div class="mode-switch">
-          <button class="mode-btn active" id="loginTab" type="button">
-            Login
-          </button>
-          <button class="mode-btn" id="registerTab" type="button">
-            Register
-          </button>
+          <button class="mode-btn active" id="loginTab" type="button">Login</button>
+          <button class="mode-btn" id="registerTab" type="button">Register</button>
         </div>
 
         <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
@@ -814,9 +762,7 @@
                 maxlength="128"
                 required
               >
-              <button class="toggle-password" id="togglePassword" type="button">
-                LIHAT
-              </button>
+              <button class="toggle-password" id="togglePassword" type="button">LIHAT</button>
             </div>
           </div>
 
@@ -850,20 +796,76 @@
         </form>
 
         <div class="security-note">
-          <span aria-hidden="true">●</span>
-          <div>
-            Gunakan email dan password milik kamu sendiri.
-            Jangan bagikan password kepada siapa pun.
-          </div>
+          <span>●</span>
+          <div>Gunakan email dan password milik kamu sendiri. Jangan bagikan password kepada siapa pun.</div>
         </div>
 
         <p class="terms">
-          Dengan melanjutkan, kamu setuju menggunakan platform secara
-          bertanggung jawab. <br>
-          <span>VEXORA</span> · <a href="#" id="switchLink">Belum punya akun? Daftar</a>
+          Gunakan platform secara bertanggung jawab.<br>
+          VEXORA · <a href="#" id="switchLink">Belum punya akun? Daftar</a>
         </p>
       </section>
     </main>
 
     <footer class="footer">
-      <span>© <span id="currentYear"></span> <strong>VEXORA</stro
+      <span>© <span id="currentYear"></span> <strong>VEXORA</strong></span>
+      <span>Built by <strong>Z4M OFFICIAL</strong></span>
+    </footer>
+  </div>
+
+  <!-- Library dan file auth dimuat terpisah -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+
+  <!-- Loading selalu punya batas waktu -->
+  <script>
+    (function () {
+      function hideIntro() {
+        var intro = document.getElementById("intro");
+        if (!intro) return;
+
+        intro.classList.add("hide");
+
+        // Cadangan jika CSS transisi tidak berjalan.
+        setTimeout(function () {
+          if (intro && intro.parentNode) {
+            intro.style.display = "none";
+          }
+        }, 700);
+      }
+
+      function initPage() {
+        var year = document.getElementById("currentYear");
+        var loadingText = document.getElementById("loadingText");
+
+        if (year) {
+          year.textContent = new Date().getFullYear();
+        }
+
+        if (loadingText) {
+          setTimeout(function () {
+            loadingText.textContent = "WELCOME TO VEXORA.";
+          }, 900);
+        }
+
+        // Waktu normal.
+        setTimeout(hideIntro, 2200);
+
+        // Batas cadangan.
+        setTimeout(hideIntro, 3500);
+      }
+
+      // Jalankan tanpa menunggu Supabase atau auth.js.
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initPage);
+      } else {
+        initPage();
+      }
+
+      // Pengaman tambahan bila event halaman terlambat.
+      setTimeout(hideIntro, 5000);
+    })();
+  </script>
+</body>
+</html>
