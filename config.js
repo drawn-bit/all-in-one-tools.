@@ -5,7 +5,7 @@
   JANGAN taruh service_role/secret key di file ini.
 */
 window.VEXORA_CONFIG = {
-  SUPABASE_URL: "ISI_SUPABASE_PROJECT_URL",
-  SUPABASE_ANON_KEY: "ISI_SUPABASE_PUBLISHABLE_ATAU_ANON_KEY",
+  SUPABASE_URL: "https://qptodukoopzpmxpoydvo.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_eda80TOf38r0CiUJx1SSwA_-bWAsl8a",
   TURNSTILE_SITE_KEY: "ISI_CLOUDFLARE_TURNSTILE_SITE_KEY"
 };
