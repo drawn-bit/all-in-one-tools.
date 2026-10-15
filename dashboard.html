@@ -3,456 +3,286 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080b10">
-<title>VEXORA | Dashboard</title>
-
+<meta name="theme-color" content="#020b18">
+<title>VEXORA — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#080b10;
-  --surface:#10151e;
-  --surface2:#151c27;
-  --line:#252d3a;
-  --text:#f3f6fb;
-  --muted:#929eaf;
-  --cyan:#58dff5;
-  --gold:#f0c674;
+  --bg:#020914; --panel:#07182b; --panel2:#091e35;
+  --line:#12375a; --blue:#078bff; --cyan:#36dcff;
+  --text:#eef7ff; --muted:#83a3c5; --gold:#ffcb55;
 }
-* { box-sizing:border-box }
-body {
-  margin:0;
-  color:var(--text);
-  background:var(--bg);
-  font-family:Inter,Arial,sans-serif;
-  padding-bottom:95px;
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 70% 0%,#0b2341 0,transparent 48%),var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
+button,input{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer}
+.topbar{height:76px;display:flex;align-items:center;gap:22px;padding:0 25px;border-bottom:1px solid var(--line);background:#031020ed;position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:11px;min-width:240px}
+.logo{width:45px;height:45px;filter:drop-shadow(0 0 10px #078bff)}
+.brand-name{font-size:22px;font-weight:800;letter-spacing:4px}
+.brand-sub{font-size:9px;color:#9ab7d5;letter-spacing:1.5px;margin-top:4px}
+.search{flex:1;max-width:460px;position:relative}
+.search input{width:100%;padding:13px 17px 13px 42px;background:#071c32;border:1px solid #102f4c;border-radius:30px;color:white;outline:none}
+.search input:focus{border-color:var(--blue);box-shadow:0 0 15px #078bff30}
+.search span{position:absolute;left:15px;top:11px;color:#8db9e8;font-size:20px}
+.top-actions{margin-left:auto;display:flex;align-items:center;gap:15px}
+.icon-btn{background:none;color:white;border:0;font-size:22px;padding:7px}
+.user-top{display:flex;align-items:center;gap:12px;border-left:1px solid var(--line);padding-left:17px}
+.avatar{width:45px;height:45px;border:1px solid var(--cyan);border-radius:50%;background:#000;display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+.avatar svg{width:34px;height:34px}
+.user-name{font-size:12px;font-weight:600}
+.role-pill{display:inline-block;margin-top:5px;padding:4px 10px;border-radius:15px;background:#005ca7;color:#a6eaff;font-size:10px;font-weight:800}
+.layout{display:grid;grid-template-columns:265px minmax(0,1fr);min-height:calc(100vh - 76px)}
+.sidebar{padding:15px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:7px;background:#041222}
+.nav-btn{display:flex;align-items:center;gap:14px;padding:13px 16px;border:1px solid transparent;border-radius:11px;color:#d5e6f8;background:transparent;text-align:left;width:100%;font-size:14px}
+.nav-btn .nav-icon{font-size:20px;width:23px;text-align:center}
+.nav-btn:hover,.nav-btn.active{background:linear-gradient(100deg,#064b8c,#07305c);border-color:#1267a4;color:#6be5ff}
+.nav-btn.owner-link .nav-icon{color:var(--gold)}
+.sidebar-bottom{margin-top:auto}
+.side-brand{text-align:center;padding:28px 0 18px}
+.side-brand .logo{width:65px;height:65px}
+.side-brand strong{display:block;letter-spacing:5px;font-size:19px}
+.side-brand small{font-size:8px;letter-spacing:1px;color:var(--muted)}
+.contact-box,.panel{background:linear-gradient(145deg,#081a2e,#041020);border:1px solid var(--line);border-radius:15px;box-shadow:0 8px 28px #0003}
+.contact-box{padding:15px;margin-top:8px}
+.contact-box h3{font-size:14px;margin:0 0 13px}
+.contact-link{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #12304b}
+.contact-link:last-child{border-bottom:0}
+.contact-icon{width:37px;height:37px;display:grid;place-items:center;border-radius:11px;background:#063d63;font-size:20px;flex-shrink:0}
+.contact-link b{font-size:11px;display:block;margin:2px 0 5px}
+.contact-link small{font-size:10px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.mini-link{display:inline-block;margin-top:7px;padding:6px 9px;background:#07569a;border-radius:8px;font-size:10px}
+.side-footer{text-align:center;font-size:10px;color:#7193b5;padding:17px 0 5px}
+main{min-width:0;padding:17px 20px 95px}
+.banner{height:185px;border-radius:16px;border:1px solid #13538a;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:space-around;padding:25px;background:linear-gradient(110deg,#04132a,#073d78 55%,#03152a);isolation:isolate}
+.banner:before{content:"";position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(120deg,transparent 0 55px,#1674bf16 56px 58px),radial-gradient(ellipse at 65% 50%,#087dff42,transparent 55%)}
+.banner:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,transparent,#03102055,transparent)}
+.banner-logo{display:flex;align-items:center;gap:18px}
+.banner-logo .logo{width:83px;height:83px}
+.banner-title{font-size:clamp(25px,4vw,49px);font-weight:800;letter-spacing:8px}
+.banner-sub{text-align:center;letter-spacing:3px;font-size:12px;margin-top:8px;color:#c8eaff}
+.banner-tagline{font-size:20px;line-height:1.5;color:#c2e5ff}
+.banner-tagline b{color:white}
+.banner-controls{position:absolute;right:18px;bottom:15px;display:flex;gap:10px}
+.round-btn{border:1px solid #237cc2;background:#07519b;color:white;border-radius:50%;width:38px;height:38px}
+.welcome{display:flex;align-items:center;gap:14px;padding:15px;margin-top:13px}
+.welcome-text{flex:1}
+.welcome-text b{font-size:14px}
+.welcome-text p{margin:6px 0 0;color:#5bcfff;font-size:11px;line-height:1.6}
+.stats{display:flex;gap:0;flex-wrap:wrap}
+.stat{padding:7px 16px;border-left:1px solid var(--line);min-width:115px}
+.stat span{display:block;color:var(--muted);font-size:10px;margin-bottom:6px}
+.stat strong{font-size:12px}
+.gold{color:var(--gold)!important}.green{color:#29e8b0!important}
+.section{margin-top:17px;padding:17px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}
+.section-head h2{font-size:15px;margin:0}
+.text-link{font-size:11px;color:var(--cyan);background:none;border:0}
+.featured-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.tool-card{border:1px solid #12385a;border-radius:13px;background:linear-gradient(145deg,#071a2e,#04101f);padding:14px;min-width:0;transition:.2s}
+.tool-card:hover{transform:translateY(-3px);border-color:#078bff;box-shadow:0 0 22px #078bff18}
+.tool-top{display:flex;justify-content:space-between;align-items:center;gap:5px}
+.tool-icon{width:42px;height:42px;display:grid;place-items:center;font-size:23px;border-radius:13px;background:#061c39;border:1px solid #164d86}
+.vip-tag{font-size:10px;color:var(--gold);border:1px solid #8a6a27;border-radius:12px;padding:4px 8px}
+.tool-card h3{font-size:12px;margin:12px 0 6px;line-height:1.5}
+.tool-card p{font-size:10px;color:var(--muted);min-height:29px;line-height:1.5;margin:0 0 12px}
+.primary-btn{width:100%;padding:10px 8px;border:1px solid #1676c8;border-radius:9px;background:linear-gradient(100deg,#0752a0,#0872c6);color:white;font-size:11px}
+.primary-btn:hover{filter:brightness(1.2)}
+.lower-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:17px}
+.role-panel{padding:16px;min-width:0}
+.role-head{display:flex;align-items:center;gap:12px}
+.role-emblem{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;font-size:24px;border:1px solid var(--cyan);color:var(--cyan)}
+.role-emblem.vip{border-color:var(--gold);color:var(--gold)}
+.role-head h3{font-size:14px;margin:0 0 5px}
+.role-head p{font-size:10px;color:var(--muted);line-height:1.6;margin:0}
+.mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:15px 0}
+.mini-tool{min-height:73px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid #123653;border-radius:10px;background:#061528;color:#dcefff;font-size:10px;text-align:center}
+.mini-tool span{font-size:20px}
+.mini-tool:hover{border-color:var(--cyan)}
+.gold-btn{background:linear-gradient(100deg,#80560a,#b98920);border-color:#e7b944}
+.updates{padding:16px}
+.update-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #102b45}
+.update-row:last-of-type{border-bottom:0}
+.update-icon{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;background:#172d8a;font-size:17px;flex-shrink:0}
+.update-row b{font-size:11px}
+.update-row p{margin:5px 0 0;color:var(--muted);font-size:10px;line-height:1.5}
+.update-date{margin-left:auto;font-size:9px;color:var(--muted);white-space:nowrap}
+.thanks{padding:13px;border:1px solid #16436a;border-radius:12px;background:#061a2c;display:flex;gap:10px;align-items:center;margin-top:10px}
+.thanks .logo{width:39px;height:39px}
+.thanks b{font-size:12px}.thanks p{font-size:10px;line-height:1.5;color:var(--muted);margin:4px 0}
+.page{display:none}.page.active{display:block}
+.empty-state{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.field{width:100%;padding:12px;background:#061528;border:1px solid var(--line);border-radius:9px;color:white;margin:8px 0 15px}
+.bottom-nav{display:none}
+.notice{font-size:12px;color:var(--muted);line-height:1.7}
+@media(max-width:1250px){
+ .layout{grid-template-columns:220px minmax(0,1fr)}
+ .featured-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .lower-grid{grid-template-columns:1fr 1fr}
+ .updates{grid-column:1/-1}
+ .brand{min-width:210px}
 }
-button,input { font:inherit }
-button { cursor:pointer }
-button:focus-visible,a:focus-visible,input:focus-visible {
-  outline:2px solid var(--cyan);
-  outline-offset:3px;
-}
-a { color:inherit;text-decoration:none }
-button { -webkit-tap-highlight-color:transparent }
-
-.topbar {
-  height:72px;
-  padding:0 20px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  position:sticky;
-  top:0;
-  z-index:20;
-  background:#080b10ed;
-  backdrop-filter:blur(18px);
-  border-bottom:1px solid var(--line);
-}
-.brand {
-  font-size:23px;
-  font-weight:900;
-  letter-spacing:2.4px;
-}
-.brand .x { color:var(--cyan) }
-.dev {
-  display:block;
-  font-size:9px;
-  letter-spacing:1.5px;
-  color:var(--muted);
-  margin-top:5px;
-}
-.menu-wrap { position:relative }
-.icon-btn {
-  height:42px;width:42px;
-  border:1px solid var(--line);
-  border-radius:50%;
-  background:var(--surface);
-  color:white;font-size:23px;
-}
-.dropdown {
-  display:none;
-  position:absolute;
-  right:0;top:50px;
-  width:205px;
-  padding:7px;
-  background:#131a25;
-  border:1px solid var(--line);
-  border-radius:15px;
-  box-shadow:0 16px 45px #0009;
-}
-.dropdown.show { display:block }
-.dropdown button {
-  width:100%;text-align:left;
-  padding:12px;border:0;
-  border-radius:9px;
-  color:var(--text);background:transparent;
-}
-.dropdown button:hover { background:#ffffff0c }
-
-main { max-width:960px;margin:auto;padding:20px 17px }
-.page { display:none }
-.page.active { display:block }
-.eyebrow {
-  color:var(--cyan);
-  font-size:10px;font-weight:700;
-  letter-spacing:2px;
-}
-h1 { font-size:clamp(27px,6vw,38px);margin:11px 0 }
-h2 { font-size:19px;margin:0 }
-h3 { font-size:15px;margin:0 }
-.muted { color:var(--muted);line-height:1.65;font-size:13px }
-.hero { padding:16px 2px 8px }
-.hero p { max-width:580px }
-
-.banner {
-  margin:20px 0;
-  position:relative;
-  overflow:hidden;
-  min-height:180px;
-  border:1px solid var(--line);
-  border-radius:19px;
-  background:
-    radial-gradient(ellipse at 80% 10%,#17627b88,transparent 45%),
-    linear-gradient(120deg,#15202e,#0b111a);
-}
-.banner video {
-  display:block;width:100%;height:190px;
-  object-fit:cover;
-}
-.banner-overlay {
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  justify-content:flex-end;
-  padding:20px;
-  background:linear-gradient(0deg,#05080eef,transparent 85%);
-  pointer-events:none;
-}
-.banner-overlay h2 {
-  font-size:26px;letter-spacing:3px;
-}
-.banner-overlay p { margin:7px 0 0;color:#c0ccd8;font-size:12px }
-.banner-controls {
-  position:absolute;right:10px;top:10px;
-  display:flex;gap:7px;
-}
-.banner-controls button {
-  border:1px solid #ffffff28;
-  background:#080b10d9;color:white;
-  padding:8px 10px;border-radius:9px;
-  font-size:12px;
-}
-
-.section-head {
-  display:flex;align-items:center;
-  justify-content:space-between;gap:10px;
-  margin:25px 0 14px;
-}
-.link-btn {
-  border:0;background:transparent;
-  color:var(--cyan);font-size:12px;
-}
-.stats {
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;margin:18px 0;
-}
-.stat,.panel,.tool-card,.contact-card {
-  min-width:0;
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:15px;
-}
-.stat { padding:15px }
-.stat small { color:var(--muted);font-size:11px }
-.stat strong { display:block;margin-top:8px;font-size:16px;overflow-wrap:anywhere }
-.stat .cyan { color:var(--cyan) }
-.stat .gold { color:var(--gold) }
-
-.notice {
-  padding:13px 14px;
-  border:1px solid #58dff52b;
-  border-radius:12px;
-  background:#58dff508;
-  color:#b9c7d7;
-  font-size:12px;line-height:1.6;
-}
-.contact-grid {
-  display:grid;grid-template-columns:1fr;gap:10px;
-}
-.contact-card {
-  padding:15px;display:flex;align-items:center;gap:13px;
-  transition:border-color .2s;
-}
-.contact-card:hover { border-color:#58dff57a }
-.contact-icon {
-  width:43px;height:43px;flex-shrink:0;
-  display:grid;place-items:center;
-  border-radius:13px;background:#1b2430;font-size:20px;
-}
-.contact-card h3 { margin-bottom:5px }
-.contact-card p { margin:0;color:var(--muted);font-size:12px;line-height:1.5 }
-.contact-arrow { margin-left:auto;color:var(--muted) }
-
-.search {
-  width:100%;padding:14px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  color:white;background:var(--surface);
-  outline:none;margin:7px 0 13px;
-}
-.search:focus { border-color:var(--cyan) }
-.categories {
-  display:flex;gap:8px;overflow-x:auto;
-  padding:2px 0 13px;
-}
-.category {
-  white-space:nowrap;padding:9px 14px;
-  border:1px solid var(--line);border-radius:25px;
-  color:var(--muted);background:var(--surface);
-  font-size:12px;
-}
-.category.active {
-  color:var(--cyan);border-color:#58dff56b;
-  background:#58dff50c;
-}
-.tools-grid {
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:11px;
-}
-.tool-card {
-  display:flex;flex-direction:column;align-items:flex-start;
-  padding:15px;gap:11px;
-}
-.tool-icon {
-  width:42px;height:42px;display:grid;place-items:center;
-  border:1px solid var(--line);
-  background:#161f2b;border-radius:12px;font-size:21px;
-}
-.pill {
-  display:inline-flex;align-items:center;
-  padding:5px 8px;border-radius:20px;
-  background:#58dff510;color:var(--cyan);
-  font-size:9px;letter-spacing:.5px;font-weight:700;
-}
-.pill.vip { color:var(--gold);background:#f0c67412 }
-.tool-card h3 { overflow-wrap:anywhere }
-.tool-card p {
-  color:var(--muted);font-size:12px;line-height:1.55;
-  margin:0;overflow-wrap:anywhere;
-}
-.tool-open {
-  width:100%;margin-top:auto;
-  padding:10px;border:1px solid #58dff53b;
-  border-radius:9px;background:#58dff508;
-  color:var(--cyan);font-size:12px;
-}
-.tool-open:disabled {
-  color:var(--muted);border-color:var(--line);
-  background:#ffffff04;cursor:not-allowed;
-}
-.empty { display:none;text-align:center;padding:28px;color:var(--muted) }
-
-.panel { padding:18px;margin-bottom:12px }
-.profile-top { display:flex;align-items:center;gap:14px;margin-bottom:20px }
-.avatar {
-  width:65px;height:65px;flex-shrink:0;
-  overflow:hidden;border-radius:50%;
-  background:#171717;border:1px solid #343434;
-}
-.avatar svg { width:100%;height:100%;display:block }
-.profile-row {
-  display:flex;justify-content:space-between;gap:12px;
-  padding:13px 0;border-bottom:1px solid var(--line);
-  font-size:12px;
-}
-.profile-row span { color:var(--muted) }
-.profile-row strong { text-align:right;overflow-wrap:anywhere }
-.action-btn {
-  width:100%;padding:13px;margin-top:11px;
-  border:1px solid var(--line);border-radius:10px;
-  background:var(--surface2);color:white;
-}
-.action-btn.primary { color:#071014;background:var(--cyan);font-weight:700 }
-
-.bottom-nav {
-  position:fixed;z-index:30;bottom:0;left:0;right:0;
-  display:grid;grid-template-columns:repeat(3,1fr);
-  padding:9px 12px calc(9px + env(safe-area-inset-bottom));
-  background:#0b1018f5;backdrop-filter:blur(18px);
-  border-top:1px solid var(--line);
-}
-.nav-btn {
-  border:0;background:transparent;color:var(--muted);
-  padding:7px 3px;border-radius:11px;font-size:11px;
-}
-.nav-btn span { display:block;font-size:20px;margin-bottom:5px }
-.nav-btn.active { color:var(--cyan);background:#58dff50b }
-.footer { padding:26px 0 8px;text-align:center;color:#647184;font-size:10px }
-
-@media(min-width:600px) {
-  main { padding:28px 24px }
-  .stats { grid-template-columns:repeat(4,minmax(0,1fr)) }
-  .tools-grid { grid-template-columns:repeat(3,minmax(0,1fr)) }
-  .contact-grid { grid-template-columns:repeat(3,minmax(0,1fr)) }
-  .banner video { height:250px }
-}
-@media(max-width:360px) {
-  .tools-grid { grid-template-columns:1fr }
-  .brand { font-size:20px }
-  main { padding:15px 12px }
+@media(max-width:760px){
+ .topbar{height:65px;padding:0 13px;gap:10px}
+ .brand{min-width:0}.brand .logo{width:36px;height:36px}
+ .brand-name{font-size:17px;letter-spacing:2px}.brand-sub{font-size:7px}
+ .search{display:none}.top-actions{gap:3px}.user-top{padding-left:8px;gap:7px}
+ .user-top .avatar{width:37px;height:37px}.user-name{max-width:95px;font-size:10px}
+ .layout{display:block;min-height:calc(100vh - 65px)}
+ .sidebar{display:none}
+ main{padding:12px 11px 95px}
+ .banner{height:175px;padding:15px;justify-content:flex-start}
+ .banner-logo{gap:8px}.banner-logo .logo{width:48px;height:48px}
+ .banner-title{font-size:24px;letter-spacing:3px}
+ .banner-sub{font-size:8px;letter-spacing:1px}
+ .banner-tagline{display:none}
+ .welcome{flex-wrap:wrap;padding:12px;gap:10px}
+ .welcome-text{min-width:calc(100% - 65px)}
+ .stats{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
+ .stat{min-width:0;padding:8px;border-left:0;border-top:1px solid var(--line)}
+ .stat strong{font-size:10px}
+ .section{padding:12px;margin-top:12px}
+ .featured-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .tool-card{padding:10px}
+ .tool-card h3{font-size:11px}
+ .lower-grid{grid-template-columns:1fr;gap:12px;margin-top:12px}
+ .updates{grid-column:auto}
+ .bottom-nav{position:fixed;display:grid;grid-template-columns:repeat(3,1fr);bottom:9px;left:5%;width:90%;z-index:20;padding:7px;background:#06182beF;border:1px solid #145084;border-radius:18px;box-shadow:0 0 22px #007bff35;backdrop-filter:blur(12px)}
+ .bottom-nav button{border:0;background:transparent;color:#a9c5df;padding:7px;font-size:10px}
+ .bottom-nav button span{display:block;font-size:20px;margin-bottom:4px}
+ .bottom-nav button.active{color:var(--cyan)}
+ .banner-controls{right:10px;bottom:10px}
 }
 </style>
 </head>
-
 <body>
 <header class="topbar">
-  <div>
-    <div class="brand">VE<span class="x">X</span>ORA</div>
-    <small class="dev">DEVELOPED BY Z4M OFFICIAL</small>
-  </div>
-  <div class="menu-wrap">
-    <button class="icon-btn" id="menuBtn" aria-label="Menu">⋮</button>
-    <div class="dropdown" id="dropdownMenu">
-      <button data-page="profile">◉ &nbsp; Profil saya</button>
-      <button data-page="settings">⚙ &nbsp; Pengaturan</button>
-      <button data-page="updates">▤ &nbsp; Pengumuman</button>
-      <button id="ownerMenuItem" data-page="owner" hidden>♛ &nbsp; Panel Owner</button>
-      <button id="menuLogout">↪ &nbsp; Keluar akun</button>
+  <a href="dashboard.html" class="brand" aria-label="VEXORA Home">
+    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M8 13 34 28 49 5 91 13 64 68 50 91 36 68Z" fill="#078bff"/>
+      <path d="M17 22 39 37 50 19 80 20 62 61 50 78 39 59Z" fill="#071b35"/>
+      <path d="M28 28 48 44 67 26 53 59 48 67Z" fill="#b9f5ff"/>
+      <path d="M39 44 49 53 61 40 51 66Z" fill="#078bff"/>
+    </svg>
+    <div><div class="brand-name">VEXORA</div><div class="brand-sub">DEVELOPED BY Z4M OFFICIAL</div></div>
+  </a>
+  <label class="search"><span>⌕</span><input id="searchInput" placeholder="Cari tools, fitur, atau apa saja..." autocomplete="off"></label>
+  <div class="top-actions">
+    <button class="icon-btn" id="noticeBtn" title="Pengumuman">♧</button>
+    <div class="user-top">
+      <div class="avatar" aria-label="Avatar default">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="13" r="8" fill="#111"/><path d="M5 37c0-10 6-16 15-16s15 6 15 16" fill="#111"/></svg>
+      </div>
+      <div><div class="user-name" id="topName">Memuat akun...</div><span class="role-pill" id="topRole">MEMBER</span></div>
     </div>
   </div>
 </header>
 
+<div class="layout">
+<aside class="sidebar">
+  <button class="nav-btn active" data-page="home"><span class="nav-icon">⌂</span>Menu</button>
+  <button class="nav-btn" data-page="tools"><span class="nav-icon">⚒</span>Tools</button>
+  <button class="nav-btn owner-link" id="ownerNav" data-page="owner" hidden><span class="nav-icon">♛</span>Panel (Owner)</button>
+  <button class="nav-btn" data-page="profile"><span class="nav-icon">♙</span>Profil</button>
+  <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙</span>Pengaturan</button>
+  <button class="nav-btn" data-page="updates"><span class="nav-icon">♧</span>Pengumuman</button>
+  <button class="nav-btn" id="logoutBtn"><span class="nav-icon">⇥</span>Keluar</button>
+
+  <div class="sidebar-bottom">
+    <div class="side-brand">
+      <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><path d="M8 13 34 28 49 5 91 13 64 68 50 91 36 68Z" fill="#078bff"/><path d="M17 22 39 37 50 19 80 20 62 61 50 78 39 59Z" fill="#071b35"/><path d="M28 28 48 44 67 26 53 59 48 67Z" fill="#b9f5ff"/></svg>
+      <strong>VEXORA</strong><small>DEVELOPED BY Z4M OFFICIAL</small>
+    </div>
+    <div class="contact-box">
+      <h3>Kontak &amp; Sosial</h3>
+      <div class="contact-link"><div class="contact-icon">☏</div><div><b>Mau upgrade ke VIP?</b><small>Chat WhatsApp kami<br>+62 896 8238 0778</small><a class="mini-link" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">Chat Sekarang →</a></div></div>
+      <div class="contact-link"><div class="contact-icon">◉</div><div><b>Saluran WhatsApp</b><small>Info fitur dan update terbaru</small><a class="mini-link" target="_blank" rel="noopener" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O">Gabung Sekarang →</a></div></div>
+      <div class="contact-link"><div class="contact-icon">♪</div><div><b>TikTok Developer</b><small>@z4m.offical<br>Follow untuk update terbaru</small><a class="mini-link" target="_blank" rel="noopener" href="https://www.tiktok.com/@z4m.offical">Follow Sekarang →</a></div></div>
+    </div>
+    <div class="side-footer">© 2026 VEXORA · Z4M OFFICIAL</div>
+  </div>
+</aside>
+
 <main>
-  <section class="page active" id="page-menu">
-    <div class="hero">
-      <div class="eyebrow">YOUR DIGITAL SPACE</div>
-      <h1 id="welcomeText">Selamat datang.</h1>
-      <p class="muted">Semua tools favorit lu dalam satu tempat. Simpel, cepat, dan rapi.</p>
+<section class="page active" id="page-home">
+  <div class="banner">
+    <div class="banner-logo">
+      <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><path d="M8 13 34 28 49 5 91 13 64 68 50 91 36 68Z" fill="#078bff"/><path d="M17 22 39 37 50 19 80 20 62 61 50 78 39 59Z" fill="#071b35"/><path d="M28 28 48 44 67 26 53 59 48 67Z" fill="#b9f5ff"/><path d="M39 44 49 53 61 40 51 66Z" fill="#078bff"/></svg>
+      <div><div class="banner-title">VEXORA</div><div class="banner-sub">DEVELOPED BY Z4M OFFICIAL</div></div>
     </div>
+    <div class="banner-tagline">Explore More.<br><b>Create More.</b></div>
+    <div class="banner-controls"><button class="round-btn" id="soundBtn" title="Suara">♫</button><button class="round-btn" id="bannerPlay" title="Putar banner">▶</button></div>
+  </div>
 
-    <div class="banner">
-      <video id="vexoraBanner" autoplay muted loop playsinline>
-        <source src="banner.mp4" type="video/mp4">
-      </video>
-      <div class="banner-controls">
-        <button id="soundBtn">🔇 Suara</button>
-        <button id="bannerPlay">Ⅱ Pause</button>
-      </div>
-      <div class="banner-overlay">
-        <div class="eyebrow">WELCOME TO</div>
-        <h2>VEXORA</h2>
-        <p>Tools digital, satu dashboard.</p>
-      </div>
-    </div>
-
+  <div class="panel welcome">
+    <div class="avatar"><svg viewBox="0 0 40 40"><circle cx="20" cy="13" r="8" fill="#111"/><path d="M5 37c0-10 6-16 15-16s15 6 15 16" fill="#111"/></svg></div>
+    <div class="welcome-text"><b>Selamat datang, <span id="welcomeName">VEXORA!</span></b><p id="welcomeDesc">Nikmati fitur dan tools yang tersedia untuk akun kamu.</p></div>
     <div class="stats">
-      <div class="stat"><small>Status akun</small><strong class="cyan" id="statusText">Memeriksa...</strong></div>
-      <div class="stat"><small>Role</small><strong id="roleBadge">Member</strong></div>
-      <div class="stat"><small>Perangkat</small><strong id="deviceText">Browser</strong></div>
-      <div class="stat"><small>Baterai</small><strong id="batteryText">-</strong></div>
+      <div class="stat"><span>♛ &nbsp; Role</span><strong class="gold" id="statRole">MEMBER</strong></div>
+      <div class="stat"><span>◉ &nbsp; Status</span><strong class="green">Online</strong></div>
+      <div class="stat"><span>▣ &nbsp; Perangkat</span><strong id="deviceName">Browser</strong></div>
     </div>
+  </div>
 
-    <div class="notice" id="dashboardMessage">Memuat dashboard...</div>
-
-    <div class="section-head">
-      <h2>Tools pilihan</h2>
-      <button class="link-btn" data-page="tools">Lihat semua →</button>
-    </div>
-    <div class="tools-grid" id="featuredGrid"></div>
-
-    <div class="section-head"><h2>Hubungi & ikuti kami</h2></div>
-    <div class="contact-grid">
-      <a class="contact-card" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP." target="_blank" rel="noopener noreferrer">
-        <div class="contact-icon">☏</div>
-        <div><h3>Upgrade VIP</h3><p>Mau up role ke VIP? Chat WhatsApp.</p></div>
-        <span class="contact-arrow">↗</span>
-      </a>
-      <a class="contact-card" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O" target="_blank" rel="noopener noreferrer">
-        <div class="contact-icon">◉</div>
-        <div><h3>Saluran WA</h3><p>Masuk untuk melihat informasi terbaru.</p></div>
-        <span class="contact-arrow">↗</span>
-      </a>
-      <a class="contact-card" href="https://www.tiktok.com/@z4m.offical" target="_blank" rel="noopener noreferrer">
-        <div class="contact-icon">♪</div>
-        <div><h3>TikTok Developer</h3><p>@z4m.offical</p></div>
-        <span class="contact-arrow">↗</span>
-      </a>
-    </div>
+  <section class="panel section">
+    <div class="section-head"><h2>Tools Unggulan</h2><button class="text-link" data-goto="tools">Lihat semua →</button></div>
+    <div class="featured-grid" id="featuredGrid"></div>
   </section>
 
-  <section class="page" id="page-tools">
-    <div class="hero">
-      <div class="eyebrow">TOOL CENTER</div>
-      <h1>Semua Tools</h1>
-      <p class="muted">Cari tools dan pilih kategori sesuai akses akun lu.</p>
-    </div>
-    <input class="search" id="toolSearch" placeholder="⌕  Cari tools..." type="search">
-    <div class="categories" id="category-tabs">
-      <button class="category active" data-category="all">Semua</button>
-      <button class="category" data-category="general">General</button>
-      <button class="category" data-category="member">Member</button>
-      <button class="category" data-category="vip">VIP</button>
-    </div>
-    <div class="section-head"><h2 id="sectionTitle">Daftar Tools</h2></div>
-    <div class="tools-grid" id="toolsGrid"></div>
-    <div class="empty" id="emptyState">Tools tidak ditemukan.</div>
-  </section>
+  <div class="lower-grid">
+    <section class="panel role-panel">
+      <div class="role-head"><div class="role-emblem">♟</div><div><h3>Tools Member</h3><p>Akses berbagai tools dasar yang bisa digunakan oleh semua member.</p></div></div>
+      <div class="mini-grid" id="memberMini"></div>
+      <button class="primary-btn" data-goto="tools">Lihat Semua Tools Member →</button>
+    </section>
+    <section class="panel role-panel">
+      <div class="role-head"><div class="role-emblem vip">♛</div><div><h3>Tools VIP</h3><p>Akses tools eksklusif untuk akun VIP dan Owner.</p></div></div>
+      <div class="mini-grid" id="vipMini"></div>
+      <a class="primary-btn gold-btn" style="display:block;text-align:center" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">Upgrade ke VIP →</a>
+    </section>
+    <section class="panel updates">
+      <div class="section-head"><h2>📢 Informasi &amp; Update</h2><button class="text-link" data-goto="updates">Lihat semua →</button></div>
+      <div class="update-row"><div class="update-icon">♧</div><div><b>Update Fitur</b><p>Pantau penambahan tools dan fitur baru.</p></div></div>
+      <div class="update-row"><div class="update-icon">✦</div><div><b>Maintenance</b><p>Informasi pemeliharaan akan ditampilkan di sini.</p></div></div>
+      <div class="update-row"><div class="update-icon">◉</div><div><b>Pengumuman</b><p>Selamat datang di VEXORA.</p></div></div>
+      <div class="thanks"><svg class="logo" viewBox="0 0 100 100"><path d="M8 13 34 28 49 5 91 13 64 68 50 91 36 68Z" fill="#078bff"/><path d="M17 22 39 37 50 19 80 20 62 61 50 78 39 59Z" fill="#071b35"/><path d="M28 28 48 44 67 26 53 59 48 67Z" fill="#b9f5ff"/></svg><div><b>VEXORA</b><p>Terima kasih sudah menggunakan VEXORA. Semoga selalu bermanfaat!</p><small style="color:var(--cyan)">DEVELOPED BY Z4M OFFICIAL</small></div></div>
+    </section>
+  </div>
+</section>
 
-  <section class="page" id="page-profile">
-    <div class="hero"><div class="eyebrow">ACCOUNT</div><h1>Profil saya</h1></div>
-    <div class="panel">
-      <div class="profile-top">
-        <div class="avatar" id="profileAvatar" aria-label="Foto profil default">
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <rect width="100" height="100" fill="#171717"/>
-            <circle cx="50" cy="35" r="18" fill="#777"/>
-            <path d="M15 100 Q16 60 50 60 Q84 60 85 100" fill="#777"/>
-          </svg>
-        </div>
-        <div>
-          <h2 id="profileUsername">Memuat akun...</h2>
-          <p class="muted" id="profileEmail">Memeriksa email...</p>
-        </div>
-      </div>
-      <div class="profile-row"><span>Role</span><strong id="roleText">Member</strong></div>
-      <div class="profile-row"><span>Status</span><strong id="profileStatus">Aktif</strong></div>
-      <div class="profile-row"><span>Browser</span><strong id="browserText">-</strong></div>
-      <button class="action-btn" id="profileSettings">Pengaturan</button>
-      <button class="action-btn primary" id="logoutButton">Keluar akun</button>
-    </div>
-  </section>
+<section class="page" id="page-tools">
+  <div class="panel section"><div class="section-head"><h2>Semua Tools</h2><span class="notice" id="toolCount"></span></div><div class="featured-grid" id="allToolsGrid"></div></div>
+</section>
 
-  <section class="page" id="page-settings">
-    <div class="hero"><div class="eyebrow">PREFERENCES</div><h1>Pengaturan</h1><p class="muted">Atur pemutaran banner VEXORA.</p></div>
-    <div class="panel">
-      <h3>Suara banner</h3>
-      <p class="muted">Aktifkan atau matikan suara video.</p>
-      <button class="action-btn" id="settingsSound">🔇 Aktifkan suara</button>
-      <button class="action-btn" id="settingsPlay">Ⅱ Pause banner</button>
-    </div>
-  </section>
+<section class="page" id="page-profile">
+  <div class="panel section"><h2>Profil Akun</h2><div class="welcome"><div class="avatar"><svg viewBox="0 0 40 40"><circle cx="20" cy="13" r="8" fill="#111"/><path d="M5 37c0-10 6-16 15-16s15 6 15 16" fill="#111"/></svg></div><div class="welcome-text"><b id="profileName">Akun VEXORA</b><p id="profileEmail"></p><p>Role: <strong id="profileRole"></strong></p></div></div><p class="notice">Avatar default ditampilkan sebagai siluet. Pengaturan avatar khusus dapat ditambahkan nanti.</p></div>
+</section>
 
-  <section class="page" id="page-updates">
-    <div class="hero"><div class="eyebrow">LATEST INFO</div><h1>Pengumuman</h1></div>
-    <div class="panel"><span class="pill">INFO</span><h3 style="margin-top:12px">Selamat datang di VEXORA</h3><p class="muted">Pantau saluran WhatsApp untuk informasi dan update terbaru.</p><a class="link-btn" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O" target="_blank" rel="noopener noreferrer">Lihat saluran →</a></div>
-  </section>
+<section class="page" id="page-settings">
+  <div class="panel section"><h2>Pengaturan</h2><p class="notice">Pengaturan tampilan dashboard.</p><label><input type="checkbox" id="reduceMotion"> Kurangi animasi tampilan</label><p class="notice">Pengaturan ini hanya memengaruhi tampilan di browser ini.</p></div>
+</section>
 
-  <section class="page" id="page-owner">
-    <div class="hero"><div class="eyebrow">RESTRICTED ACCESS</div><h1>Panel Owner</h1><p class="muted">Area khusus Owner. Pengelolaan akun membutuhkan backend admin yang aman.</p></div>
-    <div class="notice">Panel ini belum menjalankan perubahan akun. Jangan menambahkan tombol ban, hapus, atau upgrade role sebelum endpoint backend dan izin Owner selesai dipasang.</div>
-    <div class="panel" style="margin-top:12px"><h3>Manajemen akun</h3><p class="muted">Upgrade VIP, turunkan role, ban/unban, dan hapus akun akan dihubungkan setelah backend admin siap.</p></div>
-    <div class="panel"><h3>Maintenance Mode</h3><p class="muted">Pengaturan maintenance global perlu disimpan di backend agar berlaku untuk semua pengunjung.</p></div>
-  </section>
+<section class="page" id="page-updates">
+  <div class="panel section"><h2>Pengumuman &amp; Update</h2><div class="update-row"><div class="update-icon">♧</div><div><b>Informasi VEXORA</b><p>Ikuti saluran WhatsApp untuk kabar dan pembaruan terbaru.</p><a class="text-link" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O" target="_blank" rel="noopener">Buka saluran →</a></div></div></div>
+</section>
 
-  <footer class="footer">© <span id="currentYear"></span> VEXORA · Z4M OFFICIAL</footer>
+<section class="page" id="page-owner">
+  <div class="panel section"><h2>♛ Panel Owner</h2><p class="notice">Panel ini hanya tampilan awal. Fitur pengelolaan akun, ban, hapus akun, dan maintenance belum diaktifkan. Tindakan tersebut harus diproses dan diverifikasi di backend yang aman.</p><p id="ownerStatus" class="notice">Memeriksa akses Owner...</p></div>
+</section>
 </main>
+</div>
 
 <nav class="bottom-nav">
-  <button class="nav-btn active" data-page="menu"><span>⌂</span>Menu</button>
-  <button class="nav-btn" data-page="tools"><span>▦</span>Tools</button>
-  <button class="nav-btn" data-page="profile"><span>◯</span>Profile</button>
+  <button class="active" data-page="home"><span>⌂</span>Menu</button>
+  <button data-page="tools"><span>▦</span>Tools</button>
+  <button data-page="profile"><span>♙</span>Profil</button>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="dashboard.js"></script>
 </body>
-  </html>
+</html>
