@@ -5,157 +5,713 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080d1b">
 <title>VEXORA — Dashboard</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
 <style>
 :root {
-  --bg:#080d1b; --panel:#10192b; --panel2:#131f35;
-  --line:#23334e; --text:#f4f7ff; --muted:#91a2bd;
-  --blue:#3985ff; --cyan:#38d9ff; --green:#25d366;
+  --bg:#080d1b;
+  --panel:#10192b;
+  --panel2:#131f35;
+  --line:#23334e;
+  --text:#f4f7ff;
+  --muted:#91a2bd;
+  --blue:#3985ff;
+  --cyan:#38d9ff;
+  --green:#25d366;
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
-button,input,a{font:inherit}
-button{cursor:pointer}
-a{color:inherit;text-decoration:none}
-.layout{min-height:100vh;display:flex}
-.sidebar{width:240px;background:#0b1221;border-right:1px solid var(--line);padding:22px 15px;position:fixed;inset:0 auto 0 0;z-index:10;display:flex;flex-direction:column}
-.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 25px}
-.logo{width:43px;height:43px;flex-shrink:0}
-.brand-name{font-size:21px;font-weight:900;letter-spacing:2px}
-.brand-sub{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1.7px}
-.nav-label{font-size:10px;color:#7285a3;font-weight:800;letter-spacing:1.8px;padding:13px 12px 9px}
-.nav{display:flex;align-items:center;gap:12px;padding:12px;border-radius:11px;color:#a9b8ce;margin:3px 0;font-size:13px;font-weight:600;border:1px solid transparent;cursor:pointer}
-.nav:hover,.nav.active{color:white;background:#172744;border-color:#243d64}
-.nav.active .nav-icon{color:var(--cyan)}
-.nav-icon{width:20px;text-align:center;font-size:17px}
-.sidebar-bottom{margin-top:auto}
-.dev-credit{font-size:10px;letter-spacing:1.2px;color:#8da1c0;text-align:center;padding:16px 0 5px;border-top:1px solid var(--line)}
-.dev-credit b{display:block;color:#53cfff;margin-top:6px;font-size:12px}
-.main{width:calc(100% - 240px);margin-left:240px;padding:25px 30px 50px;max-width:1700px}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px}
-.greeting small{color:var(--muted);font-size:12px}
-.greeting h1{font-size:25px;margin:7px 0 0;font-weight:800}
-.top-actions{display:flex;align-items:center;gap:12px}
-.status{border:1px solid #24523e;background:#10291f;color:#6df0aa;border-radius:30px;padding:9px 12px;font-size:11px}
-.avatar{width:41px;height:41px;border-radius:50%;background:#080a0f;border:1px solid #33435d;display:grid;place-items:center;overflow:hidden}
-.avatar svg{width:28px;height:28px}
-.menu-wrap{position:relative}
-.dots{width:41px;height:41px;border:1px solid var(--line);background:var(--panel);color:white;border-radius:12px;font-size:24px}
-.dropdown{display:none;position:absolute;right:0;top:49px;z-index:30;width:190px;background:#121d31;border:1px solid var(--line);border-radius:12px;padding:7px;box-shadow:0 15px 40px #0008}
-.dropdown.open{display:block}
-.dropdown button{display:block;width:100%;text-align:left;padding:11px;border:0;background:none;color:#d9e5f8;border-radius:8px;font-size:12px}
-.dropdown button:hover{background:#20314d}
-.hero{position:relative;overflow:hidden;border:1px solid #25466c;border-radius:19px;background:linear-gradient(120deg,#10294b,#12213b 55%,#10162a);margin-bottom:25px;min-height:205px}
-.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
-.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#081329eF,#081329a8 58%,#08132933);pointer-events:none}
-.hero-content{position:relative;z-index:2;padding:28px;max-width:620px}
-.eyebrow{font-size:10px;letter-spacing:2px;font-weight:800;color:var(--cyan)}
-.hero h2{font-size:clamp(23px,3vw,34px);line-height:1.2;margin:12px 0}
-.hero p{font-size:12px;line-height:1.8;color:#c0cee4;max-width:480px}
-.hero-controls{position:absolute;right:13px;bottom:13px;z-index:4;display:flex;gap:8px}
-.small-btn{background:#081326d9;color:white;border:1px solid #ffffff35;padding:9px 11px;border-radius:9px;font-size:11px}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:25px}
-.stat{padding:17px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
-.stat-label{font-size:11px;color:var(--muted)}
-.stat-value{font-size:21px;font-weight:800;margin-top:9px}
-.stat-note{font-size:10px;color:#61caff;margin-top:6px}
-.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 14px}
-.section-head h2{font-size:17px;margin:0}
-.section-head p{font-size:11px;color:var(--muted);margin:6px 0 0}
-.pill{font-size:10px;padding:6px 9px;border-radius:30px;font-weight:800}
-.pill.free{background:#173a2b;color:#69e8a5}
-.pill.vip{background:#3b2c12;color:#ffd46c}
-.tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
-.tool-card{background:linear-gradient(145deg,#111d31,#0d1525);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
-.tool-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tool-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#1a3152;color:#68cfff;font-size:20px}
-.tool-card h3{font-size:13px;margin:14px 0 7px}
-.tool-card p{font-size:11px;line-height:1.7;color:var(--muted);min-height:34px;margin:0}
-.tool-open{margin-top:15px;width:100%;border:1px solid #2c4b73;background:#172a47;color:#e9f5ff;padding:10px;border-radius:9px;font-size:11px;font-weight:700}
-.tool-open:hover{background:#21436d}
-.tool-open.locked{border-color:#65512a;background:#282215;color:#ffd779}
-.vip-box{padding:18px;border:1px solid #594622;background:linear-gradient(130deg,#211d17,#141827);border-radius:15px;margin-top:16px}
-.vip-box h3{margin:0 0 8px;font-size:14px}
-.vip-box p{color:#b8b9c2;font-size:11px;line-height:1.7;margin:0 0 14px}
-.primary-btn{display:inline-block;border:0;background:linear-gradient(100deg,#2875f5,#28b6ec);color:white;border-radius:9px;padding:11px 15px;font-size:11px;font-weight:800}
-.contacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:15px}
-.contact{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);padding:15px;border-radius:14px;min-width:0}
-.contact-icon{width:39px;height:39px;flex-shrink:0;display:grid;place-items:center;border-radius:12px;background:#172843;font-size:19px}
-.contact-icon svg{width:23px;height:23px}
-.contact strong{font-size:11px;display:block}
-.contact span{display:block;color:var(--muted);font-size:10px;margin-top:5px;line-height:1.5}
-.contact:hover{border-color:#4279bb}
-.page{display:none}
-.page.active{display:block}
-.profile-box,.settings-box,.updates-box,.owner-box{padding:22px;border:1px solid var(--line);background:var(--panel);border-radius:15px}
-.profile-box h2,.settings-box h2,.updates-box h2,.owner-box h2{margin-top:0}
-.profile-box p,.settings-box p,.updates-box p,.owner-box p{font-size:12px;color:var(--muted);line-height:1.8}
-.search{width:100%;padding:13px 15px;background:var(--panel);color:white;border:1px solid var(--line);border-radius:11px;outline:none;margin:3px 0 12px}
-.search:focus{border-color:var(--blue)}
-.mobile-bottom{display:none}
-.notice{display:none;margin-top:12px;padding:12px;background:#152742;border:1px solid #294c79;border-radius:10px;color:#d4eaff;font-size:12px;line-height:1.6}
-.notice.show{display:block}
-@media(max-width:1050px){.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.contacts{grid-template-columns:1fr}.main{padding:22px}}
-@media(max-width:700px){
-.sidebar{width:100%;height:63px;inset:auto 0 0;padding:5px 7px;flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line);background:#0b1221f5}
-.sidebar .brand,.sidebar .nav-label,.sidebar-bottom{display:none}
-.sidebar nav{display:flex;width:100%;justify-content:space-around;align-items:center}
-.nav{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;margin:0;padding:6px 2px;font-size:9px;border:0}
-.nav-icon{font-size:17px}
-.main{width:100%;margin-left:0;padding:18px 14px 85px}
-.greeting h1{font-size:21px}
-.status{display:none}
-.hero-content{padding:22px 17px 48px}
-.hero p{max-width:95%}
-.stats{gap:8px}
-.stat{padding:12px 9px}
-.stat-value{font-size:17px}
-.stat-label{font-size:10px}
-.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.tool-card{padding:12px}
-.tool-card h3{font-size:12px}
-.tool-card p{font-size:10px}
-.contacts{grid-template-columns:1fr}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,Arial,sans-serif;
 }
-@media(max-width:370px){.tool-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
+
+button,input,a { font:inherit; }
+button { cursor:pointer; }
+a { color:inherit; text-decoration:none; }
+
+.layout { min-height:100vh; display:flex; }
+
+.sidebar {
+  width:240px;
+  background:#0b1221;
+  border-right:1px solid var(--line);
+  padding:22px 15px;
+  position:fixed;
+  inset:0 auto 0 0;
+  z-index:10;
+  display:flex;
+  flex-direction:column;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:4px 8px 25px;
+}
+
+.logo { width:43px; height:43px; flex-shrink:0; }
+
+.brand-name {
+  font-size:21px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+
+.brand-sub {
+  font-size:10px;
+  color:var(--muted);
+  margin-top:4px;
+  letter-spacing:1.7px;
+}
+
+.nav-label {
+  font-size:10px;
+  color:#7285a3;
+  font-weight:800;
+  letter-spacing:1.8px;
+  padding:13px 12px 9px;
+}
+
+.sidebar nav {
+  display:flex;
+  flex-direction:column;
+}
+
+.nav {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border-radius:11px;
+  color:#a9b8ce;
+  margin:3px 0;
+  font-size:13px;
+  font-weight:600;
+  border:1px solid transparent;
+  cursor:pointer;
+}
+
+.nav[hidden] {
+  display:none !important;
+}
+
+.nav:hover,.nav.active {
+  color:white;
+  background:#172744;
+  border-color:#243d64;
+}
+
+.nav.active .nav-icon { color:var(--cyan); }
+
+.nav-icon {
+  width:20px;
+  text-align:center;
+  font-size:17px;
+}
+
+.sidebar-bottom { margin-top:auto; }
+
+.dev-credit {
+  font-size:10px;
+  letter-spacing:1.2px;
+  color:#8da1c0;
+  text-align:center;
+  padding:16px 0 5px;
+  border-top:1px solid var(--line);
+}
+
+.dev-credit b {
+  display:block;
+  color:#53cfff;
+  margin-top:6px;
+  font-size:12px;
+}
+
+.main {
+  width:calc(100% - 240px);
+  margin-left:240px;
+  padding:25px 30px 50px;
+  max-width:1700px;
+}
+
+.topbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:25px;
+}
+
+.greeting small {
+  color:var(--muted);
+  font-size:12px;
+}
+
+.greeting h1 {
+  font-size:25px;
+  margin:7px 0 0;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+
+.top-actions {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.status {
+  border:1px solid #24523e;
+  background:#10291f;
+  color:#6df0aa;
+  border-radius:30px;
+  padding:9px 12px;
+  font-size:11px;
+}
+
+.avatar {
+  width:41px;
+  height:41px;
+  border-radius:50%;
+  background:#080a0f;
+  border:1px solid #33435d;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+
+.avatar svg { width:28px; height:28px; }
+
+.menu-wrap { position:relative; }
+
+.dots {
+  width:41px;
+  height:41px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:white;
+  border-radius:12px;
+  font-size:24px;
+}
+
+.dropdown {
+  display:none;
+  position:absolute;
+  right:0;
+  top:49px;
+  z-index:30;
+  width:190px;
+  background:#121d31;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:7px;
+  box-shadow:0 15px 40px #0008;
+}
+
+.dropdown.open { display:block; }
+
+.dropdown button {
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:11px;
+  border:0;
+  background:none;
+  color:#d9e5f8;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.dropdown button:hover { background:#20314d; }
+
+.hero {
+  position:relative;
+  overflow:hidden;
+  border:1px solid #25466c;
+  border-radius:19px;
+  background:linear-gradient(120deg,#10294b,#12213b 55%,#10162a);
+  margin-bottom:25px;
+  min-height:205px;
+}
+
+.hero video {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.55;
+}
+
+.hero:after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,#081329ef,#081329a8 58%,#08132933);
+  pointer-events:none;
+}
+
+.hero-content {
+  position:relative;
+  z-index:2;
+  padding:28px;
+  max-width:620px;
+}
+
+.eyebrow {
+  font-size:10px;
+  letter-spacing:2px;
+  font-weight:800;
+  color:var(--cyan);
+}
+
+.hero h2 {
+  font-size:clamp(23px,3vw,34px);
+  line-height:1.2;
+  margin:12px 0;
+}
+
+.hero p {
+  font-size:12px;
+  line-height:1.8;
+  color:#c0cee4;
+  max-width:480px;
+}
+
+.hero-controls {
+  position:absolute;
+  right:13px;
+  bottom:13px;
+  z-index:4;
+  display:flex;
+  gap:8px;
+}
+
+.small-btn {
+  background:#081326d9;
+  color:white;
+  border:1px solid #ffffff35;
+  padding:9px 11px;
+  border-radius:9px;
+  font-size:11px;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:25px;
+}
+
+.stat {
+  padding:17px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+}
+
+.stat-label { font-size:11px; color:var(--muted); }
+
+.stat-value {
+  font-size:21px;
+  font-weight:800;
+  margin-top:9px;
+}
+
+.stat-note {
+  font-size:10px;
+  color:#61caff;
+  margin-top:6px;
+}
+
+.section-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:30px 0 14px;
+}
+
+.section-head h2 { font-size:17px; margin:0; }
+
+.section-head p {
+  font-size:11px;
+  color:var(--muted);
+  margin:6px 0 0;
+}
+
+.pill {
+  font-size:10px;
+  padding:6px 9px;
+  border-radius:30px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.pill.free { background:#173a2b; color:#69e8a5; }
+.pill.vip { background:#3b2c12; color:#ffd46c; }
+
+.tool-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:13px;
+}
+
+.tool-card {
+  background:linear-gradient(145deg,#111d31,#0d1525);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  min-width:0;
+}
+
+.tool-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.tool-icon {
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#1a3152;
+  color:#68cfff;
+  font-size:20px;
+}
+
+.tool-card h3 { font-size:13px; margin:14px 0 7px; }
+
+.tool-card p {
+  font-size:11px;
+  line-height:1.7;
+  color:var(--muted);
+  min-height:34px;
+  margin:0;
+}
+
+.tool-open {
+  margin-top:15px;
+  width:100%;
+  border:1px solid #2c4b73;
+  background:#172a47;
+  color:#e9f5ff;
+  padding:10px;
+  border-radius:9px;
+  font-size:11px;
+  font-weight:700;
+}
+
+.tool-open:hover { background:#21436d; }
+
+.tool-open.locked {
+  border-color:#65512a;
+  background:#282215;
+  color:#ffd779;
+}
+
+.vip-box {
+  padding:18px;
+  border:1px solid #594622;
+  background:linear-gradient(130deg,#211d17,#141827);
+  border-radius:15px;
+  margin-top:16px;
+}
+
+.vip-box h3 { margin:0 0 8px; font-size:14px; }
+
+.vip-box p {
+  color:#b8b9c2;
+  font-size:11px;
+  line-height:1.7;
+  margin:0 0 14px;
+}
+
+.primary-btn {
+  display:inline-block;
+  border:0;
+  background:linear-gradient(100deg,#2875f5,#28b6ec);
+  color:white;
+  border-radius:9px;
+  padding:11px 15px;
+  font-size:11px;
+  font-weight:800;
+}
+
+.contacts {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:13px;
+  margin-top:15px;
+}
+
+.contact {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  padding:15px;
+  border-radius:14px;
+  min-width:0;
+}
+
+.contact-icon {
+  width:39px;
+  height:39px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#172843;
+  font-size:19px;
+}
+
+.contact-icon svg { width:23px; height:23px; }
+
+.contact strong { font-size:11px; display:block; }
+
+.contact span {
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-top:5px;
+  line-height:1.5;
+}
+
+.contact:hover { border-color:#4279bb; }
+
+.page { display:none; }
+.page.active { display:block; }
+
+.profile-box,.settings-box,.updates-box,.owner-box {
+  padding:22px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:15px;
+}
+
+.profile-box h2,.settings-box h2,.updates-box h2,.owner-box h2 {
+  margin-top:0;
+}
+
+.profile-box p,.settings-box p,.updates-box p,.owner-box p {
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.search {
+  width:100%;
+  padding:13px 15px;
+  background:var(--panel);
+  color:white;
+  border:1px solid var(--line);
+  border-radius:11px;
+  outline:none;
+  margin:3px 0 12px;
+}
+
+.search:focus { border-color:var(--blue); }
+
+.notice {
+  display:none;
+  margin-top:12px;
+  padding:12px;
+  background:#152742;
+  border:1px solid #294c79;
+  border-radius:10px;
+  color:#d4eaff;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.notice.show { display:block; }
+
+.mobile-bottom { display:none; }
+
+@media(max-width:1050px) {
+  .tool-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .contacts { grid-template-columns:1fr; }
+  .main { padding:22px; }
+}
+
+@media(max-width:700px) {
+  .sidebar {
+    width:100%;
+    height:68px;
+    inset:auto 0 0;
+    padding:5px 4px;
+    flex-direction:row;
+    justify-content:space-around;
+    border-right:0;
+    border-top:1px solid var(--line);
+    background:#0b1221f5;
+  }
+
+  .sidebar .brand,
+  .sidebar .nav-label,
+  .sidebar-bottom { display:none; }
+
+  .sidebar nav {
+    display:flex;
+    flex-direction:row;
+    width:100%;
+    justify-content:space-around;
+    align-items:stretch;
+    gap:2px;
+  }
+
+  .nav {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:4px;
+    margin:0;
+    padding:5px 1px;
+    font-size:9px;
+    border:0;
+    min-width:0;
+    text-align:center;
+  }
+
+  .nav[hidden] { display:none !important; }
+
+  .nav-icon { font-size:17px; }
+
+  .main {
+    width:100%;
+    margin-left:0;
+    padding:18px 14px 90px;
+  }
+
+  .greeting h1 { font-size:21px; }
+
+  .top-actions { gap:8px; }
+  .status { display:none; }
+
+  .hero-content { padding:22px 17px 48px; }
+  .hero p { max-width:95%; }
+
+  .stats { gap:8px; }
+  .stat { padding:12px 9px; }
+  .stat-value { font-size:17px; }
+  .stat-label { font-size:10px; }
+
+  .tool-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+  }
+
+  .tool-card { padding:12px; }
+  .tool-card h3 { font-size:12px; }
+  .tool-card p { font-size:10px; }
+  .contacts { grid-template-columns:1fr; }
+
+  .section-head { align-items:flex-start; }
+}
+
+@media(max-width:370px) {
+  .tool-grid,.stats { grid-template-columns:1fr; }
+}
 </style>
 </head>
+
 <body>
 <div class="layout">
+
 <aside class="sidebar">
   <div class="brand">
     <svg class="logo" viewBox="0 0 100 100" aria-label="VEXORA">
-      <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#42e2ff"/><stop offset="1" stop-color="#3978ff"/></linearGradient></defs>
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop stop-color="#42e2ff"/>
+          <stop offset="1" stop-color="#3978ff"/>
+        </linearGradient>
+      </defs>
       <path d="M50 3 94 28 94 72 50 97 6 72 6 28Z" fill="#122642" stroke="url(#logoGrad)" stroke-width="4"/>
       <path d="M23 29 39 29 50 51 61 29 77 29 55 74 45 74Z" fill="url(#logoGrad)"/>
       <path d="M32 24H68" stroke="#eafaff" stroke-width="4" stroke-linecap="round"/>
     </svg>
-    <div><div class="brand-name">VEXORA</div><div class="brand-sub">TOOLS PLATFORM</div></div>
+    <div>
+      <div class="brand-name">VEXORA</div>
+      <div class="brand-sub">TOOLS PLATFORM</div>
+    </div>
   </div>
+
   <div class="nav-label">NAVIGATION</div>
+
   <nav>
-    <a class="nav active" href="#menu" data-page="menu"><span class="nav-icon">⌂</span>Menu</a>
-    <a class="nav" href="#tools" data-page="tools"><span class="nav-icon">▦</span>Tools</a>
-    <a class="nav" href="#owner" data-page="owner" id="ownerNav" hidden><span class="nav-icon">♜</span>Panel Owner</a>
-    <a class="nav" href="#profile" data-page="profile"><span class="nav-icon">◉</span>Profile</a>
-    <a class="nav" href="#settings" data-page="settings"><span class="nav-icon">⚙</span>Settings</a>
-    <a class="nav" href="#updates" data-page="updates"><span class="nav-icon">◷</span>Updates</a>
-    <a class="nav" href="#" id="logoutBtn"><span class="nav-icon">⇥</span>Logout</a>
+    <a class="nav active" href="#menu" data-page="menu">
+      <span class="nav-icon">⌂</span>Menu
+    </a>
+
+    <a class="nav" href="#tools" data-page="tools">
+      <span class="nav-icon">▦</span>Tools
+    </a>
+
+    <a class="nav" href="#owner" data-page="owner" id="ownerNav" hidden>
+      <span class="nav-icon">♜</span>Panel Owner
+    </a>
+
+    <a class="nav" href="#profile" data-page="profile">
+      <span class="nav-icon">◉</span>Profile
+    </a>
+
+    <a class="nav" href="#settings" data-page="settings">
+      <span class="nav-icon">⚙</span>Settings
+    </a>
+
+    <a class="nav" href="#updates" data-page="updates">
+      <span class="nav-icon">◷</span>Updates
+    </a>
+
+    <a class="nav" href="#" id="logoutBtn">
+      <span class="nav-icon">⇥</span>Logout
+    </a>
   </nav>
-  <div class="sidebar-bottom"><div class="dev-credit">DEVELOPED BY<b>Z4M OFFICIAL</b></div></div>
+
+  <div class="sidebar-bottom">
+    <div class="dev-credit">
+      DEVELOPED BY
+      <b>Z4M OFFICIAL</b>
+    </div>
+  </div>
 </aside>
 
 <main class="main">
+
 <header class="topbar">
-  <div class="greeting"><small id="dateText">VEXORA PLATFORM</small><h1 id="greetingText">Welcome back!</h1></div>
+  <div class="greeting">
+    <small id="dateText">VEXORA PLATFORM</small>
+    <h1 id="greetingText">Welcome back!</h1>
+  </div>
+
   <div class="top-actions">
     <span class="status">● SYSTEM ONLINE</span>
+
     <div class="avatar" title="Default profile avatar">
-      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="13" r="8" fill="#8b929d"/><path d="M5 38c0-10 6-16 15-16s15 6 15 16" fill="#8b929d"/></svg>
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="13" r="8" fill="#8b929d"/>
+        <path d="M5 38c0-10 6-16 15-16s15 6 15 16" fill="#8b929d"/>
+      </svg>
     </div>
+
     <div class="menu-wrap">
       <button class="dots" id="dotsBtn" aria-label="Open menu">⋮</button>
+
       <div class="dropdown" id="dropdown">
         <button data-go="profile">◉ &nbsp; Profile</button>
         <button data-go="settings">⚙ &nbsp; Settings</button>
@@ -167,15 +723,21 @@ a{color:inherit;text-decoration:none}
 </header>
 
 <section class="page active" id="page-menu">
+
   <section class="hero">
     <video id="bannerVideo" autoplay muted loop playsinline preload="metadata">
       <source src="banner.mp4" type="video/mp4">
     </video>
+
     <div class="hero-content">
       <div class="eyebrow">WELCOME TO VEXORA</div>
       <h2>All Your Tools.<br>One Platform.</h2>
-      <p>Platform tools digital dengan tampilan modern. Pilih tools yang tersedia dan jelajahi fitur VEXORA.</p>
+      <p>
+        Platform tools digital dengan tampilan modern.
+        Pilih tools yang tersedia dan jelajahi fitur VEXORA.
+      </p>
     </div>
+
     <div class="hero-controls">
       <button class="small-btn" id="playVideo">Ⅱ Pause</button>
       <button class="small-btn" id="muteVideo">♩ Unmute</button>
@@ -183,69 +745,181 @@ a{color:inherit;text-decoration:none}
   </section>
 
   <div class="stats">
-    <div class="stat"><div class="stat-label">YOUR ROLE</div><div class="stat-value" id="roleValue">FREE</div><div class="stat-note">Account access level</div></div>
-    <div class="stat"><div class="stat-label">AVAILABLE FREE TOOLS</div><div class="stat-value" id="freeCount">0</div><div class="stat-note">Tools for everyone</div></div>
-    <div class="stat"><div class="stat-label">VIP TOOLS</div><div class="stat-value" id="vipCount">0</div><div class="stat-note">Premium access</div></div>
+    <div class="stat">
+      <div class="stat-label">YOUR ROLE</div>
+      <div class="stat-value" id="roleValue">FREE</div>
+      <div class="stat-note">Account access level</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">AVAILABLE FREE TOOLS</div>
+      <div class="stat-value" id="freeCount">0</div>
+      <div class="stat-note">Tools for everyone</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">VIP TOOLS</div>
+      <div class="stat-value" id="vipCount">0</div>
+      <div class="stat-note">Premium access</div>
+    </div>
   </div>
 
-  <div class="section-head"><div><h2>FREE TOOLS</h2><p>Tools yang tersedia untuk semua pengguna.</p></div><span class="pill free">FREE ACCESS</span></div>
+  <div class="section-head">
+    <div>
+      <h2>FREE TOOLS</h2>
+      <p>Tools yang tersedia untuk semua pengguna.</p>
+    </div>
+    <span class="pill free">FREE ACCESS</span>
+  </div>
+
   <div class="tool-grid" id="freeGrid"></div>
 
   <div class="vip-box">
     <h3>✦ Upgrade ke VIP</h3>
-    <p>Buka akses VIP melalui admin. Hubungi WhatsApp untuk menanyakan paket dan harga terbaru.</p>
-    <a class="primary-btn" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">CHAT ADMIN WHATSAPP ↗</a>
+    <p>
+      Buka akses VIP melalui admin. Hubungi WhatsApp
+      untuk menanyakan paket dan harga terbaru.
+    </p>
+    <a class="primary-btn" target="_blank" rel="noopener"
+       href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">
+      CHAT ADMIN WHATSAPP ↗
+    </a>
   </div>
 
-  <div class="section-head"><div><h2>VIP TOOLS</h2><p>Bagian VIP terpisah dari tools gratis.</p></div><span class="pill vip">✦ VIP ONLY</span></div>
+  <div class="section-head">
+    <div>
+      <h2>VIP TOOLS</h2>
+      <p>Bagian VIP terpisah dari tools gratis.</p>
+    </div>
+    <span class="pill vip">✦ VIP ONLY</span>
+  </div>
+
   <div class="tool-grid" id="vipGrid"></div>
 
-  <div class="section-head"><div><h2>CONNECT WITH US</h2><p>Ikuti kanal resmi VEXORA.</p></div></div>
+  <div class="section-head">
+    <div>
+      <h2>CONNECT WITH US</h2>
+      <p>Ikuti kanal resmi VEXORA.</p>
+    </div>
+  </div>
+
   <div class="contacts">
-    <a class="contact" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">
-      <div class="contact-icon"><svg viewBox="0 0 32 32" aria-label="WhatsApp"><path fill="#25D366" d="M16 2.5A13.2 13.2 0 0 0 4.7 22.5L3 29l6.7-1.7A13.2 13.2 0 1 0 16 2.5Z"/><path fill="#fff" d="M23.3 19.1c-.4-.2-2.1-1-2.4-1.1-.3-.1-.6-.2-.8.2-.2.3-.9 1.1-1.1 1.3-.2.2-.4.2-.8.1-.4-.2-1.5-.6-2.9-1.8-1.1-1-1.8-2.1-2-2.5-.2-.4 0-.6.2-.8l.5-.6c.2-.2.2-.4.4-.6.1-.2 0-.5 0-.6-.1-.2-.8-2-.1-2.5-.3-.6-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.8 5.1.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.2-.3-.3-.7-.5Z"/></svg></div>
-      <div><strong>WhatsApp Admin</strong><span>Mau up role ke VIP? Chat WhatsApp.</span></div>
+    <a class="contact" target="_blank" rel="noopener"
+       href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">
+      <div class="contact-icon">
+        <svg viewBox="0 0 32 32" aria-label="WhatsApp">
+          <path fill="#25D366" d="M16 2.5A13.2 13.2 0 0 0 4.7 22.5L3 29l6.7-1.7A13.2 13.2 0 1 0 16 2.5Z"/>
+          <path fill="#fff" d="M23.3 19.1c-.4-.2-2.1-1-2.4-1.1-.3-.1-.6-.2-.8.2-.2.3-.9 1.1-1.1 1.3-.2.2-.4.2-.8.1-.4-.2-1.5-.6-2.9-1.8-1.1-1-1.8-2.1-2-2.5-.2-.4 0-.6.2-.8l.5-.6c.2-.2.2-.4.4-.6.1-.2 0-.5 0-.6-.1-.2-.8-2-.1-2.5-.3-.6-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.8 5.1.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.2-.3-.3-.7-.5Z"/>
+        </svg>
+      </div>
+      <div>
+        <strong>WhatsApp Admin</strong>
+        <span>Mau up role ke VIP? Chat WhatsApp.</span>
+      </div>
     </a>
-    <a class="contact" target="_blank" rel="noopener" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O">
-      <div class="contact-icon"><svg viewBox="0 0 32 32" aria-label="WhatsApp Channel"><path fill="#25D366" d="M16 2.5A13.2 13.2 0 0 0 4.7 22.5L3 29l6.7-1.7A13.2 13.2 0 1 0 16 2.5Z"/><path fill="#fff" d="M23.3 19.1c-.4-.2-2.1-1-2.4-1.1-.3-.1-.6-.2-.8.2-.2.3-.9 1.1-1.1 1.3-.2.2-.4.2-.8.1-.4-.2-1.5-.6-2.9-1.8-1.1-1-1.8-2.1-2-2.5-.2-.4 0-.6.2-.8l.5-.6c.2-.2.2-.4.4-.6.1-.2 0-.5 0-.6-.1-.2-.8-2-.1-2.5-.3-.6-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.8 5.1.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.2-.3-.3-.7-.5Z"/></svg></div>
-      <div><strong>WhatsApp Channel</strong><span>Gabung untuk update dan informasi terbaru.</span></div>
+
+    <a class="contact" target="_blank" rel="noopener"
+       href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O">
+      <div class="contact-icon">
+        <svg viewBox="0 0 32 32" aria-label="WhatsApp Channel">
+          <path fill="#25D366" d="M16 2.5A13.2 13.2 0 0 0 4.7 22.5L3 29l6.7-1.7A13.2 13.2 0 1 0 16 2.5Z"/>
+          <path fill="#fff" d="M23.3 19.1c-.4-.2-2.1-1-2.4-1.1-.3-.1-.6-.2-.8.2-.2.3-.9 1.1-1.1 1.3-.2.2-.4.2-.8.1-.4-.2-1.5-.6-2.9-1.8-1.1-1-1.8-2.1-2-2.5-.2-.4 0-.6.2-.8l.5-.6c.2-.2.2-.4.4-.6.1-.2 0-.5 0-.6-.1-.2-.8-2-.1-2.5-.3-.6-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.8 5.1.8.4 1.5.6 2 .7.8.2 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.2-.3-.3-.7-.5Z"/>
+        </svg>
+      </div>
+      <div>
+        <strong>WhatsApp Channel</strong>
+        <span>Gabung untuk update dan informasi terbaru.</span>
+      </div>
     </a>
-    <a class="contact" target="_blank" rel="noopener" href="https://www.tiktok.com/@z4m.offical">
+
+    <a class="contact" target="_blank" rel="noopener"
+       href="https://www.tiktok.com/@z4m.offical">
       <div class="contact-icon">♪</div>
-      <div><strong>TikTok @z4m.offical</strong><span>Follow untuk konten dan update VEXORA.</span></div>
+      <div>
+        <strong>TikTok @z4m.offical</strong>
+        <span>Follow untuk konten dan update VEXORA.</span>
+      </div>
     </a>
   </div>
 </section>
 
 <section class="page" id="page-tools">
-  <div class="section-head"><div><h2>TOOLS CENTER</h2><p>Cari tools berdasarkan nama.</p></div></div>
+  <div class="section-head">
+    <div>
+      <h2>TOOLS CENTER</h2>
+      <p>Cari tools berdasarkan nama.</p>
+    </div>
+  </div>
+
   <input class="search" id="toolSearch" type="search" placeholder="Cari tools...">
-  <div class="section-head"><div><h2>FREE TOOLS</h2></div><span class="pill free">FREE</span></div>
+
+  <div class="section-head">
+    <div><h2>FREE TOOLS</h2></div>
+    <span class="pill free">FREE</span>
+  </div>
   <div class="tool-grid" id="freeGrid2"></div>
-  <div class="section-head"><div><h2>VIP TOOLS</h2></div><span class="pill vip">VIP</span></div>
+
+  <div class="section-head">
+    <div><h2>VIP TOOLS</h2></div>
+    <span class="pill vip">VIP</span>
+  </div>
   <div class="tool-grid" id="vipGrid2"></div>
 </section>
 
 <section class="page" id="page-profile">
-  <div class="profile-box"><h2>My Profile</h2><p>Informasi akun VEXORA yang sedang login.</p><p>Email: <strong id="profileEmail">Memuat...</strong></p><p>Role: <strong id="profileRole">FREE</strong></p><p>DEVELOPED BY <strong>Z4M OFFICIAL</strong></p></div>
+  <div class="profile-box">
+    <h2>My Profile</h2>
+    <p>Informasi akun VEXORA yang sedang login.</p>
+    <p>Email: <strong id="profileEmail">Memuat...</strong></p>
+    <p>Role: <strong id="profileRole">FREE</strong></p>
+    <p>DEVELOPED BY <strong>Z4M OFFICIAL</strong></p>
+  </div>
 </section>
 
 <section class="page" id="page-settings">
-  <div class="settings-box"><h2>Settings</h2><p>Pengaturan dasar dashboard.</p><button class="tool-open" id="refreshBtn">Refresh Dashboard</button><div id="settingsNotice" class="notice"></div></div>
+  <div class="settings-box">
+    <h2>Settings</h2>
+    <p>Pengaturan dasar dashboard.</p>
+    <button class="tool-open" id="refreshBtn">Refresh Dashboard</button>
+    <div id="settingsNotice" class="notice"></div>
+  </div>
 </section>
 
 <section class="page" id="page-updates">
-  <div class="updates-box"><h2>Updates</h2><p>Untuk informasi terbaru, bergabunglah dengan WhatsApp Channel resmi VEXORA.</p><a class="primary-btn" target="_blank" rel="noopener" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O">BUKA WHATSAPP CHANNEL ↗</a></div>
+  <div class="updates-box">
+    <h2>Updates</h2>
+    <p>Untuk informasi terbaru, bergabunglah dengan WhatsApp Channel resmi VEXORA.</p>
+    <a class="primary-btn" target="_blank" rel="noopener"
+       href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O">
+      BUKA WHATSAPP CHANNEL ↗
+    </a>
+  </div>
 </section>
 
-<section class="page" id="page-owner">
-  <div class="owner-box"><h2>Panel Owner</h2><p>Panel ini hanya tampil jika role akun kamu adalah owner. Fitur administrasi yang mengubah akun harus dibuat melalui backend yang memverifikasi role owner, bukan hanya tampilan browser.</p><div class="notice show">Panel dasar tersedia. Aksi ban, hapus akun, maintenance, dan ubah role belum terhubung ke backend.</div></div>
+<!--
+  Panel owner disembunyikan secara default.
+  dashboard.js hanya mengaktifkannya jika app_metadata.role = owner.
+-->
+<section class="page" id="page-owner" hidden>
+  <div class="owner-box">
+    <h2>Panel Owner</h2>
+    <p>
+      Panel ini hanya untuk akun OWNER.
+      Fitur administrasi yang mengubah akun harus diverifikasi
+      oleh backend, bukan hanya oleh tampilan browser.
+    </p>
+    <div class="notice show">
+      Panel dasar tersedia. Aksi ban, hapus akun, maintenance,
+      dan ubah role belum terhubung ke backend.
+    </div>
+  </div>
 </section>
-<footer style="text-align:center;color:#7487a5;font-size:10px;padding:35px 0 0">VEXORA © <span id="year"></span> · DEVELOPED BY Z4M OFFICIAL</footer>
+
+<footer style="text-align:center;color:#7487a5;font-size:10px;padding:35px 0 0">
+  VEXORA © <span id="year"></span> · DEVELOPED BY Z4M OFFICIAL
+</footer>
+
 </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="dashboard.js"></script>
-</body>
-      </html>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></
