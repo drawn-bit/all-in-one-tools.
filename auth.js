@@ -2,16 +2,14 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
-
   const config = window.VEXORA_CONFIG;
 
   if (
-    !config ||
-    !config.SUPABASE_URL ||
-    !config.SUPABASE_ANON_KEY ||
+    !config?.SUPABASE_URL ||
+    !config?.SUPABASE_ANON_KEY ||
     !window.supabase
   ) {
-    console.error("Konfigurasi Supabase belum tersedia.");
+    console.error("Supabase config atau library belum dimuat.");
     showMessage("Koneksi belum siap. Muat ulang halaman.", true);
     return;
   }
@@ -44,16 +42,16 @@
   function setBusy(value) {
     busy = value;
 
-    const button = $("submitBtn");
-    if (button) button.disabled = value;
+    if ($("submitBtn")) {
+      $("submitBtn").disabled = value;
+    }
 
-    const text = $("submitText");
-    if (text) {
-      text.textContent = value
+    if ($("submitText")) {
+      $("submitText").textContent = value
         ? "Memproses..."
         : mode === "login"
-        ? "Masuk"
-        : "Daftar";
+          ? "Masuk"
+          : "Daftar";
     }
   }
 
@@ -115,6 +113,14 @@
   function explainError(error) {
     const message = String(error?.message || "").toLowerCase();
     const code = String(error?.code || "").toLowerCase();
+    const status = Number(error?.status || 0);
+
+    console.error("VEXORA Auth Error:", {
+      message: error?.message,
+      code: error?.code,
+      status: error?.status,
+      name: error?.name
+    });
 
     if (
       message.includes("invalid login credentials") ||
@@ -127,7 +133,7 @@
       message.includes("email not confirmed") ||
       code === "email_not_confirmed"
     ) {
-      return "Email belum diverifikasi. Periksa kotak masuk Gmail lu.";
+      return "Email belum diverifikasi. Periksa kotak masuk dan folder Spam.";
     }
 
     if (
@@ -135,20 +141,20 @@
       message.includes("already registered") ||
       code === "user_already_exists"
     ) {
-      return "Email ini sudah terdaftar. Coba masuk saja.";
+      return "Email ini sudah terdaftar. Silakan masuk.";
     }
 
     if (
       message.includes("password should be at least") ||
       message.includes("weak_password")
     ) {
-      return "Password belum memenuhi persyaratan. Gunakan password yang lebih kuat.";
+      return "Password terlalu lemah. Gunakan password yang lebih kuat.";
     }
 
     if (
       message.includes("invalid email") ||
-      message.includes("email address") &&
-      message.includes("invalid")
+      (message.includes("email address") &&
+        message.includes("invalid"))
     ) {
       return "Format email tidak valid. Periksa kembali email lu.";
     }
@@ -156,33 +162,45 @@
     if (
       message.includes("rate limit") ||
       message.includes("too many requests") ||
-      message.includes("email rate limit exceeded")
+      message.includes("email rate limit exceeded") ||
+      status === 429
     ) {
-      return "Terlalu banyak permintaan email dalam waktu singkat. Tunggu sebelum mencoba lagi atau periksa pengaturan SMTP Supabase.";
+      return "Terlalu banyak permintaan. Tunggu beberapa saat sebelum mencoba lagi.";
     }
 
     if (
-      message.includes("network") ||
-      message.includes("fetch") ||
-      message.includes("failed to fetch")
+      message.includes("signup is disabled") ||
+      message.includes("signups not allowed")
     ) {
-      return "Koneksi bermasalah. Periksa internet lalu coba lagi.";
+      return "Pendaftaran dinonaktifkan. Periksa pengaturan signup Supabase.";
     }
 
     if (
-      message.includes("signup is disabled")
+      message.includes("failed to fetch") ||
+      message.includes("network request failed") ||
+      message.includes("fetch failed") ||
+      message.includes("networkerror") ||
+      error?.name === "TypeError"
     ) {
-      return "Pendaftaran sedang dinonaktifkan di pengaturan Supabase.";
+      return "Koneksi ke server gagal. Periksa internet dan URL Supabase.";
     }
 
-    console.error("Supabase auth error:", error);
+    if (status >= 500) {
+      return "Server autentikasi sedang bermasalah. Coba lagi nanti dan periksa Supabase Logs.";
+    }
 
-    return "Proses gagal. Periksa koneksi dan pengaturan Supabase, lalu coba lagi.";
+    if (status === 400) {
+      return "Permintaan pendaftaran ditolak. Periksa email, password, dan pengaturan Supabase.";
+    }
+
+    if (status === 401 || status === 403) {
+      return "Permintaan ditolak server. Periksa konfigurasi Supabase dan API key publik.";
+    }
+
+    return "Pendaftaran atau login gagal. Periksa Supabase Auth Logs untuk mengetahui penyebabnya.";
   }
 
   function getEmailRedirectUrl() {
-    // Pastikan URL produksi VEXORA sudah disetel di Supabase
-    // Authentication > URL Configuration.
     return new URL("index.html", window.location.href).href;
   }
 
@@ -190,6 +208,7 @@
     event.preventDefault();
 
     if (busy) return;
+
     clearMessage();
 
     const email = $("email")?.value.trim().toLowerCase() || "";
@@ -202,7 +221,9 @@
     }
 
     if (mode === "register") {
-      if (!email.includes("@")) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailPattern.test(email)) {
         showMessage("Masukkan alamat email yang valid.", true);
         return;
       }
@@ -235,17 +256,14 @@
           return;
         }
 
-        if (data.session) {
-          showMessage(
-            "Akun berhasil dibuat. Membuka dashboard..."
-          );
-
+        if (data?.session) {
+          showMessage("Akun berhasil dibuat. Membuka dashboard...");
           window.location.replace("dashboard.html");
           return;
         }
 
         showMessage(
-          "Pendaftaran berhasil dikirim. Buka Gmail lu, lalu klik tautan verifikasi untuk mengaktifkan akun. Kalau belum ada, periksa folder Spam."
+          "Permintaan pendaftaran berhasil. Buka email lu dan klik tautan verifikasi untuk mengaktifkan akun. Periksa folder Spam jika email belum masuk."
         );
 
         if ($("password")) $("password").value = "";
@@ -262,16 +280,15 @@
           return;
         }
 
-        if (!data.session) {
+        if (!data?.session) {
           showMessage(
-            "Login belum selesai. Periksa status verifikasi email lu.",
+            "Login belum selesai. Periksa verifikasi email lu.",
             true
           );
           return;
         }
 
         showMessage("Login berhasil. Membuka dashboard...");
-
         window.location.replace("dashboard.html");
       }
     } catch (error) {
@@ -295,15 +312,16 @@
     const input = $("password");
     if (!input) return;
 
-    input.type = input.type === "password" ? "text" : "password";
+    input.type =
+      input.type === "password" ? "text" : "password";
   });
 
-  // Jika sudah login, langsung buka dashboard.
   async function checkExistingSession() {
     try {
-      const { data, error } = await supabaseClient.auth.getSession();
+      const { data, error } =
+        await supabaseClient.auth.getSession();
 
-      if (!error && data.session) {
+      if (!error && data?.session) {
         window.location.replace("dashboard.html");
       }
     } catch (error) {
