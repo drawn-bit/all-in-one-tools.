@@ -7,5 +7,4 @@
 window.VEXORA_CONFIG = {
   SUPABASE_URL: "https://qptodukoopzpmxpoydvo.supabase.co",
   SUPABASE_ANON_KEY: "sb_publishable_eda80TOf38r0CiUJx1SSwA_-bWAsl8a",
-  TURNSTILE_SITE_KEY: "ISI_CLOUDFLARE_TURNSTILE_SITE_KEY"
-};
+  };
