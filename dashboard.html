@@ -1,29 +1,458 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10051b">
-<title>VEXORA — Dashboard</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script defer src="dashboard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080b10">
+<title>VEXORA | Dashboard</title>
+
+<style>
+:root {
+  --bg:#080b10;
+  --surface:#10151e;
+  --surface2:#151c27;
+  --line:#252d3a;
+  --text:#f3f6fb;
+  --muted:#929eaf;
+  --cyan:#58dff5;
+  --gold:#f0c674;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;
+  color:var(--text);
+  background:var(--bg);
+  font-family:Inter,Arial,sans-serif;
+  padding-bottom:95px;
+}
+button,input { font:inherit }
+button { cursor:pointer }
+button:focus-visible,a:focus-visible,input:focus-visible {
+  outline:2px solid var(--cyan);
+  outline-offset:3px;
+}
+a { color:inherit;text-decoration:none }
+button { -webkit-tap-highlight-color:transparent }
+
+.topbar {
+  height:72px;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:#080b10ed;
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+.brand {
+  font-size:23px;
+  font-weight:900;
+  letter-spacing:2.4px;
+}
+.brand .x { color:var(--cyan) }
+.dev {
+  display:block;
+  font-size:9px;
+  letter-spacing:1.5px;
+  color:var(--muted);
+  margin-top:5px;
+}
+.menu-wrap { position:relative }
+.icon-btn {
+  height:42px;width:42px;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:var(--surface);
+  color:white;font-size:23px;
+}
+.dropdown {
+  display:none;
+  position:absolute;
+  right:0;top:50px;
+  width:205px;
+  padding:7px;
+  background:#131a25;
+  border:1px solid var(--line);
+  border-radius:15px;
+  box-shadow:0 16px 45px #0009;
+}
+.dropdown.show { display:block }
+.dropdown button {
+  width:100%;text-align:left;
+  padding:12px;border:0;
+  border-radius:9px;
+  color:var(--text);background:transparent;
+}
+.dropdown button:hover { background:#ffffff0c }
+
+main { max-width:960px;margin:auto;padding:20px 17px }
+.page { display:none }
+.page.active { display:block }
+.eyebrow {
+  color:var(--cyan);
+  font-size:10px;font-weight:700;
+  letter-spacing:2px;
+}
+h1 { font-size:clamp(27px,6vw,38px);margin:11px 0 }
+h2 { font-size:19px;margin:0 }
+h3 { font-size:15px;margin:0 }
+.muted { color:var(--muted);line-height:1.65;font-size:13px }
+.hero { padding:16px 2px 8px }
+.hero p { max-width:580px }
+
+.banner {
+  margin:20px 0;
+  position:relative;
+  overflow:hidden;
+  min-height:180px;
+  border:1px solid var(--line);
+  border-radius:19px;
+  background:
+    radial-gradient(ellipse at 80% 10%,#17627b88,transparent 45%),
+    linear-gradient(120deg,#15202e,#0b111a);
+}
+.banner video {
+  display:block;width:100%;height:190px;
+  object-fit:cover;
+}
+.banner-overlay {
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  padding:20px;
+  background:linear-gradient(0deg,#05080eef,transparent 85%);
+  pointer-events:none;
+}
+.banner-overlay h2 {
+  font-size:26px;letter-spacing:3px;
+}
+.banner-overlay p { margin:7px 0 0;color:#c0ccd8;font-size:12px }
+.banner-controls {
+  position:absolute;right:10px;top:10px;
+  display:flex;gap:7px;
+}
+.banner-controls button {
+  border:1px solid #ffffff28;
+  background:#080b10d9;color:white;
+  padding:8px 10px;border-radius:9px;
+  font-size:12px;
+}
+
+.section-head {
+  display:flex;align-items:center;
+  justify-content:space-between;gap:10px;
+  margin:25px 0 14px;
+}
+.link-btn {
+  border:0;background:transparent;
+  color:var(--cyan);font-size:12px;
+}
+.stats {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;margin:18px 0;
+}
+.stat,.panel,.tool-card,.contact-card {
+  min-width:0;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:15px;
+}
+.stat { padding:15px }
+.stat small { color:var(--muted);font-size:11px }
+.stat strong { display:block;margin-top:8px;font-size:16px;overflow-wrap:anywhere }
+.stat .cyan { color:var(--cyan) }
+.stat .gold { color:var(--gold) }
+
+.notice {
+  padding:13px 14px;
+  border:1px solid #58dff52b;
+  border-radius:12px;
+  background:#58dff508;
+  color:#b9c7d7;
+  font-size:12px;line-height:1.6;
+}
+.contact-grid {
+  display:grid;grid-template-columns:1fr;gap:10px;
+}
+.contact-card {
+  padding:15px;display:flex;align-items:center;gap:13px;
+  transition:border-color .2s;
+}
+.contact-card:hover { border-color:#58dff57a }
+.contact-icon {
+  width:43px;height:43px;flex-shrink:0;
+  display:grid;place-items:center;
+  border-radius:13px;background:#1b2430;font-size:20px;
+}
+.contact-card h3 { margin-bottom:5px }
+.contact-card p { margin:0;color:var(--muted);font-size:12px;line-height:1.5 }
+.contact-arrow { margin-left:auto;color:var(--muted) }
+
+.search {
+  width:100%;padding:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  color:white;background:var(--surface);
+  outline:none;margin:7px 0 13px;
+}
+.search:focus { border-color:var(--cyan) }
+.categories {
+  display:flex;gap:8px;overflow-x:auto;
+  padding:2px 0 13px;
+}
+.category {
+  white-space:nowrap;padding:9px 14px;
+  border:1px solid var(--line);border-radius:25px;
+  color:var(--muted);background:var(--surface);
+  font-size:12px;
+}
+.category.active {
+  color:var(--cyan);border-color:#58dff56b;
+  background:#58dff50c;
+}
+.tools-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:11px;
+}
+.tool-card {
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:15px;gap:11px;
+}
+.tool-icon {
+  width:42px;height:42px;display:grid;place-items:center;
+  border:1px solid var(--line);
+  background:#161f2b;border-radius:12px;font-size:21px;
+}
+.pill {
+  display:inline-flex;align-items:center;
+  padding:5px 8px;border-radius:20px;
+  background:#58dff510;color:var(--cyan);
+  font-size:9px;letter-spacing:.5px;font-weight:700;
+}
+.pill.vip { color:var(--gold);background:#f0c67412 }
+.tool-card h3 { overflow-wrap:anywhere }
+.tool-card p {
+  color:var(--muted);font-size:12px;line-height:1.55;
+  margin:0;overflow-wrap:anywhere;
+}
+.tool-open {
+  width:100%;margin-top:auto;
+  padding:10px;border:1px solid #58dff53b;
+  border-radius:9px;background:#58dff508;
+  color:var(--cyan);font-size:12px;
+}
+.tool-open:disabled {
+  color:var(--muted);border-color:var(--line);
+  background:#ffffff04;cursor:not-allowed;
+}
+.empty { display:none;text-align:center;padding:28px;color:var(--muted) }
+
+.panel { padding:18px;margin-bottom:12px }
+.profile-top { display:flex;align-items:center;gap:14px;margin-bottom:20px }
+.avatar {
+  width:65px;height:65px;flex-shrink:0;
+  overflow:hidden;border-radius:50%;
+  background:#171717;border:1px solid #343434;
+}
+.avatar svg { width:100%;height:100%;display:block }
+.profile-row {
+  display:flex;justify-content:space-between;gap:12px;
+  padding:13px 0;border-bottom:1px solid var(--line);
+  font-size:12px;
+}
+.profile-row span { color:var(--muted) }
+.profile-row strong { text-align:right;overflow-wrap:anywhere }
+.action-btn {
+  width:100%;padding:13px;margin-top:11px;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--surface2);color:white;
+}
+.action-btn.primary { color:#071014;background:var(--cyan);font-weight:700 }
+
+.bottom-nav {
+  position:fixed;z-index:30;bottom:0;left:0;right:0;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  padding:9px 12px calc(9px + env(safe-area-inset-bottom));
+  background:#0b1018f5;backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);
+}
+.nav-btn {
+  border:0;background:transparent;color:var(--muted);
+  padding:7px 3px;border-radius:11px;font-size:11px;
+}
+.nav-btn span { display:block;font-size:20px;margin-bottom:5px }
+.nav-btn.active { color:var(--cyan);background:#58dff50b }
+.footer { padding:26px 0 8px;text-align:center;color:#647184;font-size:10px }
+
+@media(min-width:600px) {
+  main { padding:28px 24px }
+  .stats { grid-template-columns:repeat(4,minmax(0,1fr)) }
+  .tools-grid { grid-template-columns:repeat(3,minmax(0,1fr)) }
+  .contact-grid { grid-template-columns:repeat(3,minmax(0,1fr)) }
+  .banner video { height:250px }
+}
+@media(max-width:360px) {
+  .tools-grid { grid-template-columns:1fr }
+  .brand { font-size:20px }
+  main { padding:15px 12px }
+}
+</style>
 </head>
-<body class="dashboard-page nexus-style">
-<header class="nexus-top"><a href="index.html" class="nexus-brand"><span class="brand-orb">V</span><span><b>VEXORA</b><small>MENU INFORMASI · Z4M OFFICIAL</small></span></a><div class="music-controls"><span class="equalizer">▂▅▇▃</span><button id="soundBtn" aria-pressed="false" title="Nyalakan backsound">♫</button><button id="bannerPlay" title="Putar/jeda banner">▶</button><button id="logoutButton" title="Keluar">↪</button></div><button id="menuBtn" class="menu-btn" aria-label="Buka menu">☰</button></header>
-<main class="dashboard-shell nexus-shell">
-<section class="banner-card nexus-banner" aria-label="Banner VEXORA"><video id="vexoraBanner" autoplay loop muted playsinline preload="auto"><source src="banner.mp4" type="video/mp4"></video><div class="banner-shade"></div><div class="banner-caption"><h1>⚡ VEXORA</h1><p>by Z4M OFFICIAL</p></div><span class="banner-loop">● VIDEO LOOP</span></section>
-<section class="profile-card nexus-profile"><div class="profile-avatar">♟</div><div class="profile-main"><span class="section-kicker">ACCOUNT PROFILE</span><h2 id="profileUsername">Pengguna VEXORA</h2><p id="welcomeText">Selamat datang di dashboard</p></div><div class="profile-details"><div class="profile-detail"><span>🌐</span><div><small>NEGARA</small><b>🇮🇩 Indonesia</b></div></div><div class="profile-detail"><span>▯</span><div><small>DEVICE</small><b id="deviceText">Memeriksa…</b></div></div><div class="profile-detail"><span>▤</span><div><small>BROWSER</small><b id="browserText">Browser</b></div></div><div class="profile-detail"><span>▥</span><div><small>STATUS</small><b class="online-text" id="statusText">● Online</b></div></div></div><div class="profile-badges"><span class="battery-pill">▰ <b id="batteryText">BATERAI —</b></span><span class="role-badge" id="roleBadge">♟ MEMBER</span><span class="role-badge vip-badge" id="roleText">♛ VIP</span></div><p id="dashboardMessage" class="message"></p></section>
-<nav class="category-tabs" aria-label="Kategori tools"><button class="category-tab active" data-filter="all">▦ All</button><button class="category-tab" data-filter="downloader">⇩ Downloader</button><button class="category-tab" data-filter="maker">✧ Maker</button><button class="category-tab" data-filter="tools">⚒ Tools</button><button class="category-tab" data-filter="vip">♛ VIP</button></nav>
-<div class="search-row"><h2>▦ <span id="sectionTitle">Semua Tools</span></h2><input id="toolSearch" type="search" placeholder="Cari tools…" aria-label="Cari tools"></div>
-<section id="toolsGrid" class="tools-grid">
-<article class="tool-card" data-category="downloader" data-name="tiktok downloader"><div class="tool-icon">♪</div><h3>TikTok Downloader</h3><p>Video, foto &amp; audio</p><span class="tool-tag">MP4 / MP3</span><a class="tool-arrow" href="#" data-tool="TikTok Downloader" aria-label="Buka TikTok Downloader">➜</a></article>
-<article class="tool-card" data-category="downloader" data-name="instagram downloader"><div class="tool-icon">◎</div><h3>Instagram</h3><p>Download video &amp; foto</p><span class="tool-tag">HD</span><a class="tool-arrow" href="#" data-tool="Instagram Downloader" aria-label="Buka Instagram Downloader">➜</a></article>
-<article class="tool-card" data-category="downloader" data-name="terabox downloader"><div class="tool-icon">⬡</div><h3>Terabox Downloader</h3><p>Kelola tautan file Terabox</p><span class="tool-tag">FILE</span><a class="tool-arrow" href="#" data-tool="Terabox Downloader" aria-label="Buka Terabox Downloader">➜</a></article>
-<article class="tool-card" data-category="downloader" data-name="spotify downloader"><div class="tool-icon">◉</div><h3>Spotify Tools</h3><p>Cari lagu dan lihat info musik</p><span class="tool-tag">MUSIC</span><a class="tool-arrow" href="#" data-tool="Spotify Tools" aria-label="Buka Spotify Tools">➜</a></article>
-<article class="tool-card" data-category="maker" data-name="brat generator"><div class="tool-icon">✧</div><h3>BRAT Generator</h3><p>Buat desain teks kreatif</p><span class="tool-tag">IMAGE</span><a class="tool-arrow" href="#" data-tool="BRAT Generator" aria-label="Buka BRAT Generator">➜</a></article>
-<article class="tool-card" data-category="maker" data-name="quote generator"><div class="tool-icon">❝</div><h3>Quote Generator</h3><p>Buat gambar quote</p><span class="tool-tag">JPG</span><a class="tool-arrow" href="#" data-tool="Quote Generator" aria-label="Buka Quote Generator">➜</a></article>
-<article class="tool-card" data-category="maker" data-name="image tools"><div class="tool-icon">▧</div><h3>Image Tools</h3><p>Alat bantu gambar dan foto</p><span class="tool-tag">IMAGE</span><a class="tool-arrow" href="#" data-tool="Image Tools" aria-label="Buka Image Tools">➜</a></article>
-<article class="tool-card" data-category="tools" data-name="calculator"><div class="tool-icon">▦</div><h3>Calculator</h3><p>Hitung dengan cepat</p><span class="tool-tag">MATH</span><a class="tool-arrow" href="#" data-tool="Calculator" aria-label="Buka Calculator">➜</a></article>
-<article class="tool-card" data-category="tools" data-name="password generator"><div class="tool-icon">⚿</div><h3>Password Generator</h3><p>Buat password acak yang kuat</p><span class="tool-tag">SECURE</span><a class="tool-arrow" href="#" data-tool="Password Generator" aria-label="Buka Password Generator">➜</a></article>
-<article class="tool-card" data-category="tools" data-name="morse code"><div class="tool-icon">⌁</div><h3>Morse Code</h3><p>Konversi teks dan kode Morse</p><span class="tool-tag">TEXT</span><a class="tool-arrow" href="#" data-tool="Morse Code" aria-label="Buka Morse Code">➜</a></article>
-<article class="tool-card" data-category="vip" data-name="text to image ai"><div class="tool-icon">✧</div><h3>Text to Image AI</h3><p>Ubah ide menjadi karya visual</p><span class="tool-tag">VIP</span><a class="tool-arrow" href="#" data-tool="Text to Image AI">➜</a></article>
-<article class="tool-card" data-category="vip" data-name="youtube downloader"><div class="tool-icon">▶</div><h3>YouTube Tools</h3><p>Info video dan utilitas</p><span class="tool-tag">VIP</span><a class="tool-arrow" href="#" data-tool="YouTube Tools">➜</a></article>
-</section><p id="emptyState" class="empty-state" hidden>Tools tidak ditemukan.</p><footer><span>© 2026 VEXORA</span><span>DEVELOPED BY <b>Z4M OFFICIAL</b></span></footer>
-</main><div id="toolNotice" class="tool-notice" role="status" aria-live="polite"></div><script>/* fallback controls live in dashboard.js */</script>
-</body></html>
+
+<body>
+<header class="topbar">
+  <div>
+    <div class="brand">VE<span class="x">X</span>ORA</div>
+    <small class="dev">DEVELOPED BY Z4M OFFICIAL</small>
+  </div>
+  <div class="menu-wrap">
+    <button class="icon-btn" id="menuBtn" aria-label="Menu">⋮</button>
+    <div class="dropdown" id="dropdownMenu">
+      <button data-page="profile">◉ &nbsp; Profil saya</button>
+      <button data-page="settings">⚙ &nbsp; Pengaturan</button>
+      <button data-page="updates">▤ &nbsp; Pengumuman</button>
+      <button id="ownerMenuItem" data-page="owner" hidden>♛ &nbsp; Panel Owner</button>
+      <button id="menuLogout">↪ &nbsp; Keluar akun</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="page active" id="page-menu">
+    <div class="hero">
+      <div class="eyebrow">YOUR DIGITAL SPACE</div>
+      <h1 id="welcomeText">Selamat datang.</h1>
+      <p class="muted">Semua tools favorit lu dalam satu tempat. Simpel, cepat, dan rapi.</p>
+    </div>
+
+    <div class="banner">
+      <video id="vexoraBanner" autoplay muted loop playsinline>
+        <source src="banner.mp4" type="video/mp4">
+      </video>
+      <div class="banner-controls">
+        <button id="soundBtn">🔇 Suara</button>
+        <button id="bannerPlay">Ⅱ Pause</button>
+      </div>
+      <div class="banner-overlay">
+        <div class="eyebrow">WELCOME TO</div>
+        <h2>VEXORA</h2>
+        <p>Tools digital, satu dashboard.</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><small>Status akun</small><strong class="cyan" id="statusText">Memeriksa...</strong></div>
+      <div class="stat"><small>Role</small><strong id="roleBadge">Member</strong></div>
+      <div class="stat"><small>Perangkat</small><strong id="deviceText">Browser</strong></div>
+      <div class="stat"><small>Baterai</small><strong id="batteryText">-</strong></div>
+    </div>
+
+    <div class="notice" id="dashboardMessage">Memuat dashboard...</div>
+
+    <div class="section-head">
+      <h2>Tools pilihan</h2>
+      <button class="link-btn" data-page="tools">Lihat semua →</button>
+    </div>
+    <div class="tools-grid" id="featuredGrid"></div>
+
+    <div class="section-head"><h2>Hubungi & ikuti kami</h2></div>
+    <div class="contact-grid">
+      <a class="contact-card" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP." target="_blank" rel="noopener noreferrer">
+        <div class="contact-icon">☏</div>
+        <div><h3>Upgrade VIP</h3><p>Mau up role ke VIP? Chat WhatsApp.</p></div>
+        <span class="contact-arrow">↗</span>
+      </a>
+      <a class="contact-card" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O" target="_blank" rel="noopener noreferrer">
+        <div class="contact-icon">◉</div>
+        <div><h3>Saluran WA</h3><p>Masuk untuk melihat informasi terbaru.</p></div>
+        <span class="contact-arrow">↗</span>
+      </a>
+      <a class="contact-card" href="https://www.tiktok.com/@z4m.offical" target="_blank" rel="noopener noreferrer">
+        <div class="contact-icon">♪</div>
+        <div><h3>TikTok Developer</h3><p>@z4m.offical</p></div>
+        <span class="contact-arrow">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="page" id="page-tools">
+    <div class="hero">
+      <div class="eyebrow">TOOL CENTER</div>
+      <h1>Semua Tools</h1>
+      <p class="muted">Cari tools dan pilih kategori sesuai akses akun lu.</p>
+    </div>
+    <input class="search" id="toolSearch" placeholder="⌕  Cari tools..." type="search">
+    <div class="categories" id="category-tabs">
+      <button class="category active" data-category="all">Semua</button>
+      <button class="category" data-category="general">General</button>
+      <button class="category" data-category="member">Member</button>
+      <button class="category" data-category="vip">VIP</button>
+    </div>
+    <div class="section-head"><h2 id="sectionTitle">Daftar Tools</h2></div>
+    <div class="tools-grid" id="toolsGrid"></div>
+    <div class="empty" id="emptyState">Tools tidak ditemukan.</div>
+  </section>
+
+  <section class="page" id="page-profile">
+    <div class="hero"><div class="eyebrow">ACCOUNT</div><h1>Profil saya</h1></div>
+    <div class="panel">
+      <div class="profile-top">
+        <div class="avatar" id="profileAvatar" aria-label="Foto profil default">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <rect width="100" height="100" fill="#171717"/>
+            <circle cx="50" cy="35" r="18" fill="#777"/>
+            <path d="M15 100 Q16 60 50 60 Q84 60 85 100" fill="#777"/>
+          </svg>
+        </div>
+        <div>
+          <h2 id="profileUsername">Memuat akun...</h2>
+          <p class="muted" id="profileEmail">Memeriksa email...</p>
+        </div>
+      </div>
+      <div class="profile-row"><span>Role</span><strong id="roleText">Member</strong></div>
+      <div class="profile-row"><span>Status</span><strong id="profileStatus">Aktif</strong></div>
+      <div class="profile-row"><span>Browser</span><strong id="browserText">-</strong></div>
+      <button class="action-btn" id="profileSettings">Pengaturan</button>
+      <button class="action-btn primary" id="logoutButton">Keluar akun</button>
+    </div>
+  </section>
+
+  <section class="page" id="page-settings">
+    <div class="hero"><div class="eyebrow">PREFERENCES</div><h1>Pengaturan</h1><p class="muted">Atur pemutaran banner VEXORA.</p></div>
+    <div class="panel">
+      <h3>Suara banner</h3>
+      <p class="muted">Aktifkan atau matikan suara video.</p>
+      <button class="action-btn" id="settingsSound">🔇 Aktifkan suara</button>
+      <button class="action-btn" id="settingsPlay">Ⅱ Pause banner</button>
+    </div>
+  </section>
+
+  <section class="page" id="page-updates">
+    <div class="hero"><div class="eyebrow">LATEST INFO</div><h1>Pengumuman</h1></div>
+    <div class="panel"><span class="pill">INFO</span><h3 style="margin-top:12px">Selamat datang di VEXORA</h3><p class="muted">Pantau saluran WhatsApp untuk informasi dan update terbaru.</p><a class="link-btn" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O" target="_blank" rel="noopener noreferrer">Lihat saluran →</a></div>
+  </section>
+
+  <section class="page" id="page-owner">
+    <div class="hero"><div class="eyebrow">RESTRICTED ACCESS</div><h1>Panel Owner</h1><p class="muted">Area khusus Owner. Pengelolaan akun membutuhkan backend admin yang aman.</p></div>
+    <div class="notice">Panel ini belum menjalankan perubahan akun. Jangan menambahkan tombol ban, hapus, atau upgrade role sebelum endpoint backend dan izin Owner selesai dipasang.</div>
+    <div class="panel" style="margin-top:12px"><h3>Manajemen akun</h3><p class="muted">Upgrade VIP, turunkan role, ban/unban, dan hapus akun akan dihubungkan setelah backend admin siap.</p></div>
+    <div class="panel"><h3>Maintenance Mode</h3><p class="muted">Pengaturan maintenance global perlu disimpan di backend agar berlaku untuk semua pengunjung.</p></div>
+  </section>
+
+  <footer class="footer">© <span id="currentYear"></span> VEXORA · Z4M OFFICIAL</footer>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="menu"><span>⌂</span>Menu</button>
+  <button class="nav-btn" data-page="tools"><span>▦</span>Tools</button>
+  <button class="nav-btn" data-page="profile"><span>◯</span>Profile</button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="dashboard.js"></script>
+</body>
+  </html>
