@@ -78,7 +78,9 @@
       name = "menu";
       notice("Akses ditolak. Panel Owner hanya untuk OWNER.");
     }
-
+if (name === "owner" && currentRole === "owner") {
+  loadOwnerPanel();
+}
     document.querySelectorAll(".page").forEach((page) => {
       page.classList.toggle("active", page.id === "page-" + name);
     });
