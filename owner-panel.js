@@ -298,7 +298,7 @@
 
     try {
       status("ownerUsersStatus", shouldBan ? "Memblokir akun..." : "Membuka blokir akun...");
-      await callAdmin(action, { user_id: id });
+      await callAdmin(action, { userId: id });
       status("ownerUsersStatus", shouldBan ? "Akun berhasil diblokir." : "Blokir akun berhasil dibuka.");
       await loadUsers();
     } catch (error) {
@@ -325,7 +325,7 @@
     try {
       status("ownerUsersStatus", "Menghapus akun...");
       await callAdmin("delete_user", {
-        user_id: id,
+        userId: id,
         confirmation: "HAPUS"
       });
       status("ownerUsersStatus", "Permintaan penghapusan akun berhasil.");
