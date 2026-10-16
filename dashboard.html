@@ -99,10 +99,28 @@
     </div>
     <div class="owner-section">
       <h3>Manajemen Tools</h3><p class="owner-help">Tambahkan tools baru atau edit dan hapus tools yang sudah terdaftar.</p>
-      <p class="owner-status" id="ownerToolsStatus" aria-live="polite">Menunggu data tools...</p>
-      <form class="owner-form" id="ownerToolForm">
-        <input type="hidden" id="ownerToolId">
-        
+      
+<p class="owner-status" id="ownerToolsStatus" aria-live="polite">Menunggu data tools...</p>
+
+<div class="owner-table-wrap">
+  <table class="owner-table">
+    <thead>
+      <tr>
+        <th>Nama Tools</th>
+        <th>Kategori</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="ownerToolsTable">
+      <tr>
+        <td colspan="3">Memuat daftar tools...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<form class="owner-form" id="ownerToolForm">
+        <input type="hidden" id="ownerToolId">      
 <div class="owner-field">
   <label for="ownerToolName">Nama Tools</label>
   <input id="ownerToolName" type="text" required>
