@@ -50,37 +50,36 @@
     const ownerNav = $("ownerNav");
     const ownerPage = $("page-owner");
 
-    // Tombol Panel Owner selalu terlihat.
+    // Panel Owner hanya ditampilkan untuk akun Owner.
     if (ownerNav) {
-      ownerNav.hidden = false;
-      ownerNav.style.display = "";
+      ownerNav.hidden = currentRole !== "owner";
     }
 
-    // Isi panel hanya dapat dibuka OWNER.
+    // Jangan menghapus isi HTML Panel Owner.
     if (ownerPage) {
       ownerPage.hidden = currentRole !== "owner";
-
-      if (currentRole !== "owner") {
-        ownerPage.classList.remove("active");
-      }
     }
   }
 
   function openPage(name) {
     const validPages = [
-      "menu", "tools", "profile", "settings", "updates", "owner"
+      "menu",
+      "tools",
+      "profile",
+      "settings",
+      "updates",
+      "owner"
     ];
 
-    if (!validPages.includes(name)) name = "menu";
+    if (!validPages.includes(name)) {
+      name = "menu";
+    }
 
-    // Pemeriksaan akses setiap kali halaman diminta.
     if (name === "owner" && currentRole !== "owner") {
       name = "menu";
       notice("Akses ditolak. Panel Owner hanya untuk OWNER.");
     }
-if (name === "owner" && currentRole === "owner") {
-  loadOwnerPanel();
-}
+
     document.querySelectorAll(".page").forEach((page) => {
       page.classList.toggle("active", page.id === "page-" + name);
     });
@@ -94,30 +93,36 @@ if (name === "owner" && currentRole === "owner") {
       ownerPage.hidden = currentRole !== "owner";
     }
 
+    // Tutup dropdown tanpa menambahkan event klik kedua.
     $("dropdown")?.classList.remove("open");
 
     if (location.hash !== "#" + name) {
-      history.replaceState(null, "", location.pathname + location.search + "#" + name);
+      history.replaceState(
+        null,
+        "",
+        location.pathname + location.search + "#" + name
+      );
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-if (name === "owner" && currentRole === "owner") {
-  loadOwnerPanel();
-}
+
   function renderGrid(id, vipOnly, search = "") {
     const target = $(id);
     if (!target) return;
 
     target.replaceChildren();
 
-    const filtered = tools.filter((tool) => {
-      return tool.vip === vipOnly &&
-        (tool.name + " " + tool.desc).toLowerCase().includes(search.toLowerCase());
-    });
+    const query = search.toLowerCase();
+
+    const filtered = tools.filter((tool) =>
+      tool.vip === vipOnly &&
+      (tool.name + " " + tool.desc).toLowerCase().includes(query)
+    );
 
     filtered.forEach((tool) => {
-      const unlocked = !tool.vip ||
+      const unlocked =
+        !tool.vip ||
         currentRole === "vip" ||
         currentRole === "owner";
 
@@ -158,6 +163,14 @@ if (name === "owner" && currentRole === "owner") {
           return;
         }
 
+        if (tool.name === "TikTok Downloader") {
+          notice(
+            "TikTok Downloader belum dihubungkan melalui kartu ini. " +
+            "Endpoint downloader yang sudah berjalan tidak diubah."
+          );
+          return;
+        }
+
         notice("Tools " + tool.name + " belum terhubung ke fungsi aslinya.");
       });
 
@@ -173,258 +186,21 @@ if (name === "owner" && currentRole === "owner") {
     renderGrid("vipGrid2", true, search);
 
     if ($("freeCount")) {
-      $("freeCount").textContent = tools.filter((tool) => !tool.vip).length;
+      $("freeCount").textContent =
+        tools.filter((tool) => !tool.vip).length;
     }
 
     if ($("vipCount")) {
-      $("vipCount").textContent = tools.filter((tool) => tool.vip).length;
+      $("vipCount").textContent =
+        tools.filter((tool) => tool.vip).length;
     }
   }
 
-  async function loadOwnerPanel() {
-    const page = $("page-owner");
-    if (!page || currentRole !== "owner") return;
-
-    page.replaceChildren();
-
-    const heading = document.createElement("h2");
-    heading.textContent = "Panel Owner";
-    page.appendChild(heading);
-
-    const description = document.createElement("p");
-    description.textContent =
-      "Kelola akun VEXORA dan role Member/VIP.";
-    page.appendChild(description);
-
-    const status = document.createElement("p");
-    status.textContent = "Memuat data...";
-    page.appendChild(status);
-
-    const statsBox = document.createElement("div");
-    statsBox.className = "owner-stats";
-    page.appendChild(statsBox);
-
-    const search = document.createElement("input");
-    search.type = "search";
-    search.placeholder = "Cari email pengguna...";
-    search.setAttribute("aria-label", "Cari email pengguna");
-    page.appendChild(search);
-
-    const table = document.createElement("div");
-    table.className = "owner-users";
-    page.appendChild(table);
-
-    const moreButton = document.createElement("button");
-    moreButton.type = "button";
-    moreButton.textContent = "Muat pengguna berikutnya";
-    moreButton.hidden = true;
-    page.appendChild(moreButton);
-
-    let users = [];
-    let pageNumber = 1;
-    let hasMore = false;
-    let busy = false;
-
-    async function callOwner(action, extra = {}) {
-      const { data, error } = await supabaseClient.functions.invoke(
-        "owner-admin",
-        { body: { action, ...extra } }
-      );
-
-      if (error) {
-        let detail = error.message || "Permintaan gagal.";
-        try {
-          const response = error.context;
-          if (response && typeof response.json === "function") {
-            const body = await response.json();
-            if (body.error) detail = body.error;
-          }
-        } catch (_) {}
-        throw new Error(detail);
-      }
-
-      if (!data || data.error) {
-        throw new Error(data?.error || "Respons server tidak valid.");
-      }
-
-      return data;
-    }
-
-    function renderUsers() {
-      table.replaceChildren();
-
-      const query = search.value.trim().toLowerCase();
-      const filtered = users.filter((u) =>
-        (u.email || "").toLowerCase().includes(query)
-      );
-
-      if (!filtered.length) {
-        const empty = document.createElement("p");
-        empty.textContent = query
-          ? "Pengguna tidak ditemukan."
-          : "Belum ada data pengguna.";
-        table.appendChild(empty);
-      }
-
-      filtered.forEach((user) => {
-        const card = document.createElement("article");
-        card.className = "owner-user-card";
-
-        const email = document.createElement("p");
-        email.textContent = user.email || "(tanpa email)";
-
-        const roleText = document.createElement("p");
-        roleText.textContent = "Role: " + user.role.toUpperCase();
-
-        const select = document.createElement("select");
-        select.setAttribute("aria-label", "Role baru");
-
-        [
-          { value: "member", label: "Member" },
-          { value: "vip", label: "VIP" }
-        ].forEach((optionData) => {
-          const option = document.createElement("option");
-          option.value = optionData.value;
-          option.textContent = optionData.label;
-          select.appendChild(option);
-        });
-
-        select.value = user.role === "vip" ? "vip" : "member";
-
-        const save = document.createElement("button");
-        save.type = "button";
-        save.textContent = "Simpan Role";
-
-        save.addEventListener("click", async () => {
-          if (busy) return;
-
-          if (!["member", "vip"].includes(select.value)) return;
-
-          if (user.role === select.value) {
-            notice("Role pengguna tidak berubah.");
-            return;
-          }
-
-          if (!confirm(
-            "Ubah role " + (user.email || "pengguna") +
-            " menjadi " + select.value.toUpperCase() + "?"
-          )) return;
-
-          busy = true;
-          save.disabled = true;
-          status.textContent = "Menyimpan perubahan...";
-
-          try {
-            await callOwner("set_role", {
-              userId: user.id,
-              role: select.value
-            });
-
-            user.role = select.value;
-            roleText.textContent = "Role: " + user.role.toUpperCase();
-            notice("Role berhasil diperbarui.");
-            status.textContent = "Perubahan berhasil disimpan.";
-          } catch (error) {
-            status.textContent = "Gagal mengubah role.";
-            notice(error.message);
-          } finally {
-            busy = false;
-            save.disabled = false;
-          }
-        });
-
-        card.append(email, roleText, select, save);
-        table.appendChild(card);
-      });
-    }
-
-    async function loadStats() {
-      try {
-        const data = await callOwner("stats");
-        statsBox.replaceChildren();
-
-        [
-          ["Total akun", data.total],
-          ["Member", data.members],
-          ["VIP", data.vips],
-          ["Owner", data.owners]
-        ].forEach(([label, value]) => {
-          const item = document.createElement("div");
-          item.className = "owner-stat-card";
-
-          const title = document.createElement("p");
-          title.textContent = label;
-
-          const number = document.createElement("strong");
-          number.textContent = String(value ?? 0);
-
-          item.append(title, number);
-          statsBox.appendChild(item);
-        });
-      } catch (error) {
-        console.error("VEXORA owner stats:", error);
-        status.textContent = "Statistik gagal dimuat: " + error.message;
-      }
-    }
-
-    async function loadUsers(reset = false) {
-      if (busy) return;
-      busy = true;
-      moreButton.disabled = true;
-      status.textContent = "Memuat daftar pengguna...";
-
-      try {
-        if (reset) {
-          pageNumber = 1;
-          users = [];
-        }
-
-        const data = await callOwner("list_users", {
-          page: pageNumber,
-          perPage: 50
-        });
-
-        users = reset ? data.users : users.concat(data.users);
-        hasMore = Boolean(data.has_more);
-        moreButton.hidden = !hasMore;
-
-        renderUsers();
-        status.textContent = users.length + " akun berhasil dimuat.";
-      } catch (error) {
-        console.error("VEXORA owner users:", error);
-        status.textContent = "Gagal memuat pengguna: " + error.message;
-      } finally {
-        busy = false;
-        moreButton.disabled = false;
-      }
-    }
-
-    search.addEventListener("input", renderUsers);
-
-    moreButton.addEventListener("click", async () => {
-      if (!hasMore || busy) return;
-      pageNumber++;
-      await loadUsers(false);
-    });
-
-    const reloadButton = document.createElement("button");
-    reloadButton.type = "button";
-    reloadButton.textContent = "Refresh Panel";
-    reloadButton.addEventListener("click", async () => {
-      await loadUsers(true);
-      await loadStats();
-    });
-
-    page.insertBefore(reloadButton, statsBox);
-
-    await Promise.all([loadUsers(true), loadStats()]);
-                                               }
-      
   function bindInterface() {
     if (initialized) return;
     initialized = true;
 
-    // Navigasi utama, termasuk tombol Panel Owner.
+    // Navigasi Menu, Tools, Profile, Settings, Updates, dan Owner.
     document.querySelectorAll(".nav[data-page]").forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
@@ -432,66 +208,21 @@ if (name === "owner" && currentRole === "owner") {
       });
     });
 
-    // Dropdown menu.
-    $("dotsBtn")?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      $("dropdown")?.classList.toggle("open");
-    });
-
-    document.querySelectorAll("[data-go]").forEach((button) => {
-      button.addEventListener("click", () => {
-        openPage(button.dataset.go);
-      });
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!event.target.closest(".menu-wrap")) {
-        $("dropdown")?.classList.remove("open");
-      }
-    });
-
     // Pencarian tools.
     $("toolSearch")?.addEventListener("input", (event) => {
       renderTools(event.target.value.trim());
     });
 
-    // Refresh.
+    // Refresh tampilan tools.
     $("refreshBtn")?.addEventListener("click", () => {
       renderTools($("toolSearch")?.value.trim() || "");
       notice("Daftar tools berhasil diperbarui.");
     });
 
-    // Video banner.
-    const video = $("bannerVideo");
+    // Logout hanya punya satu handler.
+    $("logoutBtn")?.addEventListener("click", async (event) => {
+      event.preventDefault();
 
-    $("playVideo")?.addEventListener("click", async () => {
-      if (!video) {
-        notice("Elemen video banner tidak ditemukan.");
-        return;
-      }
-
-      if (video.paused) {
-        try {
-          await video.play();
-          $("playVideo").textContent = "Ⅱ Pause";
-        } catch (error) {
-          notice("Video tidak dapat diputar. Periksa file banner.mp4.");
-        }
-      } else {
-        video.pause();
-        $("playVideo").textContent = "▶ Play";
-      }
-    });
-
-    $("muteVideo")?.addEventListener("click", () => {
-      if (!video) return;
-
-      video.muted = !video.muted;
-      $("muteVideo").textContent = video.muted ? "♩ Unmute" : "♩ Mute";
-    });
-
-    // Logout.
-    async function logout() {
       if (!supabaseClient) {
         alert("Supabase belum siap. Coba lagi sebentar.");
         return;
@@ -499,35 +230,45 @@ if (name === "owner" && currentRole === "owner") {
 
       if (!confirm("Yakin ingin logout dari VEXORA?")) return;
 
-      const { error } = await supabaseClient.auth.signOut();
+      const button = $("logoutBtn");
+      if (button) button.style.pointerEvents = "none";
 
-      if (error) {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
+
+        if (error) {
+          throw error;
+        }
+
+        window.location.replace("index.html");
+      } catch (error) {
         alert("Logout gagal: " + error.message);
-        return;
+        if (button) button.style.pointerEvents = "";
       }
-
-      window.location.replace("index.html");
-    }
-
-    $("logoutBtn")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      logout();
     });
-
-    $("dropdownLogout")?.addEventListener("click", logout);
   }
 
   async function initialize() {
-    // Event tombol dipasang sebelum menunggu koneksi Supabase.
+    // Pasang event navigasi lebih dahulu.
     bindInterface();
 
-    if (!window.VEXORA_CONFIG || !window.supabase) {
+    if (!window.VEXORA_CONFIG) {
+      throw new Error("config.js tidak ditemukan.");
+    }
+
+    if (!window.supabase?.createClient) {
       throw new Error(
-        "Supabase atau config.js tidak ditemukan. Periksa urutan script HTML."
+        "Library Supabase belum dimuat. Periksa koneksi internet."
       );
     }
 
     const config = window.VEXORA_CONFIG;
+
+    if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
+      throw new Error(
+        "SUPABASE_URL atau SUPABASE_ANON_KEY belum diatur di config.js."
+      );
+    }
 
     supabaseClient = window.supabase.createClient(
       config.SUPABASE_URL,
@@ -544,6 +285,8 @@ if (name === "owner" && currentRole === "owner") {
     }
 
     currentUser = data.session.user;
+
+    // Role berasal dari app_metadata, bukan input pengguna.
     currentRole = normalizeRole(currentUser.app_metadata?.role);
 
     setOwnerVisibility();
@@ -553,17 +296,20 @@ if (name === "owner" && currentRole === "owner") {
     }
 
     if ($("dateText")) {
-      $("dateText").textContent = new Date().toLocaleDateString("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      });
+      $("dateText").textContent = new Date().toLocaleDateString(
+        "id-ID",
+        {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        }
+      );
     }
 
     if ($("greetingText")) {
-      $("greetingText").textContent =
-        "Welcome, " + (currentUser.email?.split("@")[0] || "User") + "!";
+      const username = currentUser.email?.split("@")[0] || "User";
+      $("greetingText").textContent = "Welcome, " + username + "!";
     }
 
     if ($("profileEmail")) {
@@ -580,19 +326,19 @@ if (name === "owner" && currentRole === "owner") {
 
     renderTools();
 
-    // Tentukan halaman awal berdasarkan hash URL.
     const hashPage = window.location.hash.replace(/^#/, "");
-    const allowedPages = [
-      "menu", "tools", "profile", "settings", "updates", "owner"
+    const validPages = [
+      "menu",
+      "tools",
+      "profile",
+      "settings",
+      "updates",
+      "owner"
     ];
 
-    if (allowedPages.includes(hashPage)) {
-      openPage(hashPage);
-    } else {
-      openPage("menu");
-    }
+    openPage(validPages.includes(hashPage) ? hashPage : "menu");
 
-    // Perbarui tampilan jika sesi berubah.
+    // Pantau sesi login.
     supabaseClient.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT" || !session) {
         window.location.replace("index.html");
@@ -602,10 +348,14 @@ if (name === "owner" && currentRole === "owner") {
 
   initialize().catch((error) => {
     console.error("VEXORA dashboard error:", error);
-    alert(
-      "Dashboard gagal dimuat: " + error.message +
-      ". Periksa config.js, koneksi internet, dan console browser."
-    );
+
+    const box = $("settingsNotice");
+    if (box) {
+      box.textContent = "Dashboard gagal dimuat: " + error.message;
+      box.classList.add("show");
+    } else {
+      alert("Dashboard gagal dimuat: " + error.message);
+    }
   });
 })();
-     
+    
