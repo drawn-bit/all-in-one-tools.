@@ -1,6 +1,6 @@
 
 /* VEXORA owner-panel.js
-   Compatible with dashboard.js + owner-admin + vexora-extras.js
+   Owner Panel — dashboard.js + owner-admin + vexora-extras.js
 */
 (() => {
   'use strict';
@@ -10,24 +10,29 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const TABLE_TOOLS = 'vexora_tools';
   const ADMIN_FUNCTION = 'owner-admin';
-  const TOOLS_TABLE = 'vexora_tools';
 
   let db = null;
-  let users = [];
-  let tools = [];
-  let loading = false;
+  let currentUsers = [];
+  let currentTools = [];
+  let isLoading = false;
+  let eventsBound = false;
 
-  const escapeHTML = (value) =>
-    String(value ?? '').replace(/[&<>"']/g, (char) => ({
+  // -----------------------------
+  // UTILITAS
+  // -----------------------------
+  function escapeHTML(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => ({
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
       "'": '&#39;'
-    })[char]);
+    })[c]);
+  }
 
-  function setStatus(id, message, isError = false) {
+  function status(id, message, isError = false) {
     const el = $(id);
     if (!el) return;
 
@@ -37,43 +42,16 @@
 
   function getClient() {
     if (typeof window.vexoraGetClient === 'function') {
-      const shared = window.vexoraGetClient();
-      if (shared) db = shared;
+      db = window.vexoraGetClient() || db;
     }
 
-    if (!db) {
-      db = window.vexoraSupabase || window.supabaseClient || null;
-    }
+    db = db || window.vexoraSupabase || window.supabaseClient;
 
     if (!db) {
-      throw new Error(
-        'Supabase client belum siap. Muat ulang dashboard.'
-      );
+      throw new Error('Supabase belum siap. Muat ulang dashboard.');
     }
 
     return db;
-  }
-
-  function unwrap(result) {
-    let value = result;
-
-    // Mendukung respons yang dibungkus beberapa kali.
-    for (let i = 0; i < 3; i++) {
-      if (!value || typeof value !== 'object') break;
-
-      if (
-        value.data &&
-        typeof value.data === 'object' &&
-        !Array.isArray(value.data)
-      ) {
-        value = value.data;
-        continue;
-      }
-
-      break;
-    }
-
-    return value;
   }
 
   async function verifyOwner() {
@@ -83,10 +61,7 @@
     if (error) throw error;
 
     const user = data?.session?.user;
-
-    if (!user) {
-      throw new Error('Sesi login tidak ditemukan.');
-    }
+    if (!user) throw new Error('Sesi login tidak ditemukan.');
 
     const role = String(
       user.app_metadata?.role ||
@@ -95,9 +70,7 @@
     ).toLowerCase();
 
     if (role !== 'owner') {
-      throw new Error(
-        'Akses ditolak. Akun ini bukan Owner VEXORA.'
-      );
+      throw new Error('Akun ini tidak memiliki akses Owner.');
     }
 
     return user;
@@ -109,106 +82,86 @@
     const { data, error } = await client.functions.invoke(
       ADMIN_FUNCTION,
       {
-        body: {
-          action,
-          ...payload
-        }
+        body: { action, ...payload }
       }
     );
 
     if (error) {
-      let detail = error.message || 'Permintaan ke Owner API gagal.';
+      let message = error.message || 'Permintaan ke Owner API gagal.';
 
-      if (error.context && typeof error.context.json === 'function') {
-        try {
-          const body = await error.context.json();
-          detail = body.error || body.message || detail;
-        } catch (_) {
-          // Respons bukan JSON; gunakan pesan awal.
+      try {
+        const response = error.context;
+        if (response && typeof response.json === 'function') {
+          const body = await response.json();
+          message = body.error || body.message || message;
         }
-      }
+      } catch (_) {}
 
-      throw new Error(detail);
+      throw new Error(message);
     }
 
-    const result = unwrap(data);
+    if (data == null) {
+      throw new Error('Owner API tidak mengembalikan data.');
+    }
 
-    if (!result || result.success === false || result.error) {
+    if (data.success === false || data.error) {
       throw new Error(
-        result?.error ||
-        result?.message ||
-        'Owner API mengembalikan respons yang tidak berhasil.'
+        data.error || data.message || 'Aksi ditolak oleh Owner API.'
       );
     }
 
-    return result;
+    return data;
   }
 
-  function getArray(result, keys) {
+  function getList(result, keys) {
+    if (Array.isArray(result)) return result;
+
     for (const key of keys) {
       if (Array.isArray(result?.[key])) return result[key];
+      if (Array.isArray(result?.data?.[key])) return result.data[key];
     }
-
-    // Mendukung API yang langsung mengembalikan array.
-    if (Array.isArray(result)) return result;
 
     return null;
   }
 
-  function normalizeUser(user) {
-    return {
-      ...user,
-      id: user.id || user.user_id || user.uid || '',
-      email: user.email || user.user_email || 'Tanpa email',
-      role: String(
-        user.role ||
-        user.app_metadata?.role ||
-        user.user_metadata?.role ||
-        'member'
-      ).toLowerCase(),
-      banned:
-        Boolean(user.banned) ||
-        Boolean(user.is_banned) ||
-        Boolean(user.banned_until && new Date(user.banned_until) > new Date())
-    };
-  }
-
+  // -----------------------------
+  // STATISTIK
+  // -----------------------------
   function renderStats(result) {
-    const stats = result?.stats || result?.counts || result || {};
+    const source = result?.stats || result?.counts || result?.data || result;
 
-    const totalUsers =
-      stats.total_users ?? stats.totalUsers ??
-      stats.users_count ?? stats.users;
-
-    const totalVip =
-      stats.vip_users ?? stats.vipUsers ??
-      stats.total_vip ?? stats.vip;
-
-    const totalOwners =
-      stats.owner_users ?? stats.ownerUsers ??
-      stats.total_owners ?? stats.owners ??
-      stats.admins;
-
-    const totalMembers =
-      stats.member_users ?? stats.memberUsers ??
-      stats.total_members ?? stats.members;
-
-    const totalBanned =
-      stats.banned_users ?? stats.bannedUsers ??
-      stats.total_banned ?? stats.banned;
-
-    const assign = (id, value) => {
-      if ($(id) && value !== undefined && value !== null) {
-        $(id).textContent = String(value);
-      }
+    const values = {
+      ownerUsersCount: [
+        'total_users', 'totalUsers', 'users_count', 'user_count'
+      ],
+      ownerVipCount: [
+        'vip_users', 'vipUsers', 'total_vip', 'vip_count'
+      ],
+      ownerAdminsCount: [
+        'owner_users', 'ownerUsers', 'total_owners', 'owners', 'admins'
+      ],
+      ownerMembersCount: [
+        'member_users', 'memberUsers', 'total_members', 'members'
+      ],
+      ownerBannedCount: [
+        'banned_users', 'bannedUsers', 'total_banned', 'banned'
+      ],
+      ownerToolsCount: [
+        'total_tools', 'tools_count', 'totalTools'
+      ]
     };
 
-    assign('ownerUsersCount', totalUsers);
-    assign('ownerVipCount', totalVip);
-    assign('ownerAdminsCount', totalOwners);
-    assign('ownerMembersCount', totalMembers);
-    assign('ownerBannedCount', totalBanned);
-    assign('ownerToolsCount', stats.total_tools ?? stats.tools_count);
+    for (const [elementId, keys] of Object.entries(values)) {
+      const el = $(elementId);
+      if (!el) continue;
+
+      for (const key of keys) {
+        if (source?.[key] !== undefined && source[key] !== null) {
+          el.textContent = String(source[key]);
+          break;
+        }
+      }
+    }
   }
 
   async function loadStats() {
@@ -216,13 +169,42 @@
       const result = await callAdmin('stats');
       renderStats(result);
     } catch (error) {
-      console.error('[VEXORA] Stats:', error);
-      setStatus(
+      console.error('[VEXORA] Statistik:', error);
+      status(
         'ownerUsersStatus',
         'Statistik gagal dimuat: ' + error.message,
         true
       );
     }
+  }
+
+  // -----------------------------
+  // DATA AKUN
+  // -----------------------------
+  function normalizeUser(user) {
+    const role = String(
+      user.role ||
+      user.app_metadata?.role ||
+      user.user_metadata?.role ||
+      'member'
+    ).toLowerCase();
+
+    const banned = Boolean(
+      user.banned ||
+      user.is_banned ||
+      (
+        user.banned_until &&
+        new Date(user.banned_until).getTime() > Date.now()
+      )
+    );
+
+    return {
+      ...user,
+      id: user.id || user.user_id || user.userId || '',
+      email: user.email || user.user_email || 'Tanpa email',
+      role,
+      banned
+    };
   }
 
   function renderUsers() {
@@ -233,82 +215,81 @@
       .trim()
       .toLowerCase();
 
-    const filtered = users.filter((user) =>
+    const list = currentUsers.filter((user) =>
       `${user.email} ${user.id} ${user.role}`
         .toLowerCase()
         .includes(query)
     );
 
-    if (!filtered.length) {
+    if (!list.length) {
       table.innerHTML =
         '<tr><td colspan="6">Tidak ada akun yang cocok.</td></tr>';
       return;
     }
 
-    table.innerHTML = filtered.map((user) => {
+    table.innerHTML = list.map((user) => {
       const id = escapeHTML(user.id);
       const email = escapeHTML(user.email);
       const role = ['owner', 'vip', 'member'].includes(user.role)
         ? user.role
         : 'member';
 
-      const status = user.banned ? 'Diblokir' : 'Aktif';
-
-      const banButton = user.banned
-        ? `<button type="button" data-user-action="unban" data-id="${id}">Buka blokir</button>`
-        : `<button type="button" data-user-action="ban" data-id="${id}">Ban</button>`;
-
-      const roleControl = role === 'owner'
-        ? '<span>OWNER</span>'
+      const roleUI = role === 'owner'
+        ? '<strong>OWNER</strong>'
         : `
-          <select data-role-select="${id}" aria-label="Role ${email}">
+          <select data-role-select="${id}">
             <option value="member" ${role === 'member' ? 'selected' : ''}>Member</option>
             <option value="vip" ${role === 'vip' ? 'selected' : ''}>VIP</option>
           </select>
-          <button type="button" data-user-action="role" data-id="${id}">Simpan role</button>
+          <button type="button" data-user-action="role" data-id="${id}">
+            Simpan
+          </button>
         `;
+
+      const banUI = user.banned
+        ? `<button type="button" data-user-action="unban" data-id="${id}">Buka blokir</button>`
+        : `<button type="button" data-user-action="ban" data-id="${id}">Ban</button>`;
+
+      const deleteUI = role === 'owner'
+        ? ''
+        : `<button type="button" data-user-action="delete" data-id="${id}">Hapus</button>`;
 
       return `
         <tr>
           <td>${email}</td>
           <td>${id}</td>
           <td>${escapeHTML(role.toUpperCase())}</td>
-          <td>${status}</td>
-          <td>${roleControl}</td>
-          <td>
-            ${banButton}
-            ${role !== 'owner'
-              ? `<button type="button" data-user-action="delete" data-id="${id}">Hapus</button>`
-              : ''}
-          </td>
+          <td>${user.banned ? 'Diblokir' : 'Aktif'}</td>
+          <td>${roleUI}</td>
+          <td>${banUI} ${deleteUI}</td>
         </tr>
       `;
     }).join('');
   }
 
   async function loadUsers() {
-    setStatus('ownerUsersStatus', 'Memuat data akun...');
+    status('ownerUsersStatus', 'Memuat data akun...');
 
     try {
       const result = await callAdmin('list_users');
-      const list = getArray(result, ['users', 'data', 'items']);
+      const list = getList(result, ['users', 'items']);
 
       if (!list) {
         throw new Error(
-          'Format respons list_users tidak sesuai. Periksa respons Edge Function.'
+          'Format list_users tidak sesuai. Periksa respons Edge Function.'
         );
       }
 
-      users = list.map(normalizeUser);
+      currentUsers = list.map(normalizeUser);
       renderUsers();
 
-      setStatus(
+      status(
         'ownerUsersStatus',
-        `Berhasil memuat ${users.length} akun.`
+        `${currentUsers.length} akun berhasil dimuat.`
       );
     } catch (error) {
-      console.error('[VEXORA] Load users:', error);
-      setStatus(
+      console.error('[VEXORA] Memuat akun:', error);
+      status(
         'ownerUsersStatus',
         'Gagal memuat akun: ' + error.message,
         true
@@ -316,32 +297,74 @@
     }
   }
 
+  async function userAction(action, userId, extra = {}) {
+    if (!userId) throw new Error('ID akun tidak ditemukan.');
+
+    const actionNames = {
+      role: 'set_role',
+      ban: 'ban_user',
+      unban: 'unban_user',
+      delete: 'delete_user'
+    };
+
+    const adminAction = actionNames[action];
+    if (!adminAction) throw new Error('Aksi akun tidak dikenal.');
+
+    if (action === 'ban' &&
+        !window.confirm('Yakin ingin memblokir akun ini?')) return;
+
+    if (action === 'delete' &&
+        !window.confirm('Yakin ingin menghapus akun ini secara permanen?')) return;
+
+    const payload = {
+      // Kirim kedua bentuk ID untuk kompatibilitas dengan handler.
+      userId,
+      user_id: userId
+    };
+
+    if (action === 'role') {
+      const role = extra.role;
+      if (!['member', 'vip'].includes(role)) {
+        throw new Error('Role yang dipilih tidak valid.');
+      }
+      payload.role = role;
+    }
+
+    await callAdmin(adminAction, payload);
+
+    status('ownerUsersStatus', 'Aksi akun berhasil dijalankan.');
+
+    await Promise.all([loadUsers(), loadStats()]);
+  }
+
+  // -----------------------------
+  // DATA TOOLS
+  // -----------------------------
   function renderTools() {
     const table = $('ownerToolsTable');
     if (!table) return;
 
-    if (!tools.length) {
+    if (!currentTools.length) {
       table.innerHTML =
         '<tr><td colspan="6">Belum ada data tools.</td></tr>';
       return;
     }
 
-    table.innerHTML = tools.map((tool) => {
+    table.innerHTML = currentTools.map((tool) => {
       const id = escapeHTML(tool.id);
-      const name = escapeHTML(tool.name || '');
       const category = String(tool.category || 'free').toLowerCase();
-      const status = String(tool.status || 'active').toLowerCase();
+      const state = String(tool.status || 'active').toLowerCase();
 
       return `
         <tr>
-          <td>${name}</td>
+          <td>${escapeHTML(tool.name || '')}</td>
           <td>${escapeHTML(category.toUpperCase())}</td>
-          <td>${escapeHTML(status)}</td>
+          <td>${escapeHTML(state)}</td>
           <td>${escapeHTML(tool.url || '-')}</td>
           <td>
             <button type="button" data-tool-action="edit" data-id="${id}">Edit</button>
             <button type="button" data-tool-action="status" data-id="${id}">
-              ${status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
+              ${state === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
             </button>
             <button type="button" data-tool-action="delete" data-id="${id}">Hapus</button>
           </td>
@@ -351,89 +374,47 @@
   }
 
   async function loadTools() {
-    setStatus('ownerToolsStatus', 'Memuat data tools...');
+    status('ownerToolsStatus', 'Memuat tools...');
 
     try {
       const result = await callAdmin('tool_status_list');
-      const list = getArray(result, ['tools', 'data', 'items']);
+      const list = getList(result, ['tools', 'items']);
 
       if (!list) {
         throw new Error(
-          'Format respons tool_status_list tidak sesuai.'
+          'Format tool_status_list tidak sesuai.'
         );
       }
 
-      tools = list;
+      currentTools = list;
       renderTools();
 
-      setStatus(
-        'ownerToolsStatus',
-        `Berhasil memuat ${tools.length} tools.`
-      );
-
       if ($('ownerToolsCount')) {
-        $('ownerToolsCount').textContent = String(tools.length);
+        $('ownerToolsCount').textContent = String(currentTools.length);
       }
+
+      status(
+        'ownerToolsStatus',
+        `${currentTools.length} tools berhasil dimuat.`
+      );
     } catch (error) {
-      console.error('[VEXORA] Load tools:', error);
-      setStatus(
+      console.error('[VEXORA] Memuat tools:', error);
+      status(
         'ownerToolsStatus',
         'Gagal memuat tools: ' + error.message,
         true
       );
-
-      // Jangan kosongkan data lokal seolah-olah tabel memang kosong.
     }
-  }
-
-  async function changeUser(action, userId, extra = {}) {
-    if (!userId) throw new Error('ID akun tidak ditemukan.');
-
-    const confirmed = action === 'delete'
-      ? window.confirm(
-          'Yakin ingin menghapus akun ini secara permanen?'
-        )
-      : action === 'ban'
-        ? window.confirm('Yakin ingin memblokir akun ini?')
-        : true;
-
-    if (!confirmed) return;
-
-    const actionMap = {
-      role: 'set_role',
-      ban: 'ban_user',
-      unban: 'unban_user',
-      delete: 'delete_user'
-    };
-
-    const body = {
-      user_id: userId,
-      ...extra
-    };
-
-    if (action === 'role') {
-      body.role = extra.role;
-      delete body.roleValue;
-    }
-
-    await callAdmin(actionMap[action], body);
-
-    setStatus('ownerUsersStatus', 'Aksi akun berhasil dijalankan.');
-    await Promise.all([loadUsers(), loadStats()]);
   }
 
   function resetToolForm() {
     $('ownerToolForm')?.reset();
 
     if ($('ownerToolId')) $('ownerToolId').value = '';
-
-    const cancel = $('ownerToolCancel');
-    if (cancel) cancel.hidden = true;
+    if ($('ownerToolCancel')) $('ownerToolCancel').hidden = true;
   }
 
-  function fillToolForm(tool) {
-    if (!tool) return;
-
+  function editTool(tool) {
     if ($('ownerToolId')) $('ownerToolId').value = tool.id || '';
     if ($('ownerToolName')) $('ownerToolName').value = tool.name || '';
     if ($('ownerToolCategory')) {
@@ -445,13 +426,12 @@
     }
     if ($('ownerToolUrl')) $('ownerToolUrl').value = tool.url || '';
 
+    if ($('ownerToolCancel')) $('ownerToolCancel').hidden = false;
+
     $('ownerToolForm')?.scrollIntoView({
       behavior: 'smooth',
       block: 'center'
     });
-
-    if ($('ownerToolName')) $('ownerToolName').focus();
-    if ($('ownerToolCancel')) $('ownerToolCancel').hidden = false;
   }
 
   async function saveTool(event) {
@@ -459,24 +439,23 @@
 
     const client = getClient();
     const id = $('ownerToolId')?.value.trim() || '';
-
     const name = $('ownerToolName')?.value.trim() || '';
     const category = $('ownerToolCategory')?.value || 'free';
     const description = $('ownerToolDesc')?.value.trim() || '';
     const url = $('ownerToolUrl')?.value.trim() || '';
 
     if (!name) {
-      setStatus('ownerToolsStatus', 'Nama tools wajib diisi.', true);
+      status('ownerToolsStatus', 'Nama tools wajib diisi.', true);
       return;
     }
 
-    if (category !== 'vip' && category !== 'free') {
-      setStatus('ownerToolsStatus', 'Kategori tidak valid.', true);
+    if (!['free', 'vip'].includes(category)) {
+      status('ownerToolsStatus', 'Kategori tools tidak valid.', true);
       return;
     }
 
     if (url && !/^https?:\/\//i.test(url)) {
-      setStatus(
+      status(
         'ownerToolsStatus',
         'URL harus diawali https:// atau http://.',
         true
@@ -484,40 +463,26 @@
       return;
     }
 
-    const payload = {
-      name,
-      category,
-      description,
-      url
-    };
+    const payload = { name, category, description, url };
 
-    setStatus('ownerToolsStatus', 'Menyimpan tools...');
+    status('ownerToolsStatus', 'Menyimpan tools...');
 
     try {
-      let query;
+      let request = id
+        ? client.from(TABLE_TOOLS).update(payload).eq('id', id)
+        : client.from(TABLE_TOOLS).insert(payload);
 
-      if (id) {
-        query = client
-          .from(TOOLS_TABLE)
-          .update(payload)
-          .eq('id', id);
-      } else {
-        query = client
-          .from(TOOLS_TABLE)
-          .insert(payload);
-      }
-
-      const { error } = await query;
+      const { error } = await request;
       if (error) throw error;
 
       resetToolForm();
 
       await Promise.all([loadTools(), loadStats()]);
 
-      setStatus('ownerToolsStatus', 'Tools berhasil disimpan.');
+      status('ownerToolsStatus', 'Tools berhasil disimpan.');
     } catch (error) {
-      console.error('[VEXORA] Save tool:', error);
-      setStatus(
+      console.error('[VEXORA] Menyimpan tools:', error);
+      status(
         'ownerToolsStatus',
         'Gagal menyimpan tools: ' + error.message,
         true
@@ -525,44 +490,45 @@
     }
   }
 
-  async function deleteTool(toolId) {
-    if (!toolId) throw new Error('ID tools tidak ditemukan.');
-
-    if (!window.confirm('Yakin ingin menghapus tools ini?')) return;
+  async function deleteTool(tool) {
+    if (!window.confirm(`Hapus tools "${tool.name || ''}"?`)) return;
 
     const client = getClient();
-
     const { error } = await client
-      .from(TOOLS_TABLE)
+      .from(TABLE_TOOLS)
       .delete()
-      .eq('id', toolId);
+      .eq('id', tool.id);
 
     if (error) throw error;
 
     await Promise.all([loadTools(), loadStats()]);
-    setStatus('ownerToolsStatus', 'Tools berhasil dihapus.');
+    status('ownerToolsStatus', 'Tools berhasil dihapus.');
   }
 
   async function toggleToolStatus(tool) {
     const oldStatus = String(tool.status || 'active').toLowerCase();
     const newStatus = oldStatus === 'active' ? 'disabled' : 'active';
 
-    const message = newStatus === 'disabled'
-      ? 'Tools dinonaktifkan oleh Owner.'
-      : '';
-
     await callAdmin('tool_status_set', {
       id: tool.id,
       tool_id: tool.id,
       status: newStatus,
-      status_message: message
+      status_message: newStatus === 'disabled'
+        ? 'Tools dinonaktifkan oleh Owner.'
+        : ''
     });
 
     await loadTools();
-    setStatus('ownerToolsStatus', 'Status tools berhasil diperbarui.');
+    status('ownerToolsStatus', 'Status tools diperbarui.');
   }
 
+  // -----------------------------
+  // EVENT TOMBOL
+  // -----------------------------
   function bindEvents() {
+    if (eventsBound) return;
+    eventsBound = true;
+
     $('ownerReloadUsers')?.addEventListener('click', async () => {
       await Promise.all([loadUsers(), loadStats()]);
     });
@@ -572,95 +538,85 @@
     $('ownerToolForm')?.addEventListener('submit', saveTool);
     $('ownerToolCancel')?.addEventListener('click', resetToolForm);
 
-    const userTable = $('ownerUsersTable');
+    $('ownerUsersTable')?.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-user-action]');
+      if (!button) return;
 
-    if (userTable && !userTable.dataset.vexoraBound) {
-      userTable.dataset.vexoraBound = '1';
+      const action = button.dataset.userAction;
+      const userId = button.dataset.id;
 
-      userTable.addEventListener('click', async (event) => {
-        const button = event.target.closest('[data-user-action]');
-        if (!button) return;
+      button.disabled = true;
 
-        const action = button.dataset.userAction;
-        const userId = button.dataset.id;
+      try {
+        if (action === 'role') {
+          const select = Array.from(
+            $('ownerUsersTable').querySelectorAll('[data-role-select]')
+          ).find((item) => item.dataset.roleSelect === userId);
 
-        button.disabled = true;
+          if (!select) throw new Error('Pilihan role tidak ditemukan.');
 
-        try {
-          if (action === 'role') {
-            const select = userTable.querySelector(
-              `[data-role-select="${CSS.escape(userId)}"]`
-            );
-
-            const role = select?.value;
-
-            if (!['member', 'vip'].includes(role)) {
-              throw new Error('Role yang dipilih tidak valid.');
-            }
-
-            await changeUser('role', userId, { role });
-          } else {
-            await changeUser(action, userId);
-          }
-        } catch (error) {
-          console.error('[VEXORA] User action:', error);
-          setStatus(
-            'ownerUsersStatus',
-            'Aksi akun gagal: ' + error.message,
-            true
-          );
-        } finally {
-          button.disabled = false;
+          await userAction('role', userId, { role: select.value });
+        } else {
+          await userAction(action, userId);
         }
-      });
-    }
-
-    const toolTable = $('ownerToolsTable');
-
-    if (toolTable && !toolTable.dataset.vexoraBound) {
-      toolTable.dataset.vexoraBound = '1';
-
-      toolTable.addEventListener('click', async (event) => {
-        const button = event.target.closest('[data-tool-action]');
-        if (!button) return;
-
-        const action = button.dataset.toolAction;
-        const tool = tools.find(
-          (item) => String(item.id) === String(button.dataset.id)
+      } catch (error) {
+        console.error('[VEXORA] Aksi akun:', error);
+        status(
+          'ownerUsersStatus',
+          'Aksi akun gagal: ' + error.message,
+          true
         );
+      } finally {
+        button.disabled = false;
+      }
+    });
 
-        if (!tool) {
-          setStatus('ownerToolsStatus', 'Data tools tidak ditemukan.', true);
-          return;
-        }
+    $('ownerToolsTable')?.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-tool-action]');
+      if (!button) return;
 
-        button.disabled = true;
+      const tool = currentTools.find(
+        (item) => String(item.id) === String(button.dataset.id)
+      );
 
-        try {
-          if (action === 'edit') {
-            fillToolForm(tool);
-          } else if (action === 'delete') {
-            await deleteTool(tool.id);
-          } else if (action === 'status') {
+      if (!tool) {
+        status('ownerToolsStatus', 'Tools tidak ditemukan.', true);
+        return;
+      }
+
+      button.disabled = true;
+
+      try {
+        switch (button.dataset.toolAction) {
+          case 'edit':
+            editTool(tool);
+            break;
+          case 'status':
             await toggleToolStatus(tool);
-          }
-        } catch (error) {
-          console.error('[VEXORA] Tool action:', error);
-          setStatus(
-            'ownerToolsStatus',
-            'Aksi tools gagal: ' + error.message,
-            true
-          );
-        } finally {
-          button.disabled = false;
+            break;
+          case 'delete':
+            await deleteTool(tool);
+            break;
         }
-      });
-    }
+      } catch (error) {
+        console.error('[VEXORA] Aksi tools:', error);
+        status(
+          'ownerToolsStatus',
+          'Aksi tools gagal: ' + error.message,
+          true
+        );
+      } finally {
+        button.disabled = false;
+      }
+    });
   }
 
+  // -----------------------------
+  // PEMBUKA PANEL
+  // -----------------------------
   async function loadOwnerPanel() {
-    if (loading) return;
-    loading = true;
+    if (isLoading) return;
+    isLoading = true;
 
     try {
       await verifyOwner();
@@ -672,21 +628,19 @@
         loadTools()
       ]);
     } catch (error) {
-      console.error('[VEXORA] Owner panel:', error);
-      setStatus(
+      console.error('[VEXORA] Owner Panel:', error);
+      status(
         'ownerUsersStatus',
-        error.message || 'Owner Panel gagal dimuat.',
+        'Owner Panel gagal dibuka: ' + error.message,
         true
       );
     } finally {
-      loading = false;
+      isLoading = false;
     }
   }
 
-  // Dipanggil dashboard.js ketika halaman Owner dibuka.
   window.loadOwnerPanel = loadOwnerPanel;
 
-  // Bisa dipanggil dari console atau tombol refresh bila diperlukan.
   window.VEXORA_OWNER_PANEL = {
     load: loadOwnerPanel,
     loadUsers,
@@ -694,7 +648,6 @@
     loadTools
   };
 
-  // Bind event awal; data dimuat saat Owner membuka panel.
   bindEvents();
 })();
-         
+       
