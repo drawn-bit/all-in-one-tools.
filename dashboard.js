@@ -177,6 +177,245 @@
     }
   }
 
+  async function loadOwnerPanel() {
+    const page = $("page-owner");
+    if (!page || currentRole !== "owner") return;
+
+    page.replaceChildren();
+
+    const heading = document.createElement("h2");
+    heading.textContent = "Panel Owner";
+    page.appendChild(heading);
+
+    const description = document.createElement("p");
+    description.textContent =
+      "Kelola akun VEXORA dan role Member/VIP.";
+    page.appendChild(description);
+
+    const status = document.createElement("p");
+    status.textContent = "Memuat data...";
+    page.appendChild(status);
+
+    const statsBox = document.createElement("div");
+    statsBox.className = "owner-stats";
+    page.appendChild(statsBox);
+
+    const search = document.createElement("input");
+    search.type = "search";
+    search.placeholder = "Cari email pengguna...";
+    search.setAttribute("aria-label", "Cari email pengguna");
+    page.appendChild(search);
+
+    const table = document.createElement("div");
+    table.className = "owner-users";
+    page.appendChild(table);
+
+    const moreButton = document.createElement("button");
+    moreButton.type = "button";
+    moreButton.textContent = "Muat pengguna berikutnya";
+    moreButton.hidden = true;
+    page.appendChild(moreButton);
+
+    let users = [];
+    let pageNumber = 1;
+    let hasMore = false;
+    let busy = false;
+
+    async function callOwner(action, extra = {}) {
+      const { data, error } = await supabaseClient.functions.invoke(
+        "vexora-owner-panel",
+        { body: { action, ...extra } }
+      );
+
+      if (error) {
+        let detail = error.message || "Permintaan gagal.";
+        try {
+          const response = error.context;
+          if (response && typeof response.json === "function") {
+            const body = await response.json();
+            if (body.error) detail = body.error;
+          }
+        } catch (_) {}
+        throw new Error(detail);
+      }
+
+      if (!data || data.error) {
+        throw new Error(data?.error || "Respons server tidak valid.");
+      }
+
+      return data;
+    }
+
+    function renderUsers() {
+      table.replaceChildren();
+
+      const query = search.value.trim().toLowerCase();
+      const filtered = users.filter((u) =>
+        (u.email || "").toLowerCase().includes(query)
+      );
+
+      if (!filtered.length) {
+        const empty = document.createElement("p");
+        empty.textContent = query
+          ? "Pengguna tidak ditemukan."
+          : "Belum ada data pengguna.";
+        table.appendChild(empty);
+      }
+
+      filtered.forEach((user) => {
+        const card = document.createElement("article");
+        card.className = "owner-user-card";
+
+        const email = document.createElement("p");
+        email.textContent = user.email || "(tanpa email)";
+
+        const roleText = document.createElement("p");
+        roleText.textContent = "Role: " + user.role.toUpperCase();
+
+        const select = document.createElement("select");
+        select.setAttribute("aria-label", "Role baru");
+
+        [
+          { value: "member", label: "Member" },
+          { value: "vip", label: "VIP" }
+        ].forEach((optionData) => {
+          const option = document.createElement("option");
+          option.value = optionData.value;
+          option.textContent = optionData.label;
+          select.appendChild(option);
+        });
+
+        select.value = user.role === "vip" ? "vip" : "member";
+
+        const save = document.createElement("button");
+        save.type = "button";
+        save.textContent = "Simpan Role";
+
+        save.addEventListener("click", async () => {
+          if (busy) return;
+
+          if (!["member", "vip"].includes(select.value)) return;
+
+          if (user.role === select.value) {
+            notice("Role pengguna tidak berubah.");
+            return;
+          }
+
+          if (!confirm(
+            "Ubah role " + (user.email || "pengguna") +
+            " menjadi " + select.value.toUpperCase() + "?"
+          )) return;
+
+          busy = true;
+          save.disabled = true;
+          status.textContent = "Menyimpan perubahan...";
+
+          try {
+            await callOwner("set_role", {
+              userId: user.id,
+              role: select.value
+            });
+
+            user.role = select.value;
+            roleText.textContent = "Role: " + user.role.toUpperCase();
+            notice("Role berhasil diperbarui.");
+            status.textContent = "Perubahan berhasil disimpan.";
+          } catch (error) {
+            status.textContent = "Gagal mengubah role.";
+            notice(error.message);
+          } finally {
+            busy = false;
+            save.disabled = false;
+          }
+        });
+
+        card.append(email, roleText, select, save);
+        table.appendChild(card);
+      });
+    }
+
+    async function loadStats() {
+      try {
+        const data = await callOwner("stats");
+        statsBox.replaceChildren();
+
+        [
+          ["Total akun", data.total],
+          ["Member", data.members],
+          ["VIP", data.vips],
+          ["Owner", data.owners]
+        ].forEach(([label, value]) => {
+          const item = document.createElement("div");
+          item.className = "owner-stat-card";
+
+          const title = document.createElement("p");
+          title.textContent = label;
+
+          const number = document.createElement("strong");
+          number.textContent = String(value ?? 0);
+
+          item.append(title, number);
+          statsBox.appendChild(item);
+        });
+      } catch (error) {
+        console.error("VEXORA owner stats:", error);
+        status.textContent = "Statistik gagal dimuat: " + error.message;
+      }
+    }
+
+    async function loadUsers(reset = false) {
+      if (busy) return;
+      busy = true;
+      moreButton.disabled = true;
+      status.textContent = "Memuat daftar pengguna...";
+
+      try {
+        if (reset) {
+          pageNumber = 1;
+          users = [];
+        }
+
+        const data = await callOwner("list_users", {
+          page: pageNumber,
+          perPage: 50
+        });
+
+        users = reset ? data.users : users.concat(data.users);
+        hasMore = Boolean(data.has_more);
+        moreButton.hidden = !hasMore;
+
+        renderUsers();
+        status.textContent = users.length + " akun berhasil dimuat.";
+      } catch (error) {
+        console.error("VEXORA owner users:", error);
+        status.textContent = "Gagal memuat pengguna: " + error.message;
+      } finally {
+        busy = false;
+        moreButton.disabled = false;
+      }
+    }
+
+    search.addEventListener("input", renderUsers);
+
+    moreButton.addEventListener("click", async () => {
+      if (!hasMore || busy) return;
+      pageNumber++;
+      await loadUsers(false);
+    });
+
+    const reloadButton = document.createElement("button");
+    reloadButton.type = "button";
+    reloadButton.textContent = "Refresh Panel";
+    reloadButton.addEventListener("click", async () => {
+      await loadUsers(true);
+      await loadStats();
+    });
+
+    page.insertBefore(reloadButton, statsBox);
+
+    await Promise.all([loadUsers(true), loadStats()]);
+                                               }
+      
   function bindInterface() {
     if (initialized) return;
     initialized = true;
