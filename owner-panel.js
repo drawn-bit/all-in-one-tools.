@@ -200,7 +200,7 @@
 
     return {
       ...user,
-      id: user.id || user.user_id || user.userId || '',
+      id: user.id || user.userId || user.userId || '',
       email: user.email || user.user_email || 'Tanpa email',
       role,
       banned
