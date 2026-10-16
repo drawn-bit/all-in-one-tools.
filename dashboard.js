@@ -227,7 +227,7 @@ if (name === "owner" && currentRole === "owner") {
 
     async function callOwner(action, extra = {}) {
       const { data, error } = await supabaseClient.functions.invoke(
-        "vexora-owner-panel",
+        "owner-admin",
         { body: { action, ...extra } }
       );
 
