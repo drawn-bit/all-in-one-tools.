@@ -102,4 +102,43 @@
       <p class="owner-status" id="ownerToolsStatus" aria-live="polite">Menunggu data tools...</p>
       <form class="owner-form" id="ownerToolForm">
         <input type="hidden" id="ownerToolId">
-        <div class="owner-field"><label for="ownerToolName">Nama Tools</label><input id="ownerT
+        
+<div class="owner-field">
+  <label for="ownerToolName">Nama Tools</label>
+  <input id="ownerToolName" type="text" required>
+</div>
+
+<div class="owner-field">
+  <label for="ownerToolCategory">Kategori</label>
+  <select id="ownerToolCategory" required>
+    <option value="free">FREE</option>
+    <option value="vip">VIP</option>
+  </select>
+</div>
+
+<div class="owner-field full">
+  <label for="ownerToolDesc">Deskripsi</label>
+  <textarea id="ownerToolDesc"></textarea>
+</div>
+
+<div class="owner-field full">
+  <label for="ownerToolUrl">URL Tools</label>
+  <input id="ownerToolUrl" type="url" placeholder="https://..." required>
+</div>
+<div class="owner-form-actions">
+  <button class="primary-btn" type="submit">Simpan Tools</button>
+  <button class="tool-open" id="ownerToolCancel" type="button">Batal</button>
+</div>
+</form>
+</div>
+</section>
+
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="dashboard.js"></script>
+<script src="owner-panel.js"></script>
+</body>
+</html>
