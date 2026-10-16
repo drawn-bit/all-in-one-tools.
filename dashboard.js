@@ -100,7 +100,9 @@
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-
+if (name === "owner" && currentRole === "owner") {
+  loadOwnerPanel();
+}
   function renderGrid(id, vipOnly, search = "") {
     const target = $(id);
     if (!target) return;
