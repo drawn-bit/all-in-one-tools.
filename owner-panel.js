@@ -271,7 +271,7 @@
 
     try {
       status("ownerUsersStatus", "Menyimpan perubahan role...");
-      await callAdmin("set_role", { user_id: id, role });
+      await callAdmin("set_role", { userId: id, role });
       status("ownerUsersStatus", "Role berhasil diperbarui.");
       await loadUsers();
     } catch (error) {
