@@ -1,6 +1,7 @@
 
 /* VEXORA owner-panel.js
-   Owner Panel — dashboard.js + owner-admin + vexora-extras.js
+   Perbaikan: statistik, daftar akun, daftar tools.
+   Tidak memakai action maintenance atau tool-status.
 */
 (() => {
   'use strict';
@@ -9,7 +10,6 @@
   window.__VEXORA_OWNER_PANEL_LOADED__ = true;
 
   const $ = (id) => document.getElementById(id);
-
   const TABLE_TOOLS = 'vexora_tools';
   const ADMIN_FUNCTION = 'owner-admin';
 
@@ -19,9 +19,6 @@
   let isLoading = false;
   let eventsBound = false;
 
-  // -----------------------------
-  // UTILITAS
-  // -----------------------------
   function escapeHTML(value) {
     return String(value ?? '').replace(/[&<>"']/g, (c) => ({
       '&': '&amp;',
@@ -35,7 +32,6 @@
   function status(id, message, isError = false) {
     const el = $(id);
     if (!el) return;
-
     el.textContent = message;
     el.style.color = isError ? '#ff9caa' : '#8fe9c0';
   }
@@ -77,22 +73,17 @@
   }
 
   async function callAdmin(action, payload = {}) {
-    const client = getClient();
-
-    const { data, error } = await client.functions.invoke(
+    const { data, error } = await getClient().functions.invoke(
       ADMIN_FUNCTION,
-      {
-        body: { action, ...payload }
-      }
+      { body: { action, ...payload } }
     );
 
     if (error) {
-      let message = error.message || 'Permintaan ke Owner API gagal.';
+      let message = error.message || 'Permintaan Owner API gagal.';
 
       try {
-        const response = error.context;
-        if (response && typeof response.json === 'function') {
-          const body = await response.json();
+        if (error.context?.json) {
+          const body = await error.context.json();
           message = body.error || body.message || message;
         }
       } catch (_) {}
@@ -100,14 +91,9 @@
       throw new Error(message);
     }
 
-    if (data == null) {
-      throw new Error('Owner API tidak mengembalikan data.');
-    }
-
+    if (!data) throw new Error('Owner API tidak mengembalikan data.');
     if (data.success === false || data.error) {
-      throw new Error(
-        data.error || data.message || 'Aksi ditolak oleh Owner API.'
-      );
+      throw new Error(data.error || data.message || 'Aksi gagal.');
     }
 
     return data;
@@ -124,59 +110,24 @@
     return null;
   }
 
-  // -----------------------------
-  // STATISTIK
-  // -----------------------------
-function renderStats(result) {
-  const source = result?.stats || result?.counts || result?.data || result;
+  // Statistik sesuai respons index.ts:
+  // stats.total, stats.members, stats.vips, stats.owners
+  function renderStats(result = {}) {
+    const source = result.stats || result.counts || result.data || result;
 
-  const values = {
-    ownerUsersCount: source.total ?? source.total_users ?? source.totalUsers,
-    ownerVipCount: source.vip ?? source.vip_users ?? source.vipUsers,
-    ownerAdminsCount: source.owner ?? source.owner_users ?? source.ownerUsers,
-    ownerMembersCount: source.member ?? source.member_users ?? source.memberUsers,
-    ownerBannedCount: source.banned ?? source.banned_users ?? source.bannedUsers,
-    ownerToolsCount: source.tools ?? source.total_tools ?? source.tools_count
-  };
-
-  for (const [id, value] of Object.entries(values)) {
-    const el = $(id);
-    if (el && value !== undefined && value !== null) {
-      el.textContent = String(value);
-    }
-  }
-    }
-   
     const values = {
-      ownerUsersCount: [
-        'total_users', 'totalUsers', 'users_count', 'user_count'
-      ],
-      ownerVipCount: [
-        'vip_users', 'vipUsers', 'total_vip', 'vip_count'
-      ],
-      ownerAdminsCount: [
-        'owner_users', 'ownerUsers', 'total_owners', 'owners', 'admins'
-      ],
-      ownerMembersCount: [
-        'member_users', 'memberUsers', 'total_members', 'members'
-      ],
-      ownerBannedCount: [
-        'banned_users', 'bannedUsers', 'total_banned', 'banned'
-      ],
-      ownerToolsCount: [
-        'total_tools', 'tools_count', 'totalTools'
-      ]
+      ownerUsersCount: source.total ?? source.total_users,
+      ownerVipCount: source.vips ?? source.vip ?? source.vip_users,
+      ownerAdminsCount: source.owners ?? source.owner ?? source.owner_users,
+      ownerMembersCount: source.members ?? source.member ?? source.member_users,
+      ownerBannedCount: currentUsers.filter((u) => u.banned).length,
+      ownerToolsCount: currentTools.length
     };
 
-    for (const [elementId, keys] of Object.entries(values)) {
-      const el = $(elementId);
-      if (!el) continue;
-
-      for (const key of keys) {
-        if (source?.[key] !== undefined && source[key] !== null) {
-          el.textContent = String(source[key]);
-          break;
-        }
+    for (const [id, value] of Object.entries(values)) {
+      const el = $(id);
+      if (el && value !== undefined && value !== null) {
+        el.textContent = String(value);
       }
     }
   }
@@ -187,17 +138,12 @@ function renderStats(result) {
       renderStats(result);
     } catch (error) {
       console.error('[VEXORA] Statistik:', error);
-      status(
-        'ownerUsersStatus',
-        'Statistik gagal dimuat: ' + error.message,
-        true
-      );
+      status('ownerUsersStatus', 'Statistik gagal dimuat: ' + error.message, true);
     }
   }
 
-  // -----------------------------
-  // DATA AKUN
-  // -----------------------------
+  // ---------------- AKUN ----------------
+
   function normalizeUser(user) {
     const role = String(
       user.role ||
@@ -217,7 +163,7 @@ function renderStats(result) {
 
     return {
       ...user,
-      id: user.id || user.userId || user.userId || '',
+      id: user.id || user.userId || user.user_id || '',
       email: user.email || user.user_email || 'Tanpa email',
       role,
       banned
@@ -228,19 +174,13 @@ function renderStats(result) {
     const table = $('ownerUsersTable');
     if (!table) return;
 
-    const query = ($('ownerUserSearch')?.value || '')
-      .trim()
-      .toLowerCase();
-
+    const query = ($('ownerUserSearch')?.value || '').trim().toLowerCase();
     const list = currentUsers.filter((user) =>
-      `${user.email} ${user.id} ${user.role}`
-        .toLowerCase()
-        .includes(query)
+      `${user.email} ${user.id} ${user.role}`.toLowerCase().includes(query)
     );
 
     if (!list.length) {
-      table.innerHTML =
-        '<tr><td colspan="6">Tidak ada akun yang cocok.</td></tr>';
+      table.innerHTML = '<tr><td colspan="6">Tidak ada akun yang cocok.</td></tr>';
       return;
     }
 
@@ -248,8 +188,7 @@ function renderStats(result) {
       const id = escapeHTML(user.id);
       const email = escapeHTML(user.email);
       const role = ['owner', 'vip', 'member'].includes(user.role)
-        ? user.role
-        : 'member';
+        ? user.role : 'member';
 
       const roleUI = role === 'owner'
         ? '<strong>OWNER</strong>'
@@ -258,9 +197,7 @@ function renderStats(result) {
             <option value="member" ${role === 'member' ? 'selected' : ''}>Member</option>
             <option value="vip" ${role === 'vip' ? 'selected' : ''}>VIP</option>
           </select>
-          <button type="button" data-user-action="role" data-id="${id}">
-            Simpan
-          </button>
+          <button type="button" data-user-action="role" data-id="${id}">Simpan</button>
         `;
 
       const banUI = user.banned
@@ -285,32 +222,25 @@ function renderStats(result) {
   }
 
   async function loadUsers() {
-    status('ownerUsersStatus', 'Memuat data akun...');
+    status('ownerUsersStatus', 'Memuat daftar akun...');
 
     try {
       const result = await callAdmin('list_users');
       const list = getList(result, ['users', 'items']);
 
-      if (!list) {
-        throw new Error(
-          'Format list_users tidak sesuai. Periksa respons Edge Function.'
-        );
-      }
+      if (!list) throw new Error('Respons daftar akun tidak valid.');
 
       currentUsers = list.map(normalizeUser);
       renderUsers();
+      renderStats();
 
       status(
         'ownerUsersStatus',
         `${currentUsers.length} akun berhasil dimuat.`
       );
     } catch (error) {
-      console.error('[VEXORA] Memuat akun:', error);
-      status(
-        'ownerUsersStatus',
-        'Gagal memuat akun: ' + error.message,
-        true
-      );
+      console.error('[VEXORA] Daftar akun:', error);
+      status('ownerUsersStatus', 'Gagal memuat akun: ' + error.message, true);
     }
   }
 
@@ -331,93 +261,70 @@ function renderStats(result) {
         !window.confirm('Yakin ingin memblokir akun ini?')) return;
 
     if (action === 'delete' &&
-        !window.confirm('Yakin ingin menghapus akun ini secara permanen?')) return;
+        !window.confirm('Hapus akun ini secara permanen?')) return;
 
-    const payload = {
-      // Kirim kedua bentuk ID untuk kompatibilitas dengan handler.
-      userId,
-      user_id: userId
-    };
+    const payload = { userId, user_id: userId };
 
     if (action === 'role') {
-      const role = extra.role;
-      if (!['member', 'vip'].includes(role)) {
+      if (!['member', 'vip'].includes(extra.role)) {
         throw new Error('Role yang dipilih tidak valid.');
       }
-      payload.role = role;
+      payload.role = extra.role;
     }
 
     await callAdmin(adminAction, payload);
-
-    status('ownerUsersStatus', 'Aksi akun berhasil dijalankan.');
-
     await Promise.all([loadUsers(), loadStats()]);
+    status('ownerUsersStatus', 'Aksi akun berhasil dijalankan.');
   }
 
-  // -----------------------------
-  // DATA TOOLS
-  // -----------------------------
+  // ---------------- TOOLS ----------------
+  // Mengambil data langsung dari tabel, bukan action tool_list
+  // yang belum tersedia di index.ts.
+
+  async function loadTools() {
+    status('ownerToolsStatus', 'Memuat daftar tools...');
+
+    try {
+      const { data, error } = await getClient()
+        .from(TABLE_TOOLS)
+        .select('*');
+
+      if (error) throw error;
+
+      currentTools = Array.isArray(data) ? data : [];
+      renderTools();
+      renderStats();
+
+      status('ownerToolsStatus', `${currentTools.length} tools berhasil dimuat.`);
+    } catch (error) {
+      console.error('[VEXORA] Daftar tools:', error);
+      status('ownerToolsStatus', 'Gagal memuat tools: ' + error.message, true);
+    }
+  }
+
   function renderTools() {
     const table = $('ownerToolsTable');
     if (!table) return;
 
     if (!currentTools.length) {
-      table.innerHTML =
-        '<tr><td colspan="6">Belum ada data tools.</td></tr>';
+      table.innerHTML = '<tr><td colspan="3">Belum ada data tools.</td></tr>';
       return;
     }
 
-    table.innerHTML = currentTools.map((tool) => {
-      const id = escapeHTML(tool.id);
-      const category = String(tool.category || 'free').toLowerCase();
-      const state = String(tool.status || 'active').toLowerCase();
-
-      return `
-        <tr>
-          <td>${escapeHTML(tool.name || '')}</td>
-          <td>${escapeHTML(category.toUpperCase())}</td>
-          <td>${escapeHTML(state)}</td>
-          <td>${escapeHTML(tool.url || '-')}</td>
-          <td>
-            <button type="button" data-tool-action="edit" data-id="${id}">Edit</button>
-            <button type="button" data-tool-action="status" data-id="${id}">
-              ${state === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
-            </button>
-            <button type="button" data-tool-action="delete" data-id="${id}">Hapus</button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+    table.innerHTML = currentTools.map((tool) => `
+      <tr>
+        <td>${escapeHTML(tool.name || '')}</td>
+        <td>${escapeHTML(String(tool.category || 'free').toUpperCase())}</td>
+        <td>
+          <button type="button" data-tool-action="edit" data-id="${escapeHTML(tool.id)}">Edit</button>
+          <button type="button" data-tool-action="delete" data-id="${escapeHTML(tool.id)}">Hapus</button>
+        </td>
+      </tr>
+    `).join('');
   }
-
-
-async function loadTools() {
-  status('ownerToolsStatus', 'Memuat tools...');
-
-  try {
-    const result = await callAdmin('tool_list');
-    const list = getList(result, ['tools', 'items']);
-
-    if (!list) throw new Error('Respons daftar tools tidak valid.');
-
-    currentTools = list;
-    renderTools();
-
-    if ($('ownerToolsCount')) {
-      $('ownerToolsCount').textContent = String(list.length);
-    }
-
-    status('ownerToolsStatus', `${list.length} tools berhasil dimuat.`);
-  } catch (error) {
-    console.error('[VEXORA] Memuat tools:', error);
-    status('ownerToolsStatus', 'Gagal memuat tools: ' + error.message, true);
-  }
-  }
-       }
 
   function resetToolForm() {
     $('ownerToolForm')?.reset();
-
     if ($('ownerToolId')) $('ownerToolId').value = '';
     if ($('ownerToolCancel')) $('ownerToolCancel').hidden = true;
   }
@@ -426,89 +333,61 @@ async function loadTools() {
     if ($('ownerToolId')) $('ownerToolId').value = tool.id || '';
     if ($('ownerToolName')) $('ownerToolName').value = tool.name || '';
     if ($('ownerToolCategory')) {
-      $('ownerToolCategory').value =
-        String(tool.category || 'free').toLowerCase();
+      $('ownerToolCategory').value = String(tool.category || 'free').toLowerCase();
     }
-    if ($('ownerToolDesc')) {
-      $('ownerToolDesc').value = tool.description || '';
-    }
+    if ($('ownerToolDesc')) $('ownerToolDesc').value = tool.description || '';
     if ($('ownerToolUrl')) $('ownerToolUrl').value = tool.url || '';
-
     if ($('ownerToolCancel')) $('ownerToolCancel').hidden = false;
 
-    $('ownerToolForm')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center'
-    });
+    $('ownerToolForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   async function saveTool(event) {
     event.preventDefault();
 
-    const client = getClient();
-    const id = $('ownerToolId')?.value.trim() || '';
-    const name = $('ownerToolName')?.value.trim() || '';
-    const category = $('ownerToolCategory')?.value || 'free';
-    const description = $('ownerToolDesc')?.value.trim() || '';
-    const url = $('ownerToolUrl')?.value.trim() || '';
-
-    if (!name) {
-      status('ownerToolsStatus', 'Nama tools wajib diisi.', true);
-      return;
-    }
-
-    if (!['free', 'vip'].includes(category)) {
-      status('ownerToolsStatus', 'Kategori tools tidak valid.', true);
-      return;
-    }
-
-    if (url && !/^https?:\/\//i.test(url)) {
-      status('ownerToolsStatus', 'URL harus diawali http:// atau https://.', true);
-      return;
-    }
-
-    status('ownerToolsStatus', 'Menyimpan tools...');
-
     try {
-      await callAdmin(id ? 'tool_update' : 'tool_create', {
-        ...(id ? { id } : {}),
-        name,
-        category,
-        description,
-        url
-      });
-       
-      resetToolForm();
+      const client = getClient();
+      const id = $('ownerToolId')?.value.trim() || '';
+      const name = $('ownerToolName')?.value.trim() || '';
+      const category = $('ownerToolCategory')?.value || 'free';
+      const description = $('ownerToolDesc')?.value.trim() || '';
+      const url = $('ownerToolUrl')?.value.trim() || '';
 
+      if (!name) throw new Error('Nama tools wajib diisi.');
+      if (!['free', 'vip'].includes(category)) {
+        throw new Error('Kategori tools harus FREE atau VIP.');
+      }
+      if (url && !/^https?:\/\//i.test(url)) {
+        throw new Error('URL harus diawali http:// atau https://.');
+      }
+
+      status('ownerToolsStatus', 'Menyimpan tools...');
+
+      const values = { name, category, description, url };
+      const result = id
+        ? await client.from(TABLE_TOOLS).update(values).eq('id', id)
+        : await client.from(TABLE_TOOLS).insert(values);
+
+      if (result.error) throw result.error;
+
+      resetToolForm();
       await Promise.all([loadTools(), loadStats()]);
+
+      if (typeof window.vexoraRefreshTools === 'function') {
+        await window.vexoraRefreshTools();
+      }
 
       status('ownerToolsStatus', 'Tools berhasil disimpan.');
     } catch (error) {
-      console.error('[VEXORA] Menyimpan tools:', error);
-      status(
-        'ownerToolsStatus',
-        'Gagal menyimpan tools: ' + error.message,
-        true
-      );
+      console.error('[VEXORA] Simpan tools:', error);
+      status('ownerToolsStatus', 'Gagal menyimpan tools: ' + error.message, true);
     }
   }
-  
-async function deleteTool(tool) {
-  if (!window.confirm(`Hapus tools "${tool.name || ''}"?`)) return;
 
-  await callAdmin('tool_delete', { id: tool.id });
+  async function deleteTool(tool) {
+    if (!window.confirm(`Hapus tools "${tool.name || ''}"?`)) return;
 
-  await Promise.all([loadTools(), loadStats()]);
-
-  if (typeof window.vexoraRefreshTools === 'function') {
-    await window.vexoraRefreshTools();
-  }
-
-  status('ownerToolsStatus', 'Tools berhasil dihapus.');
-}
-
-    const client = getClient();
-    const { error } = await client
+    const { error } = await getClient()
       .from(TABLE_TOOLS)
       .delete()
       .eq('id', tool.id);
@@ -516,39 +395,25 @@ async function deleteTool(tool) {
     if (error) throw error;
 
     await Promise.all([loadTools(), loadStats()]);
+
+    if (typeof window.vexoraRefreshTools === 'function') {
+      await window.vexoraRefreshTools();
+    }
+
     status('ownerToolsStatus', 'Tools berhasil dihapus.');
   }
 
-  async function toggleToolStatus(tool) {
-    const oldStatus = String(tool.status || 'active').toLowerCase();
-    const newStatus = oldStatus === 'active' ? 'disabled' : 'active';
+  // ---------------- EVENT ----------------
 
-    await callAdmin('tool_status_set', {
-      id: tool.id,
-      tool_id: tool.id,
-      status: newStatus,
-      status_message: newStatus === 'disabled'
-        ? 'Tools dinonaktifkan oleh Owner.'
-        : ''
-    });
-
-    await loadTools();
-    status('ownerToolsStatus', 'Status tools diperbarui.');
-  }
-
-  // -----------------------------
-  // EVENT TOMBOL
-  // -----------------------------
   function bindEvents() {
     if (eventsBound) return;
     eventsBound = true;
 
-    $('ownerReloadUsers')?.addEventListener('click', async () => {
-      await Promise.all([loadUsers(), loadStats()]);
+    $('ownerReloadUsers')?.addEventListener('click', () => {
+      Promise.all([loadUsers(), loadStats()]);
     });
 
     $('ownerUserSearch')?.addEventListener('input', renderUsers);
-
     $('ownerToolForm')?.addEventListener('submit', saveTool);
     $('ownerToolCancel')?.addEventListener('click', resetToolForm);
 
@@ -556,30 +421,25 @@ async function deleteTool(tool) {
       const button = event.target.closest('[data-user-action]');
       if (!button) return;
 
-      const action = button.dataset.userAction;
-      const userId = button.dataset.id;
-
       button.disabled = true;
 
       try {
+        const action = button.dataset.userAction;
+        const userId = button.dataset.id;
+
         if (action === 'role') {
           const select = Array.from(
             $('ownerUsersTable').querySelectorAll('[data-role-select]')
           ).find((item) => item.dataset.roleSelect === userId);
 
           if (!select) throw new Error('Pilihan role tidak ditemukan.');
-
           await userAction('role', userId, { role: select.value });
         } else {
           await userAction(action, userId);
         }
       } catch (error) {
         console.error('[VEXORA] Aksi akun:', error);
-        status(
-          'ownerUsersStatus',
-          'Aksi akun gagal: ' + error.message,
-          true
-        );
+        status('ownerUsersStatus', 'Aksi gagal: ' + error.message, true);
       } finally {
         button.disabled = false;
       }
@@ -601,33 +461,20 @@ async function deleteTool(tool) {
       button.disabled = true;
 
       try {
-        switch (button.dataset.toolAction) {
-          case 'edit':
-            editTool(tool);
-            break;
-          case 'status':
-            await toggleToolStatus(tool);
-            break;
-          case 'delete':
-            await deleteTool(tool);
-            break;
+        if (button.dataset.toolAction === 'edit') {
+          editTool(tool);
+        } else if (button.dataset.toolAction === 'delete') {
+          await deleteTool(tool);
         }
       } catch (error) {
         console.error('[VEXORA] Aksi tools:', error);
-        status(
-          'ownerToolsStatus',
-          'Aksi tools gagal: ' + error.message,
-          true
-        );
+        status('ownerToolsStatus', 'Aksi tools gagal: ' + error.message, true);
       } finally {
         button.disabled = false;
       }
     });
   }
 
-  // -----------------------------
-  // PEMBUKA PANEL
-  // -----------------------------
   async function loadOwnerPanel() {
     if (isLoading) return;
     isLoading = true;
@@ -636,25 +483,21 @@ async function deleteTool(tool) {
       await verifyOwner();
       bindEvents();
 
-      await Promise.all([
+      // Muat data secara terpisah agar satu kegagalan tidak menghentikan lainnya.
+      await Promise.allSettled([
         loadStats(),
         loadUsers(),
         loadTools()
       ]);
     } catch (error) {
       console.error('[VEXORA] Owner Panel:', error);
-      status(
-        'ownerUsersStatus',
-        'Owner Panel gagal dibuka: ' + error.message,
-        true
-      );
+      status('ownerUsersStatus', 'Owner Panel gagal dibuka: ' + error.message, true);
     } finally {
       isLoading = false;
     }
   }
 
   window.loadOwnerPanel = loadOwnerPanel;
-
   window.VEXORA_OWNER_PANEL = {
     load: loadOwnerPanel,
     loadUsers,
