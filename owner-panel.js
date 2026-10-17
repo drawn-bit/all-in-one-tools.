@@ -127,9 +127,26 @@
   // -----------------------------
   // STATISTIK
   // -----------------------------
-  function renderStats(result) {
-    const source = result?.stats || result?.counts || result?.data || result;
+function renderStats(result) {
+  const source = result?.stats || result?.counts || result?.data || result;
 
+  const values = {
+    ownerUsersCount: source.total ?? source.total_users ?? source.totalUsers,
+    ownerVipCount: source.vip ?? source.vip_users ?? source.vipUsers,
+    ownerAdminsCount: source.owner ?? source.owner_users ?? source.ownerUsers,
+    ownerMembersCount: source.member ?? source.member_users ?? source.memberUsers,
+    ownerBannedCount: source.banned ?? source.banned_users ?? source.bannedUsers,
+    ownerToolsCount: source.tools ?? source.total_tools ?? source.tools_count
+  };
+
+  for (const [id, value] of Object.entries(values)) {
+    const el = $(id);
+    if (el && value !== undefined && value !== null) {
+      el.textContent = String(value);
+    }
+  }
+    }
+   
     const values = {
       ownerUsersCount: [
         'total_users', 'totalUsers', 'users_count', 'user_count'
