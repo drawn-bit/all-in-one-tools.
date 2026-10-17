@@ -1,21 +1,17 @@
 
-/* =========================================================
-   VEXORA OWNER EXTRAS
-   Maintenance Website + Announcement
-   Developer: Z4M OFFICIAL
-   Tidak mengganti owner-panel.js yang sudah ada.
-   ========================================================= */
+/* VEXORA OWNER EXTRAS - Z4M OFFICIAL */
 (() => {
   "use strict";
 
   const $ = (id) => document.getElementById(id);
   const FUNCTION_NAME = "owner-admin";
+
   let db = null;
   let maintenanceEnabled = false;
   let announcements = [];
   let initialized = false;
 
-  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({
+  const esc = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;",
     '"': "&quot;", "'": "&#39;"
   })[c]);
@@ -33,19 +29,14 @@
     db = window.vexoraGetClient?.() ||
       window.supabaseClient ||
       window.vexoraSupabase ||
-      window.sb ||
-      null;
+      window.sb || null;
 
     if (!db) {
-      const config = window.VEXORA_CONFIG || {};
-      if (
-        window.supabase?.createClient &&
-        config.SUPABASE_URL &&
-        config.SUPABASE_ANON_KEY
-      ) {
+      const c = window.VEXORA_CONFIG || {};
+      if (window.supabase?.createClient &&
+          c.SUPABASE_URL && c.SUPABASE_ANON_KEY) {
         db = window.supabase.createClient(
-          config.SUPABASE_URL,
-          config.SUPABASE_ANON_KEY
+          c.SUPABASE_URL, c.SUPABASE_ANON_KEY
         );
         window.supabaseClient = db;
       }
@@ -64,44 +55,48 @@
     if (error) {
       let message = error.message || "Permintaan gagal.";
       try {
-        if (error.context?.json) {
-          const body = await error.context.json();
-          message = body.error || body.message || message;
-        }
+        const body = await error.context?.json?.();
+        message = body?.error?.message ||
+          body?.error || body?.message || message;
       } catch (_) {}
-      throw new Error(message);
+      throw new Error(
+        typeof message === "string" ? message : JSON.stringify(message)
+      );
     }
 
-    if (data?.error) throw new Error(data.error);
+    if (data?.error) {
+      const message = data.error.message || data.error;
+      throw new Error(
+        typeof message === "string" ? message : JSON.stringify(message)
+      );
+    }
+
     return data;
   }
 
   function extractArray(data, names) {
     if (Array.isArray(data)) return data;
+
     for (const name of names) {
       if (Array.isArray(data?.[name])) return data[name];
       if (Array.isArray(data?.data?.[name])) return data.data[name];
       if (Array.isArray(data?.result?.[name])) return data.result[name];
     }
+
     return [];
   }
 
   function ownerRoot() {
-    const candidates = [
-      $("ownerPanel"),
-      $("page-owner"),
-      $("owner-page"),
-      $("owner"),
-      $("ownerToolsTable")?.closest("section"),
-      $("ownerToolsTable")?.closest(".page"),
-      $("ownerToolsTable")?.closest(".content")
-    ].filter(Boolean);
-
-    if (candidates.length) return candidates[0];
-
     const table = $("ownerToolsTable");
-    return table?.closest(".owner-panel") ||
-      table?.closest(".owner-section") ||
+
+    return $("ownerPanel") ||
+      $("page-owner") ||
+      $("owner-page") ||
+      $("owner") ||
+      table?.closest("section") ||
+      table?.closest(".page") ||
+      table?.closest(".content") ||
+      table?.closest(".owner-panel") ||
       table?.parentElement?.parentElement ||
       null;
   }
@@ -115,7 +110,7 @@
       .vxoe-wrap{margin:20px 0;display:grid;gap:16px;color:#edf5ff}
       .vxoe-card{padding:18px;border:1px solid #263b59;border-radius:16px;
         background:linear-gradient(145deg,#101d32,#0a1221);min-width:0}
-      .vxoe-card h2{font-size:17px;margin:0 0 7px}
+      .vxoe-card h2{font-size:17px;margin:10px 0 7px}
       .vxoe-muted{font-size:12px;color:#91a2bd;line-height:1.7}
       .vxoe-row{display:flex;align-items:center;justify-content:space-between;
         flex-wrap:wrap;gap:12px;margin-top:15px}
@@ -131,8 +126,7 @@
       .vxoe-item{padding:13px;margin-top:10px;border:1px solid #263b59;
         border-radius:12px;background:#0b1629;overflow-wrap:anywhere}
       .vxoe-item p{font-size:12px;line-height:1.7;color:#a6b6ce;white-space:pre-wrap}
-      .vxoe-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-      @media(max-width:520px){.vxoe-card{padding:14px}.vxoe-grid{grid-template-columns:1fr}}
+      @media(max-width:520px){.vxoe-card{padding:14px}}
     `;
     document.head.appendChild(style);
   }
@@ -146,13 +140,13 @@
     const panel = document.createElement("div");
     panel.id = "vxOwnerExtras";
     panel.className = "vxoe-wrap";
+
     panel.innerHTML = `
       <section class="vxoe-card">
         <span class="vxoe-badge">OWNER CONTROL</span>
-        <h2 style="margin-top:10px">Maintenance Website</h2>
+        <h2>Maintenance Website</h2>
         <p class="vxoe-muted">
-          Aktifkan mode maintenance untuk memberi tahu pengguna bahwa website
-          sedang dalam pemeliharaan.
+          Atur status pemeliharaan website VEXORA.
         </p>
         <div class="vxoe-row">
           <strong id="vxMaintenanceLabel">Status belum dimuat</strong>
@@ -164,32 +158,38 @@
 
       <section class="vxoe-card">
         <span class="vxoe-badge">ANNOUNCEMENTS</span>
-        <h2 style="margin-top:10px">Pengumuman Website</h2>
+        <h2>Pengumuman Website</h2>
         <p class="vxoe-muted">
-          Buat pengumuman untuk ditampilkan di daftar pengumuman.
+          Buat dan kelola pengumuman VEXORA.
         </p>
+
         <form id="vxAnnouncementForm">
           <label class="vxoe-field">
             Judul pengumuman
             <input class="vxoe-input" id="vxAnnouncementTitle"
               maxlength="120" required placeholder="Contoh: Update VEXORA">
           </label>
+
           <label class="vxoe-field">
             Isi pengumuman
             <textarea class="vxoe-input" id="vxAnnouncementBody"
               rows="4" maxlength="3000" required
               placeholder="Tulis isi pengumuman..."></textarea>
           </label>
+
           <div class="vxoe-row">
             <label class="vxoe-muted">
               <input id="vxAnnouncementActive" type="checkbox" checked>
               Aktifkan pengumuman
             </label>
-            <button class="vxoe-btn" type="submit">Buat Pengumuman</button>
+            <button class="vxoe-btn" id="vxAnnouncementSubmit" type="submit">
+              Buat Pengumuman
+            </button>
           </div>
         </form>
+
         <div id="vxAnnouncementList" aria-live="polite">
-          <p class="vxoe-muted">Pengumuman belum dimuat.</p>
+          <p class="vxoe-muted">Memuat pengumuman...</p>
         </div>
       </section>
 
@@ -207,17 +207,12 @@
     const source = data?.settings || data?.data?.settings ||
       data?.maintenance || data?.data?.maintenance || data;
 
-    const value = typeof source === "boolean"
-      ? source
-      : source?.maintenance_enabled ??
-        source?.maintenance ??
-        source?.enabled ??
-        source?.is_enabled;
+    const value = typeof source === "boolean" ? source :
+      source?.maintenance_enabled ?? source?.maintenance ??
+      source?.enabled ?? source?.is_enabled;
 
     if (typeof value !== "boolean") {
-      throw new Error(
-        "Respons maintenance tidak dikenali. Perlu mencocokkan format respons backend."
-      );
+      throw new Error("Format respons maintenance tidak dikenali.");
     }
 
     maintenanceEnabled = value;
@@ -231,34 +226,24 @@
     if (!label || !button) return;
 
     label.textContent = maintenanceEnabled
-      ? "MAINTENANCE AKTIF"
-      : "WEBSITE NORMAL";
-
+      ? "MAINTENANCE AKTIF" : "WEBSITE NORMAL";
     label.style.color = maintenanceEnabled ? "#ffb45e" : "#38d9ff";
     button.textContent = maintenanceEnabled
-      ? "Nonaktifkan Maintenance"
-      : "Aktifkan Maintenance";
-
-    button.classList.toggle("vxoe-danger", !maintenanceEnabled);
+      ? "Nonaktifkan Maintenance" : "Aktifkan Maintenance";
   }
 
   async function toggleMaintenance() {
     const next = !maintenanceEnabled;
-    const confirmation = next
-      ? "Aktifkan maintenance website?"
-      : "Nonaktifkan maintenance website?";
 
-    if (!confirm(confirmation)) return;
+    if (!confirm(next
+      ? "Aktifkan maintenance website?"
+      : "Nonaktifkan maintenance website?")) return;
 
     const button = $("vxMaintenanceToggle");
     if (button) button.disabled = true;
 
     try {
-      status("Menyimpan status maintenance...");
-
-      // Nama action dan field mengikuti kontrak backend yang diharapkan.
       await admin("maintenance_set", { enabled: next });
-
       maintenanceEnabled = next;
       renderMaintenance();
       status("Status maintenance berhasil diperbarui.");
@@ -279,11 +264,11 @@
       return;
     }
 
-    list.innerHTML = announcements.map((item) => {
-      const id = item.id;
+    list.innerHTML = announcements.map((item, index) => {
+      const id = item.id ?? item.announcement_id;
       const title = item.title || item.name || "Tanpa judul";
-      const body = item.message || item.body || item.content ||
-        item.description || "";
+      const body = item.message || item.body ||
+        item.content || item.description || "";
       const active = item.active ?? item.is_active ?? item.enabled ?? true;
 
       return `
@@ -292,7 +277,7 @@
           <h3 style="font-size:14px;margin:10px 0 5px">${esc(title)}</h3>
           <p>${esc(body)}</p>
           <button class="vxoe-btn vxoe-danger" type="button"
-            data-vx-announcement-delete="${esc(id)}"
+            data-vx-announcement-index="${index}"
             ${id == null ? "disabled" : ""}>Hapus</button>
         </article>
       `;
@@ -302,75 +287,104 @@
   async function loadAnnouncements() {
     status("Memuat pengumuman...");
     const data = await admin("announcement_list");
+
     announcements = extractArray(data, [
       "announcements", "items", "results"
     ]);
+
     renderAnnouncements();
     status(`${announcements.length} pengumuman dimuat.`);
   }
 
- async function deleteAnnouncement(id) {
-  const announcementId = String(id || "").trim();
+  async function createAnnouncement(event) {
+    event.preventDefault();
 
-  // ID pengumuman harus UUID
-  if (
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      .test(announcementId)
-  ) {
-    alert("ID pengumuman tidak valid. Muat ulang daftar pengumuman.");
-    return;
-  }
+    const title = $("vxAnnouncementTitle")?.value.trim();
+    const message = $("vxAnnouncementBody")?.value.trim();
+    const active = $("vxAnnouncementActive")?.checked ?? true;
+    const button = $("vxAnnouncementSubmit");
 
-  const result = await admin("announcement_delete", {
-    id: announcementId
-  });
+    if (!title || !message) {
+      status("Judul dan isi pengumuman wajib diisi.", true);
+      return;
+    }
 
-  if (result?.error || result?.success === false) {
-    alert(result.error?.message || result.error || "Gagal menghapus pengumuman.");
-    return;
-  }
+    if (button) button.disabled = true;
 
-  await loadAnnouncements();
- }
+    try {
+      status("Membuat pengumuman...");
+      await admin("announcement_create", { title, message, active });
+
+      $("vxAnnouncementForm")?.reset();
+      if ($("vxAnnouncementActive")) {
+        $("vxAnnouncementActive").checked = true;
+      }
+
+      await loadAnnouncements();
       status("Pengumuman berhasil dibuat.");
     } catch (error) {
       console.error("[VEXORA] Announcement create:", error);
       status("Gagal membuat pengumuman: " + error.message, true);
+    } finally {
+      if (button) button.disabled = false;
     }
   }
 
   async function deleteAnnouncement(id) {
-    if (id == null || id === "") return;
+    if (id == null || String(id).trim() === "") {
+      status("ID pengumuman tidak ditemukan.", true);
+      return;
+    }
+
     if (!confirm("Hapus pengumuman ini?")) return;
+
+    const buttons = $("vxAnnouncementList")?.querySelectorAll("button");
+    buttons?.forEach(button => button.disabled = true);
 
     try {
       status("Menghapus pengumuman...");
+
+      // Kirim ID asli; jangan menganggap semua ID harus UUID.
       await admin("announcement_delete", { id });
+
       await loadAnnouncements();
       status("Pengumuman berhasil dihapus.");
     } catch (error) {
       console.error("[VEXORA] Announcement delete:", error);
       status("Gagal menghapus pengumuman: " + error.message, true);
+      buttons?.forEach(button => button.disabled = false);
     }
   }
 
   function bindEvents() {
-    $("vxMaintenanceToggle")?.addEventListener("click", toggleMaintenance);
-    $("vxAnnouncementForm")?.addEventListener("submit", createAnnouncement);
+    $("vxMaintenanceToggle")?.addEventListener(
+      "click", toggleMaintenance
+    );
 
-    $("vxAnnouncementList")?.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-vx-announcement-delete]");
+    $("vxAnnouncementForm")?.addEventListener(
+      "submit", createAnnouncement
+    );
+
+    $("vxAnnouncementList")?.addEventListener("click", event => {
+      const button = event.target.closest(
+        "[data-vx-announcement-index]"
+      );
       if (!button) return;
-      deleteAnnouncement(button.dataset.vxAnnouncementDelete);
+
+      const index = Number(button.dataset.vxAnnouncementIndex);
+      const item = announcements[index];
+      if (!item) return;
+
+      deleteAnnouncement(item.id ?? item.announcement_id);
     });
   }
 
   async function init() {
     if (initialized) return;
+
     addStyles();
 
     if (!createPanel()) {
-      // Coba lagi setelah dashboard menyelesaikan render awal.
       setTimeout(init, 500);
       return;
     }
@@ -380,20 +394,28 @@
 
     try {
       getDB();
-      await Promise.allSettled([
+
+      const results = await Promise.allSettled([
         loadMaintenance(),
         loadAnnouncements()
       ]);
+
+      results.forEach(result => {
+        if (result.status === "rejected") {
+          console.error("[VEXORA] Owner extras:", result.reason);
+          status(result.reason?.message || "Gagal memuat data.", true);
+        }
+      });
     } catch (error) {
       console.error("[VEXORA] Owner extras init:", error);
       status(error.message, true);
     }
   }
 
-  // Tunggu dashboard dan skrip Owner Panel selesai memuat.
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init, { once: true });
   } else {
     init();
   }
 })();
+     
