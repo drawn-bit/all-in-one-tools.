@@ -1,7 +1,7 @@
 
 /* VEXORA owner-panel.js
-   Perbaikan: statistik, daftar akun, daftar tools.
-   Tidak memakai action maintenance atau tool-status.
+   Pagination akun: 5 akun per halaman.
+   Statistik, role, ban, hapus akun, dan tools tetap tersedia.
 */
 (() => {
   'use strict';
@@ -12,20 +12,19 @@
   const $ = (id) => document.getElementById(id);
   const TABLE_TOOLS = 'vexora_tools';
   const ADMIN_FUNCTION = 'owner-admin';
+  const PAGE_SIZE = 5;
 
   let db = null;
   let currentUsers = [];
   let currentTools = [];
+  let currentPage = 1;
   let isLoading = false;
   let eventsBound = false;
 
   function escapeHTML(value) {
     return String(value ?? '').replace(/[&<>"']/g, (c) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
+      '&': '&amp;', '<': '&lt;', '>': '&gt;',
+      '"': '&quot;', "'": '&#39;'
     })[c]);
   }
 
@@ -43,17 +42,13 @@
 
     db = db || window.vexoraSupabase || window.supabaseClient;
 
-    if (!db) {
-      throw new Error('Supabase belum siap. Muat ulang dashboard.');
-    }
-
+    if (!db) throw new Error('Supabase belum siap. Muat ulang dashboard.');
     return db;
   }
 
   async function verifyOwner() {
     const client = getClient();
     const { data, error } = await client.auth.getSession();
-
     if (error) throw error;
 
     const user = data?.session?.user;
@@ -80,14 +75,12 @@
 
     if (error) {
       let message = error.message || 'Permintaan Owner API gagal.';
-
       try {
         if (error.context?.json) {
           const body = await error.context.json();
           message = body.error || body.message || message;
         }
       } catch (_) {}
-
       throw new Error(message);
     }
 
@@ -101,17 +94,13 @@
 
   function getList(result, keys) {
     if (Array.isArray(result)) return result;
-
     for (const key of keys) {
       if (Array.isArray(result?.[key])) return result[key];
       if (Array.isArray(result?.data?.[key])) return result.data[key];
     }
-
     return null;
   }
 
-  // Statistik sesuai respons index.ts:
-  // stats.total, stats.members, stats.vips, stats.owners
   function renderStats(result = {}) {
     const source = result.stats || result.counts || result.data || result;
 
@@ -134,8 +123,7 @@
 
   async function loadStats() {
     try {
-      const result = await callAdmin('stats');
-      renderStats(result);
+      renderStats(await callAdmin('stats'));
     } catch (error) {
       console.error('[VEXORA] Statistik:', error);
       status('ownerUsersStatus', 'Statistik gagal dimuat: ' + error.message, true);
@@ -155,10 +143,8 @@
     const banned = Boolean(
       user.banned ||
       user.is_banned ||
-      (
-        user.banned_until &&
-        new Date(user.banned_until).getTime() > Date.now()
-      )
+      (user.banned_until &&
+       new Date(user.banned_until).getTime() > Date.now())
     );
 
     return {
@@ -170,6 +156,69 @@
     };
   }
 
+  function ensurePagination() {
+    const table = $('ownerUsersTable');
+    const wrap = table?.closest('.owner-table-wrap');
+    if (!wrap) return null;
+
+    let pager = $('ownerUsersPagination');
+
+    if (!pager) {
+      pager = document.createElement('div');
+      pager.id = 'ownerUsersPagination';
+      pager.style.cssText = [
+        'display:flex',
+        'align-items:center',
+        'justify-content:space-between',
+        'gap:10px',
+        'flex-wrap:wrap',
+        'margin-top:12px',
+        'padding:12px',
+        'background:#10192b',
+        'border:1px solid #23334e',
+        'border-radius:12px'
+      ].join(';');
+
+      wrap.insertAdjacentElement('afterend', pager);
+    }
+
+    return pager;
+  }
+
+  function renderPagination(total, pages) {
+    const pager = ensurePagination();
+    if (!pager) return;
+
+    if (total <= PAGE_SIZE) {
+      pager.innerHTML = `
+        <span style="font-size:11px;color:#91a2bd">
+          ${total} akun ditampilkan
+        </span>`;
+      return;
+    }
+
+    const start = (currentPage - 1) * PAGE_SIZE + 1;
+    const end = Math.min(currentPage * PAGE_SIZE, total);
+
+    pager.innerHTML = `
+      <span style="font-size:11px;color:#91a2bd">
+        ${start}–${end} dari ${total} akun
+        <br>Halaman ${currentPage} / ${pages}
+      </span>
+      <div style="display:flex;gap:7px">
+        <button type="button" data-user-page="${currentPage - 1}"
+          ${currentPage <= 1 ? 'disabled' : ''}
+          style="border:1px solid #2a4264;background:#172a47;color:#fff;border-radius:8px;padding:9px 12px;font-size:12px;${currentPage <= 1 ? 'opacity:.4' : ''}">
+          ‹ Sebelumnya
+        </button>
+        <button type="button" data-user-page="${currentPage + 1}"
+          ${currentPage >= pages ? 'disabled' : ''}
+          style="border:1px solid #2a4264;background:#172a47;color:#fff;border-radius:8px;padding:9px 12px;font-size:12px;${currentPage >= pages ? 'opacity:.4' : ''}">
+          Berikutnya ›
+        </button>
+      </div>`;
+  }
+
   function renderUsers() {
     const table = $('ownerUsersTable');
     if (!table) return;
@@ -179,12 +228,20 @@
       `${user.email} ${user.id} ${user.role}`.toLowerCase().includes(query)
     );
 
+    const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+    currentPage = Math.min(currentPage, pages);
+    currentPage = Math.max(1, currentPage);
+
     if (!list.length) {
       table.innerHTML = '<tr><td colspan="6">Tidak ada akun yang cocok.</td></tr>';
+      renderPagination(0, 1);
       return;
     }
 
-    table.innerHTML = list.map((user) => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const visibleUsers = list.slice(start, start + PAGE_SIZE);
+
+    table.innerHTML = visibleUsers.map((user) => {
       const id = escapeHTML(user.id);
       const email = escapeHTML(user.email);
       const role = ['owner', 'vip', 'member'].includes(user.role)
@@ -193,12 +250,11 @@
       const roleUI = role === 'owner'
         ? '<strong>OWNER</strong>'
         : `
-          <select data-role-select="${id}">
+          <select data-role-select="${id}" aria-label="Pilih role">
             <option value="member" ${role === 'member' ? 'selected' : ''}>Member</option>
             <option value="vip" ${role === 'vip' ? 'selected' : ''}>VIP</option>
           </select>
-          <button type="button" data-user-action="role" data-id="${id}">Simpan</button>
-        `;
+          <button type="button" data-user-action="role" data-id="${id}">Simpan</button>`;
 
       const banUI = user.banned
         ? `<button type="button" data-user-action="unban" data-id="${id}">Buka blokir</button>`
@@ -216,9 +272,10 @@
           <td>${user.banned ? 'Diblokir' : 'Aktif'}</td>
           <td>${roleUI}</td>
           <td>${banUI} ${deleteUI}</td>
-        </tr>
-      `;
+        </tr>`;
     }).join('');
+
+    renderPagination(list.length, pages);
   }
 
   async function loadUsers() {
@@ -227,17 +284,14 @@
     try {
       const result = await callAdmin('list_users');
       const list = getList(result, ['users', 'items']);
-
       if (!list) throw new Error('Respons daftar akun tidak valid.');
 
       currentUsers = list.map(normalizeUser);
+      currentPage = 1;
       renderUsers();
       renderStats();
 
-      status(
-        'ownerUsersStatus',
-        `${currentUsers.length} akun berhasil dimuat.`
-      );
+      status('ownerUsersStatus', `${currentUsers.length} akun berhasil dimuat.`);
     } catch (error) {
       console.error('[VEXORA] Daftar akun:', error);
       status('ownerUsersStatus', 'Gagal memuat akun: ' + error.message, true);
@@ -278,8 +332,6 @@
   }
 
   // ---------------- TOOLS ----------------
-  // Mengambil data langsung dari tabel, bukan action tool_list
-  // yang belum tersedia di index.ts.
 
   async function loadTools() {
     status('ownerToolsStatus', 'Memuat daftar tools...');
@@ -319,8 +371,7 @@
           <button type="button" data-tool-action="edit" data-id="${escapeHTML(tool.id)}">Edit</button>
           <button type="button" data-tool-action="delete" data-id="${escapeHTML(tool.id)}">Hapus</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   }
 
   function resetToolForm() {
@@ -413,7 +464,22 @@
       Promise.all([loadUsers(), loadStats()]);
     });
 
-    $('ownerUserSearch')?.addEventListener('input', renderUsers);
+    $('ownerUserSearch')?.addEventListener('input', () => {
+      currentPage = 1;
+      renderUsers();
+    });
+
+    $('ownerUsersPagination')?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-user-page]');
+      if (!button || button.disabled) return;
+
+      const nextPage = Number(button.dataset.userPage);
+      if (!Number.isFinite(nextPage) || nextPage < 1) return;
+
+      currentPage = nextPage;
+      renderUsers();
+    });
+
     $('ownerToolForm')?.addEventListener('submit', saveTool);
     $('ownerToolCancel')?.addEventListener('click', resetToolForm);
 
@@ -483,7 +549,6 @@
       await verifyOwner();
       bindEvents();
 
-      // Muat data secara terpisah agar satu kegagalan tidak menghentikan lainnya.
       await Promise.allSettled([
         loadStats(),
         loadUsers(),
@@ -507,4 +572,4 @@
 
   bindEvents();
 })();
-       
+        
