@@ -1,12 +1,21 @@
+
+/* =========================================================
+   VEXORA AUTH SYSTEM
+   Login • Register • Email Verification
+   Duplicate Email Handling • Password Toggle
+   ========================================================= */
 (() => {
   "use strict";
 
   const $ = (id) => document.getElementById(id);
   const config = window.VEXORA_CONFIG;
 
-  // ==============================
-  // CEK KONFIGURASI SUPABASE
-  // ==============================
+  let mode = "login";
+  let busy = false;
+
+  // ---------------------------------------------------------
+  // PESAN FORM
+  // ---------------------------------------------------------
 
   function showMessage(message, type = "error") {
     const el = $("formMessage");
@@ -15,6 +24,7 @@
     el.textContent = message;
     el.className = "form-message show " + type;
     el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
   }
 
   function clearMessage() {
@@ -25,14 +35,19 @@
     el.className = "form-message";
   }
 
+  // ---------------------------------------------------------
+  // CEK KONFIGURASI
+  // ---------------------------------------------------------
+
   if (
     !config ||
     !config.SUPABASE_URL ||
     !config.SUPABASE_ANON_KEY ||
-    !window.supabase
+    !window.supabase ||
+    typeof window.supabase.createClient !== "function"
   ) {
     console.error(
-      "VEXORA: Supabase config atau library belum tersedia."
+      "[VEXORA] Supabase config atau library belum tersedia."
     );
 
     showMessage(
@@ -42,17 +57,26 @@
     return;
   }
 
-  const supabaseClient = window.supabase.createClient(
-    config.SUPABASE_URL,
-    config.SUPABASE_ANON_KEY
-  );
+  let supabaseClient;
 
-  let mode = "login";
-  let busy = false;
+  try {
+    supabaseClient = window.supabase.createClient(
+      config.SUPABASE_URL,
+      config.SUPABASE_ANON_KEY
+    );
+  } catch (error) {
+    console.error("[VEXORA] Gagal membuat client:", error);
 
-  // ==============================
-  // TOMBOL PROSES
-  // ==============================
+    showMessage(
+      "Koneksi autentikasi gagal disiapkan. Muat ulang halaman."
+    );
+
+    return;
+  }
+
+  // ---------------------------------------------------------
+  // STATUS TOMBOL
+  // ---------------------------------------------------------
 
   function setBusy(value) {
     busy = value;
@@ -62,23 +86,21 @@
 
     if (button) {
       button.disabled = value;
+      button.setAttribute("aria-busy", String(value));
     }
 
     if (text) {
-      if (value) {
-        text.textContent = "Memproses...";
-      } else {
-        text.textContent =
-          mode === "register"
-            ? "Daftar"
-            : "Masuk ke Dashboard";
-      }
+      text.textContent = value
+        ? "Memproses..."
+        : mode === "register"
+          ? "Daftar"
+          : "Masuk ke Dashboard";
     }
   }
 
-  // ==============================
+  // ---------------------------------------------------------
   // MODE LOGIN / REGISTER
-  // ==============================
+  // ---------------------------------------------------------
 
   function setMode(nextMode) {
     mode = nextMode === "register" ? "register" : "login";
@@ -99,7 +121,6 @@
         : "Masuk ke akun kamu untuk melanjutkan.";
     }
 
-    // FIX: konfirmasi password harus terlihat saat Register.
     const confirmGroup = $("confirmGroup");
 
     if (confirmGroup) {
@@ -133,17 +154,11 @@
     }
 
     if ($("loginTab")) {
-      $("loginTab").classList.toggle(
-        "active",
-        !registering
-      );
+      $("loginTab").classList.toggle("active", !registering);
     }
 
     if ($("registerTab")) {
-      $("registerTab").classList.toggle(
-        "active",
-        registering
-      );
+      $("registerTab").classList.toggle("active", registering);
     }
 
     if ($("password")) {
@@ -153,28 +168,34 @@
     }
   }
 
-  // ==============================
-  // PESAN ERROR SUPABASE
-  // ==============================
+  // ---------------------------------------------------------
+  // PENJELASAN ERROR
+  // ---------------------------------------------------------
 
   function explainError(error) {
-    const message = String(
-      error?.message || ""
-    ).toLowerCase();
-
-    const code = String(
-      error?.code || ""
-    ).toLowerCase();
-
+    const originalMessage = String(error?.message || "");
+    const message = originalMessage.toLowerCase();
+    const code = String(error?.code || "").toLowerCase();
     const status = Number(error?.status || 0);
 
-    // Detail ini membantu mencari penyebab di Console.
-    console.error("VEXORA Auth Error:", {
-      message: error?.message,
+    console.error("[VEXORA] Auth error:", {
+      message: originalMessage,
       code: error?.code,
       status: error?.status,
       name: error?.name
     });
+
+    if (
+      code === "user_already_exists" ||
+      code === "email_exists" ||
+      message.includes("user already registered") ||
+      message.includes("already registered") ||
+      message.includes("user already exists") ||
+      message.includes("email already exists") ||
+      message.includes("email_exists")
+    ) {
+      return "Email ini sudah terdaftar. Silakan login.";
+    }
 
     if (
       message.includes("invalid login credentials") ||
@@ -188,14 +209,6 @@
       code === "email_not_confirmed"
     ) {
       return "Email belum diverifikasi. Periksa kotak masuk dan folder Spam.";
-    }
-
-    if (
-      message.includes("user already registered") ||
-      message.includes("already registered") ||
-      code === "user_already_exists"
-    ) {
-      return "Email ini sudah terdaftar. Silakan login.";
     }
 
     if (
@@ -228,7 +241,7 @@
       message.includes("signup is disabled") ||
       message.includes("signups not allowed")
     ) {
-      return "Pendaftaran dinonaktifkan di pengaturan Supabase.";
+      return "Pendaftaran sedang dinonaktifkan.";
     }
 
     if (
@@ -238,11 +251,11 @@
       message.includes("networkerror") ||
       error?.name === "TypeError"
     ) {
-      return "Koneksi ke server gagal. Periksa internet dan URL Supabase.";
+      return "Koneksi server gagal. Periksa internet dan konfigurasi Supabase.";
     }
 
     if (status >= 500) {
-      return "Server autentikasi bermasalah. Coba lagi nanti dan periksa Supabase Logs.";
+      return "Server autentikasi sedang bermasalah. Coba lagi nanti.";
     }
 
     if (status === 400) {
@@ -253,23 +266,129 @@
       return "Akses ditolak. Periksa konfigurasi Supabase.";
     }
 
-    return "Proses gagal. Periksa Supabase Auth Logs untuk mengetahui penyebabnya.";
+    return "Proses gagal. Periksa Console dan Supabase Auth Logs.";
   }
 
-  // ==============================
+  // ---------------------------------------------------------
   // URL VERIFIKASI EMAIL
-  // ==============================
+  // ---------------------------------------------------------
 
   function getEmailRedirectUrl() {
-    return new URL(
-      "index.html",
-      window.location.href
-    ).href;
+    return new URL("index.html", window.location.href).href;
   }
 
-  // ==============================
-  // LOGIN DAN PENDAFTARAN
-  // ==============================
+  // ---------------------------------------------------------
+  // DETEKSI RESPONS EMAIL DUPLIKAT
+  // ---------------------------------------------------------
+
+  function isDuplicateEmailResponse(data) {
+    /*
+     * Supabase dapat mengembalikan user dengan identities
+     * kosong ketika email sudah terdaftar.
+     *
+     * Pengecekan ini hanya mengenali pola respons tersebut.
+     * Ini bukan cara untuk menjamin semua akun lama terdeteksi.
+     */
+    return Boolean(
+      data?.user &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0
+    );
+  }
+
+  // ---------------------------------------------------------
+  // REGISTER
+  // ---------------------------------------------------------
+
+  async function handleRegister(email, password, confirmPassword) {
+    if (password.length < 8) {
+      showMessage("Password minimal 8 karakter.");
+      return;
+    }
+
+    if (!confirmPassword) {
+      showMessage("Masukkan konfirmasi password.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showMessage("Konfirmasi password tidak cocok.");
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: getEmailRedirectUrl()
+      }
+    });
+
+    if (error) {
+      showMessage(explainError(error));
+      return;
+    }
+
+    if (isDuplicateEmailResponse(data)) {
+      showMessage(
+        "Email ini kemungkinan sudah terdaftar. Silakan coba login."
+      );
+      return;
+    }
+
+    if (data?.session) {
+      showMessage(
+        "Akun berhasil dibuat. Membuka dashboard...",
+        "success"
+      );
+
+      window.location.replace("dashboard.html");
+      return;
+    }
+
+    showMessage(
+      "Permintaan pendaftaran diproses. Jika email memenuhi syarat, periksa kotak masuk dan folder Spam untuk tautan verifikasi. Jika akun sudah ada, silakan login.",
+      "success"
+    );
+
+    if ($("password")) $("password").value = "";
+    if ($("confirmPassword")) $("confirmPassword").value = "";
+  }
+
+  // ---------------------------------------------------------
+  // LOGIN
+  // ---------------------------------------------------------
+
+  async function handleLogin(email, password) {
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error) {
+      showMessage(explainError(error));
+      return;
+    }
+
+    if (!data?.session) {
+      showMessage(
+        "Login belum selesai. Periksa status verifikasi email."
+      );
+      return;
+    }
+
+    showMessage(
+      "Login berhasil. Membuka dashboard...",
+      "success"
+    );
+
+    window.location.replace("dashboard.html");
+  }
+
+  // ---------------------------------------------------------
+  // SUBMIT FORM
+  // ---------------------------------------------------------
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -278,53 +397,20 @@
 
     clearMessage();
 
-    const email = $("email")?.value
-      .trim()
-      .toLowerCase() || "";
-
+    const email = $("email")?.value.trim().toLowerCase() || "";
     const password = $("password")?.value || "";
+    const confirmPassword = $("confirmPassword")?.value || "";
 
-    const confirmPassword =
-      $("confirmPassword")?.value || "";
-
-    // Validasi umum.
     if (!email || !password) {
-      showMessage(
-        "Isi email dan password terlebih dahulu."
-      );
+      showMessage("Isi email dan password terlebih dahulu.");
       return;
     }
 
-    // Validasi khusus pendaftaran.
     if (mode === "register") {
-      const emailPattern =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailPattern.test(email)) {
-        showMessage(
-          "Masukkan alamat email yang valid."
-        );
-        return;
-      }
-
-      if (password.length < 8) {
-        showMessage(
-          "Password minimal 8 karakter."
-        );
-        return;
-      }
-
-      if (!confirmPassword) {
-        showMessage(
-          "Masukkan konfirmasi password."
-        );
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        showMessage(
-          "Konfirmasi password tidak cocok."
-        );
+        showMessage("Masukkan alamat email yang valid.");
         return;
       }
     }
@@ -332,76 +418,11 @@
     setBusy(true);
 
     try {
-      // REGISTER
       if (mode === "register") {
-        const { data, error } =
-          await supabaseClient.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-              emailRedirectTo: getEmailRedirectUrl()
-            }
-          });
-
-        if (error) {
-          showMessage(explainError(error));
-          return;
-        }
-
-        // Jika sesi langsung tersedia.
-        if (data?.session) {
-          showMessage(
-            "Akun berhasil dibuat. Membuka dashboard...",
-            "success"
-          );
-
-          window.location.replace("dashboard.html");
-          return;
-        }
-
-        // Jika verifikasi email diperlukan.
-        showMessage(
-          "Pendaftaran berhasil dikirim! Buka email kamu dan klik tautan verifikasi untuk mengaktifkan akun. Periksa folder Spam jika belum masuk.",
-          "success"
-        );
-
-        if ($("password")) {
-          $("password").value = "";
-        }
-
-        if ($("confirmPassword")) {
-          $("confirmPassword").value = "";
-        }
-
-        return;
+        await handleRegister(email, password, confirmPassword);
+      } else {
+        await handleLogin(email, password);
       }
-
-      // LOGIN
-      const { data, error } =
-        await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-      if (error) {
-        showMessage(explainError(error));
-        return;
-      }
-
-      if (!data?.session) {
-        showMessage(
-          "Login belum selesai. Periksa status verifikasi email."
-        );
-        return;
-      }
-
-      showMessage(
-        "Login berhasil. Membuka dashboard...",
-        "success"
-      );
-
-      window.location.replace("dashboard.html");
-
     } catch (error) {
       showMessage(explainError(error));
     } finally {
@@ -409,77 +430,53 @@
     }
   }
 
-  // ==============================
+  // ---------------------------------------------------------
   // EVENT FORM
-  // ==============================
+  // ---------------------------------------------------------
 
   const authForm = $("authForm");
 
   if (authForm) {
-    authForm.addEventListener(
-      "submit",
-      handleSubmit
-    );
+    authForm.addEventListener("submit", handleSubmit);
   } else {
-    console.error("Elemen authForm tidak ditemukan.");
+    console.error("[VEXORA] Elemen authForm tidak ditemukan.");
   }
 
-  if ($("loginTab")) {
-    $("loginTab").addEventListener(
-      "click",
-      () => setMode("login")
-    );
-  }
+  $("loginTab")?.addEventListener("click", () => {
+    if (!busy) setMode("login");
+  });
 
-  if ($("registerTab")) {
-    $("registerTab").addEventListener(
-      "click",
-      () => setMode("register")
-    );
-  }
+  $("registerTab")?.addEventListener("click", () => {
+    if (!busy) setMode("register");
+  });
 
-  if ($("switchLink")) {
-    $("switchLink").addEventListener(
-      "click",
-      (event) => {
-        event.preventDefault();
+  $("switchLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
 
-        setMode(
-          mode === "login" ? "register" : "login"
-        );
-      }
-    );
-  }
+    if (busy) return;
 
-  // ==============================
+    setMode(mode === "login" ? "register" : "login");
+  });
+
+  // ---------------------------------------------------------
   // LIHAT / SEMBUNYIKAN PASSWORD
-  // ==============================
+  // ---------------------------------------------------------
 
-  if ($("togglePassword")) {
-    $("togglePassword").addEventListener(
-      "click",
-      () => {
-        const input = $("password");
-        const button = $("togglePassword");
+  $("togglePassword")?.addEventListener("click", () => {
+    const input = $("password");
+    const button = $("togglePassword");
 
-        if (!input) return;
+    if (!input || !button) return;
 
-        const showing = input.type === "password";
+    const showing = input.type === "password";
 
-        input.type = showing ? "text" : "password";
+    input.type = showing ? "text" : "password";
+    button.textContent = showing ? "SEMBUNYIKAN" : "LIHAT";
+  });
 
-        if (button) {
-          button.textContent = showing
-            ? "SEMBUNYIKAN"
-            : "LIHAT";
-        }
-      }
-    );
-  }
-
-  // ==============================
-  // CEK SESI LOGIN
-  // ==============================
+  // ---------------------------------------------------------
+  // CEK SESI
+  // ---------------------------------------------------------
 
   async function checkExistingSession() {
     try {
@@ -490,18 +487,15 @@
         window.location.replace("dashboard.html");
       }
     } catch (error) {
-      console.error(
-        "VEXORA session check error:",
-        error
-      );
+      console.error("[VEXORA] Session check:", error);
     }
   }
 
-  // ==============================
+  // ---------------------------------------------------------
   // MULAI
-  // ==============================
+  // ---------------------------------------------------------
 
   setMode("login");
   checkExistingSession();
-
 })();
+      
