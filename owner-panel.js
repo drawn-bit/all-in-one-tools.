@@ -111,28 +111,51 @@
     }
   }
 
-  async function loadStats() {
+
+async function loadStats() {
+  // Hitung statistik akun dari data akun yang sudah dimuat.
+  if (users.length > 0) {
+    const total = users.length;
+    const vip = users.filter(
+      (u) => getRole(u).toLowerCase() === 'vip'
+    ).length;
+    const owner = users.filter(
+      (u) => getRole(u).toLowerCase() === 'owner'
+    ).length;
+    const member = users.filter(
+      (u) => getRole(u).toLowerCase() === 'member'
+    ).length;
+    const banned = users.filter((u) => isBanned(u)).length;
+
+    setStat('ownerUsersCount', total);
+    setStat('ownerVipCount', vip);
+    setStat('ownerAdminsCount', owner);
+    setStat('ownerMembersCount', member);
+    setStat('ownerBannedCount', banned);
+  } else {
+    // Tetap coba ambil statistik dari backend jika daftar akun kosong.
     try {
       const data = await callAdmin('stats');
       const s = data?.stats || data?.data?.stats || data || {};
 
       setStat('ownerUsersCount',
-        s.total_users ?? s.totalUsers ?? s.users);
+        s.total_users ?? s.totalUsers ?? s.users ?? 0);
       setStat('ownerVipCount',
-        s.vip_users ?? s.vipUsers ?? s.vip);
+        s.vip_users ?? s.vipUsers ?? s.vip ?? 0);
       setStat('ownerAdminsCount',
-        s.owner_users ?? s.ownerUsers ?? s.owners);
+        s.owner_users ?? s.ownerUsers ?? s.owners ?? 0);
       setStat('ownerMembersCount',
-        s.member_users ?? s.memberUsers ?? s.members);
+        s.member_users ?? s.memberUsers ?? s.members ?? 0);
       setStat('ownerBannedCount',
-        s.banned_users ?? s.bannedUsers ?? s.banned);
-
-      setStat('ownerToolsCount', tools.length);
+        s.banned_users ?? s.bannedUsers ?? s.banned ?? 0);
     } catch (error) {
       console.error('[VEXORA] Stats:', error);
     }
   }
 
+  setStat('ownerToolsCount', tools.length);
+                      }
+       
   /* ---------------- PAGINATION ---------------- */
 
   function ensurePager(id, tableWrap) {
