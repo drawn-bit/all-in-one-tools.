@@ -615,4 +615,18 @@
     });
 
     // Navigasi ke Profile/Settings/Updates akan memperbarui informasi.
-    document.querySelectorAll('.nav[data-page]').forEach((link
+document.querySelectorAll('.nav[data-page]').forEach((link) => {
+      link.addEventListener("click", () => {
+        if (["menu", "profile"].includes(link.dataset.page)) {
+          updateDeviceInfo().catch(console.warn);
+        }
+      });
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
