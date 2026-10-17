@@ -463,26 +463,21 @@ async function loadTools() {
     }
 
     if (url && !/^https?:\/\//i.test(url)) {
-      status(
-        'ownerToolsStatus',
-        'URL harus diawali https:// atau http://.',
-        true
-      );
+      status('ownerToolsStatus', 'URL harus diawali http:// atau https://.', true);
       return;
     }
-
-    const payload = { name, category, description, url };
 
     status('ownerToolsStatus', 'Menyimpan tools...');
 
     try {
-      let request = id
-        ? client.from(TABLE_TOOLS).update(payload).eq('id', id)
-        : client.from(TABLE_TOOLS).insert(payload);
-
-      const { error } = await request;
-      if (error) throw error;
-
+      await callAdmin(id ? 'tool_update' : 'tool_create', {
+        ...(id ? { id } : {}),
+        name,
+        category,
+        description,
+        url
+      });
+       
       resetToolForm();
 
       await Promise.all([loadTools(), loadStats()]);
