@@ -390,8 +390,31 @@ function renderStats(result) {
     }).join('');
   }
 
-  async function loadTools() {
-    status('ownerToolsStatus', 'Memuat tools...');
+async function loadTools() {
+  status('ownerToolsStatus', 'Memuat tools...');
+
+  try {
+    const client = getClient();
+    const { data, error } = await client
+      .from('vexora_tools')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    currentTools = Array.isArray(data) ? data : [];
+    renderTools();
+
+    if ($('ownerToolsCount')) {
+      $('ownerToolsCount').textContent = String(currentTools.length);
+    }
+
+    status('ownerToolsStatus', `${currentTools.length} tools berhasil dimuat.`);
+  } catch (error) {
+    console.error('[VEXORA] Memuat tools:', error);
+    status('ownerToolsStatus', 'Gagal memuat tools: ' + error.message, true);
+  }
+}
 
     try {
       const result = await callAdmin('tool_status_list');
