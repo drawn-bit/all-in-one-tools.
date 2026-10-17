@@ -266,7 +266,100 @@
     gap: 9px;
   }
   }
-    
+  
+/* VEXORA — Dark Neon Owner Panel Buttons */
+.owner-panel button,
+.owner-panel .owner-btn,
+#ownerPanel button,
+#ownerUsersTable button,
+#ownerToolsTable button {
+  color: #eaf4ff;
+  background: linear-gradient(135deg, #071b38, #0b2450);
+  border: 1px solid #087dff;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 132, 255, 0.12);
+  transition: background .2s ease, border-color .2s ease,
+              box-shadow .2s ease, transform .2s ease;
+}
+
+.owner-panel button:hover,
+.owner-panel .owner-btn:hover,
+#ownerPanel button:hover,
+#ownerUsersTable button:hover,
+#ownerToolsTable button:hover {
+  background: linear-gradient(135deg, #0a2b58, #103b78);
+  border-color: #20cfff;
+  box-shadow: 0 0 14px rgba(0, 195, 255, 0.25);
+}
+
+.owner-panel button:active,
+#ownerPanel button:active {
+  transform: scale(.98);
+}
+
+/* Simpan Role */
+#ownerUsersTable button {
+  background: linear-gradient(135deg, #008cff, #0755ff);
+  border: 1px solid #00d9ff;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Tombol Hapus */
+#ownerUsersTable button:last-child,
+#ownerToolsTable button:last-child {
+  background: linear-gradient(135deg, #21115e, #3510a0);
+  border-color: #923dff;
+}
+
+/* Tombol Blokir */
+#ownerUsersTable button:nth-last-child(2) {
+  background: linear-gradient(135deg, #061b36, #092d58);
+  border-color: #00aaff;
+}
+
+/* Input dan pilihan role */
+#ownerPanel select,
+#ownerPanel input,
+#ownerPanel textarea {
+  background: #08162b;
+  color: #edf5ff;
+  border: 1px solid #263d60;
+  border-radius: 12px;
+  color-scheme: dark;
+}
+
+#ownerPanel select:focus,
+#ownerPanel input:focus,
+#ownerPanel textarea:focus {
+  outline: none;
+  border-color: #00c8ff;
+  box-shadow: 0 0 0 3px rgba(0, 200, 255, .12);
+}
+
+/* Pagination */
+.owner-pagination button,
+.owner-pagination a {
+  background: #0a1b35;
+  color: #c8dcff;
+  border: 1px solid #244b7b;
+  border-radius: 10px;
+}
+
+.owner-pagination .active,
+.owner-pagination button[aria-current="page"] {
+  background: linear-gradient(135deg, #008cff, #0755ff);
+  border-color: #00d9ff;
+  color: white;
+}
+
+/* Hindari style browser putih pada tombol */
+#ownerPanel button {
+  font-family: inherit;
+  font-weight: 600;
+  min-height: 42px;
+  cursor: pointer;
+  }  
 </style>
 </head>
 <body>
