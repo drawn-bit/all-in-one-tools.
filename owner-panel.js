@@ -492,9 +492,20 @@ async function loadTools() {
       );
     }
   }
+  
+async function deleteTool(tool) {
+  if (!window.confirm(`Hapus tools "${tool.name || ''}"?`)) return;
 
-  async function deleteTool(tool) {
-    if (!window.confirm(`Hapus tools "${tool.name || ''}"?`)) return;
+  await callAdmin('tool_delete', { id: tool.id });
+
+  await Promise.all([loadTools(), loadStats()]);
+
+  if (typeof window.vexoraRefreshTools === 'function') {
+    await window.vexoraRefreshTools();
+  }
+
+  status('ownerToolsStatus', 'Tools berhasil dihapus.');
+}
 
     const client = getClient();
     const { error } = await client
