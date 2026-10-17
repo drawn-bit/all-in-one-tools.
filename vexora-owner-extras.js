@@ -309,33 +309,29 @@
     status(`${announcements.length} pengumuman dimuat.`);
   }
 
-  async function createAnnouncement(event) {
-    event.preventDefault();
+ async function deleteAnnouncement(id) {
+  const announcementId = String(id || "").trim();
 
-    const title = $("vxAnnouncementTitle")?.value.trim();
-    const body = $("vxAnnouncementBody")?.value.trim();
-    const active = $("vxAnnouncementActive")?.checked ?? true;
+  // ID pengumuman harus UUID
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      .test(announcementId)
+  ) {
+    alert("ID pengumuman tidak valid. Muat ulang daftar pengumuman.");
+    return;
+  }
 
-    if (!title || !body) {
-      status("Judul dan isi pengumuman wajib diisi.", true);
-      return;
-    }
+  const result = await admin("announcement_delete", {
+    id: announcementId
+  });
 
-    try {
-      status("Membuat pengumuman...");
+  if (result?.error || result?.success === false) {
+    alert(result.error?.message || result.error || "Gagal menghapus pengumuman.");
+    return;
+  }
 
-      await admin("announcement_create", {
-        title,
-        message: body,
-        active
-      });
-
-      $("vxAnnouncementForm")?.reset();
-      if ($("vxAnnouncementActive")) {
-        $("vxAnnouncementActive").checked = true;
-      }
-
-      await loadAnnouncements();
+  await loadAnnouncements();
+ }
       status("Pengumuman berhasil dibuat.");
     } catch (error) {
       console.error("[VEXORA] Announcement create:", error);
