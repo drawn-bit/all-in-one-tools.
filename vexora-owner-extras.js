@@ -344,18 +344,26 @@
     try {
       status("Menghapus pengumuman...");
 
-      // Kirim ID asli; jangan menganggap semua ID harus UUID.
-      await admin("announcement_delete", { id });
+      const numericId = Number(id);
+      if (!Number.isSafeInteger(numericId) || numericId <= 0) {
+        throw new Error("ID pengumuman bukan angka yang valid.");
+      }
+
+      await admin("announcement_delete", {
+        id: numericId,
+        announcement_id: numericId,
+        announcementId: numericId
+      });
 
       await loadAnnouncements();
       status("Pengumuman berhasil dihapus.");
     } catch (error) {
       console.error("[VEXORA] Announcement delete:", error);
-      status("Gagal menghapus pengumuman: " + error.message, true);
+      status("Gagal menghapus: " + error.message, true);
       buttons?.forEach(button => button.disabled = false);
     }
-  }
-
+             }
+      
   function bindEvents() {
     $("vxMaintenanceToggle")?.addEventListener(
       "click", toggleMaintenance
