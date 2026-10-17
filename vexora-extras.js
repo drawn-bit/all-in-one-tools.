@@ -1,809 +1,618 @@
 
-/* VEXORA EXTRAS — Global Maintenance + Announcements */
+/* =========================================================
+   VEXORA EXTRAS
+   Menu • Profile • Settings • Updates
+   Compatible with existing dashboard.html / dashboard.js
+   ========================================================= */
 (() => {
-  'use strict';
-
-  if (window.__VEXORA_EXTRAS_LOADED__) return;
-  window.__VEXORA_EXTRAS_LOADED__ = true;
+  "use strict";
 
   const $ = (id) => document.getElementById(id);
+  const SETTINGS_KEY = "vexora_dashboard_preferences";
 
-  const escapeHTML = (value) => String(value ?? '').replace(
-    /[&<>"']/g,
-    (char) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[char]
-  );
+  function readSettings() {
+    try {
+      return {
+        accent: "cyan",
+        animations: true,
+        compact: false,
+        notifications: true,
+        ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"))
+      };
+    } catch {
+      return {
+        accent: "cyan",
+        animations: true,
+        compact: false,
+        notifications: true
+      };
+    }
+  }
 
-  let client = null;
-  let role = 'member';
-  let settings = null;
-  let announcements = [];
-  let busy = false;
+  let settings = readSettings();
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.warn("[VEXORA] Preferences could not be saved.", error);
+    }
+    applySettings();
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[c]);
+  }
+
+  function applySettings() {
+    document.documentElement.dataset.accent = settings.accent;
+    document.body.classList.toggle("vexora-compact", !!settings.compact);
+    document.body.classList.toggle("vexora-no-animations", !settings.animations);
+  }
 
   function addStyles() {
-    if ($('vexoraExtrasStyles')) return;
+    if ($("vexoraExtrasStyles")) return;
 
-    const style = document.createElement('style');
-    style.id = 'vexoraExtrasStyles';
-
+    const style = document.createElement("style");
+    style.id = "vexoraExtrasStyles";
     style.textContent = `
-      #vxAnnouncements {
-        display:grid;
-        gap:10px;
-        margin:0 0 20px;
+      :root {
+        --vx-accent: #38d9ff;
+        --vx-accent-rgb: 56,217,255;
+      }
+      :root[data-accent="blue"] {
+        --vx-accent: #5793ff;
+        --vx-accent-rgb: 87,147,255;
+      }
+      :root[data-accent="purple"] {
+        --vx-accent: #b18aff;
+        --vx-accent-rgb: 177,138,255;
+      }
+      :root[data-accent="cyan"] {
+        --vx-accent: #38d9ff;
+        --vx-accent-rgb: 56,217,255;
       }
 
-      .vx-announcement {
-        padding:16px;
-        border:1px solid #285078;
-        border-radius:13px;
-        background:linear-gradient(120deg,#102a45,#111a2d);
-        overflow-wrap:anywhere;
+      .vx-panel {
+        background: linear-gradient(145deg,#101d32,#0a1221);
+        border: 1px solid #263b59;
+        border-radius: 17px;
+        padding: 20px;
+        margin: 16px 0;
+        min-width: 0;
+        box-shadow: 0 12px 32px #0002;
       }
-
-      .vx-announcement h3 {
-        font-size:14px;
-        margin:0 0 8px;
-        color:#69dcff;
+      .vx-panel h2,.vx-panel h3 { margin-top: 0; }
+      .vx-muted { color: #91a2bd; font-size: 12px; line-height: 1.7; }
+      .vx-kicker {
+        color: var(--vx-accent);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
       }
-
-      .vx-announcement p {
-        font-size:12px;
-        line-height:1.8;
-        color:#d2deef;
-        margin:0;
-        white-space:pre-wrap;
+      .vx-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: 12px;
+        margin-top: 16px;
       }
-
-      .vx-announcement small {
-        display:block;
-        margin-top:10px;
-        color:#91a2bd;
-        font-size:10px;
+      .vx-info {
+        background: #0a1426;
+        border: 1px solid #243751;
+        border-radius: 13px;
+        padding: 14px;
+        min-width: 0;
       }
-
-      .vx-extras-card {
-        margin-top:18px;
-        padding:18px;
-        border:1px solid #29405f;
-        border-radius:13px;
-        background:#0b1425;
+      .vx-info span {
+        display: block;
+        color: #91a2bd;
+        font-size: 10px;
+        margin-bottom: 7px;
       }
-
-      .vx-extras-card h3 {
-        margin:0 0 9px;
-        font-size:15px;
+      .vx-info strong {
+        display: block;
+        font-size: 13px;
+        overflow-wrap: anywhere;
       }
-
-      .vx-extras-card p {
-        color:#91a2bd;
-        font-size:11px;
-        line-height:1.7;
+      .vx-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: rgba(var(--vx-accent-rgb),.1);
+        color: var(--vx-accent);
+        border: 1px solid rgba(var(--vx-accent-rgb),.25);
+        padding: 7px 10px;
+        border-radius: 30px;
+        font-size: 10px;
+        font-weight: 800;
       }
-
-      .vx-extras-card input,
-      .vx-extras-card textarea {
-        display:block;
-        box-sizing:border-box;
-        width:100%;
-        margin:10px 0;
-        padding:12px;
-        border:1px solid #2a3d5b;
-        border-radius:9px;
-        background:#080f1d;
-        color:#fff;
-        font:inherit;
-        font-size:12px;
+      .vx-setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 15px 0;
+        border-bottom: 1px solid #24334b;
       }
-
-      .vx-extras-card textarea {
-        min-height:95px;
-        resize:vertical;
+      .vx-setting-row:last-child { border-bottom: 0; }
+      .vx-setting-row strong { display:block; font-size:12px; }
+      .vx-setting-row p { margin:5px 0 0; }
+      .vx-control {
+        max-width: 150px;
+        width: 100%;
+        color: #edf5ff;
+        background: #0a1426;
+        border: 1px solid #2a4263;
+        border-radius: 10px;
+        padding: 10px;
       }
-
-      .vx-extras-actions {
-        display:flex;
-        gap:9px;
-        flex-wrap:wrap;
+      .vx-switch {
+        appearance: none;
+        width: 43px;
+        height: 24px;
+        flex-shrink: 0;
+        border-radius: 30px;
+        background: #27354a;
+        border: 1px solid #41516a;
+        position: relative;
+        cursor: pointer;
       }
-
-      .vx-extras-actions button {
-        padding:10px 13px;
-        border-radius:9px;
-        border:1px solid #2c4b73;
-        background:#172a47;
-        color:#fff;
-        font-size:11px;
-        font-weight:700;
-        cursor:pointer;
+      .vx-switch:before {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 3px;
+        left: 3px;
+        border-radius: 50%;
+        background: #c5d1e3;
+        transition: transform .2s;
       }
-
-      .vx-extras-actions button:disabled {
-        opacity:.5;
-        cursor:not-allowed;
+      .vx-switch:checked {
+        background: #075a77;
+        border-color: var(--vx-accent);
       }
-
-      .vx-extras-status {
-        font-size:11px!important;
-        line-height:1.7;
-        overflow-wrap:anywhere;
+      .vx-switch:checked:before {
+        transform: translateX(19px);
+        background: var(--vx-accent);
       }
-
-      .vx-delete-announcement {
-        margin-top:12px;
-        padding:8px 10px;
-        border:1px solid #713b4a;
-        border-radius:8px;
-        background:#321722;
-        color:#ffc4ce;
-        cursor:pointer;
+      .vx-action {
+        border: 1px solid #2c4b73;
+        background: #142743;
+        color: #e9f5ff;
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 11px;
+        font-weight: 700;
       }
-
-      #vxMaintenanceOverlay {
-        position:fixed;
-        inset:0;
-        z-index:99999;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        overflow-y:auto;
-        padding:20px;
-        box-sizing:border-box;
-        background:
-          radial-gradient(ellipse at top,#132744 0%,transparent 60%),
-          #060a14;
-        color:#f4f7ff;
-        text-align:center;
+      .vx-action:hover {
+        border-color: var(--vx-accent);
+        box-shadow: 0 0 14px rgba(var(--vx-accent-rgb),.12);
       }
-
-      #vxMaintenanceOverlay[hidden] {
-        display:none!important;
+      .vx-update {
+        position: relative;
+        padding: 15px 15px 15px 20px;
+        margin-top: 12px;
+        border: 1px solid #263b59;
+        border-radius: 13px;
+        background: #0b1629;
       }
-
-      .vx-maintenance-box {
-        box-sizing:border-box;
-        width:min(100%,440px);
-        padding:28px;
-        border:1px solid #294b70;
-        border-radius:20px;
-        background:linear-gradient(145deg,#111f35,#0a1120);
-        box-shadow:0 0 35px #168bd51c;
+      .vx-update:before {
+        content: "";
+        position: absolute;
+        top: 18px;
+        bottom: 18px;
+        left: 0;
+        width: 3px;
+        background: var(--vx-accent);
+        border-radius: 5px;
       }
-
-      .vx-maintenance-box .vx-symbol {
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        width:76px;
-        height:76px;
-        margin:0 auto 18px;
-        border:1px solid #38d9ff66;
-        border-radius:22px;
-        background:#10283d;
-        color:#38d9ff;
-        font-size:38px;
-        animation:vxGearPulse 2s ease-in-out infinite;
+      .vx-update h3 { font-size: 13px; margin: 9px 0 6px; }
+      .vx-update p { font-size: 11px; line-height: 1.7; color: #a6b6ce; margin: 0; }
+      .vx-featured-note {
+        color: #91a2bd;
+        font-size: 10px;
+        margin: 9px 0 0;
       }
-
-      .vx-maintenance-box h1 {
-        font-size:24px;
-        margin:0 0 12px;
+      .vexora-no-animations *, .vexora-no-animations *:before,
+      .vexora-no-animations *:after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
       }
+      .vexora-compact .tool-card { padding: 11px; }
+      .vexora-compact .tool-card h3 { margin-top: 9px; }
 
-      .vx-maintenance-box p {
-        color:#b6c5dc;
-        font-size:13px;
-        line-height:1.9;
-        white-space:pre-wrap;
-        overflow-wrap:anywhere;
-      }
-
-      .vx-maintenance-box small {
-        color:#7185a5;
-        font-size:10px;
-        letter-spacing:2px;
-      }
-
-      #vxBackToLogin {
-        display:block;
-        width:100%;
-        box-sizing:border-box;
-        margin-top:20px;
-        padding:13px 16px;
-        border:1px solid #38d9ff;
-        border-radius:10px;
-        background:linear-gradient(135deg,#123b55,#10243d);
-        color:#fff;
-        font-size:13px;
-        font-weight:700;
-        cursor:pointer;
-        transition:background .2s,box-shadow .2s,transform .2s;
-      }
-
-      #vxBackToLogin:hover {
-        background:#164968;
-        box-shadow:0 0 18px #38d9ff44;
-      }
-
-      #vxBackToLogin:active {
-        transform:scale(.98);
-      }
-
-      @keyframes vxGearPulse {
-        0%,100% {
-          transform:rotate(0deg);
-          box-shadow:0 0 8px #38d9ff22;
-        }
-        50% {
-          transform:rotate(15deg);
-          box-shadow:0 0 22px #38d9ff33;
-        }
-      }
-
-      @media(max-width:420px) {
-        .vx-maintenance-box {
-          padding:23px 18px;
-        }
-
-        .vx-maintenance-box h1 {
-          font-size:21px;
-        }
+      @media(max-width:520px) {
+        .vx-panel { padding: 15px; }
+        .vx-info-grid { gap: 8px; }
+        .vx-info { padding: 11px; }
+        .vx-info strong { font-size: 12px; }
+        .vx-setting-row { align-items: flex-start; }
       }
     `;
-
     document.head.appendChild(style);
   }
 
-  function createUI() {
-    // Area pengumuman pada dashboard.
-    const menuPage = $('page-menu');
+  function getDeviceInfo() {
+    const ua = navigator.userAgent || "";
+    let device = "Perangkat tidak dikenali";
 
-    if (menuPage && !$('vxAnnouncements')) {
-      const container = document.createElement('div');
-      container.id = 'vxAnnouncements';
-
-      const hero = menuPage.querySelector('.hero');
-      menuPage.insertBefore(container, hero || menuPage.firstChild);
+    if (/Android/i.test(ua)) {
+      device = "Android";
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      device = "iPhone / iPad";
+    } else if (/Windows/i.test(ua)) {
+      device = "Windows";
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      device = "macOS";
+    } else if (/Linux/i.test(ua)) {
+      device = "Linux";
     }
 
-    // Overlay maintenance global.
-    if (!$('vxMaintenanceOverlay')) {
-      const overlay = document.createElement('div');
+    let browser = "Browser tidak dikenali";
+    if (/Edg\//i.test(ua)) browser = "Microsoft Edge";
+    else if (/SamsungBrowser/i.test(ua)) browser = "Samsung Internet";
+    else if (/OPR\//i.test(ua)) browser = "Opera";
+    else if (/Firefox\//i.test(ua)) browser = "Firefox";
+    else if (/CriOS\//i.test(ua)) browser = "Chrome iOS";
+    else if (/Chrome\//i.test(ua)) browser = "Chrome";
+    else if (/Safari\//i.test(ua)) browser = "Safari";
 
-      overlay.id = 'vxMaintenanceOverlay';
-      overlay.hidden = true;
-
-      overlay.innerHTML = `
-        <div class="vx-maintenance-box">
-          <div class="vx-symbol" aria-hidden="true">⚙</div>
-          <small>VEXORA SYSTEM NOTICE</small>
-          <h1>Website Maintenance</h1>
-          <p id="vxMaintenanceMessage">
-            VEXORA sedang dalam pemeliharaan.
-          </p>
-          <p>Silakan kembali beberapa saat lagi.</p>
-          <button id="vxBackToLogin" type="button">
-            ← Kembali ke Halaman Login
-          </button>
-        </div>
-      `;
-
-      document.body.appendChild(overlay);
-    }
-
-    // Panel pengaturan khusus Owner.
-    const ownerBox = document.querySelector('#page-owner .owner-box');
-
-    if (ownerBox && !$('vxExtrasOwnerPanel')) {
-      const panel = document.createElement('section');
-
-      panel.id = 'vxExtrasOwnerPanel';
-      panel.className = 'vx-extras-card';
-
-      panel.innerHTML = `
-        <h3>Global Maintenance</h3>
-        <p>
-          Pengaturan ini berlaku untuk semua akun Member dan VIP.
-        </p>
-
-        <label for="vxMaintenanceMessageInput">
-          Pesan maintenance
-        </label>
-
-        <textarea
-          id="vxMaintenanceMessageInput"
-          maxlength="1000"
-          placeholder="Contoh: Kami sedang melakukan pembaruan sistem."
-        ></textarea>
-
-        <div class="vx-extras-actions">
-          <button type="button" id="vxMaintenanceOn">
-            Aktifkan Maintenance
-          </button>
-          <button type="button" id="vxMaintenanceOff">
-            Nonaktifkan Maintenance
-          </button>
-        </div>
-
-        <p
-          id="vxMaintenanceStatus"
-          class="vx-extras-status"
-          aria-live="polite"
-        >Memuat status maintenance...</p>
-
-        <hr style="border:0;border-top:1px solid #23334e;margin:22px 0">
-
-        <h3>Pengumuman Global</h3>
-        <p>
-          Pengumuman akan muncul pada dashboard Member dan VIP,
-          bukan Owner.
-        </p>
-
-        <form id="vxAnnouncementForm">
-          <input
-            id="vxAnnouncementTitle"
-            maxlength="120"
-            placeholder="Judul pengumuman"
-            required
-          >
-
-          <textarea
-            id="vxAnnouncementBody"
-            maxlength="5000"
-            placeholder="Isi pengumuman..."
-            required
-          ></textarea>
-
-          <div class="vx-extras-actions">
-            <button type="submit" id="vxAnnouncementSubmit">
-              Publikasikan Pengumuman
-            </button>
-          </div>
-        </form>
-
-        <p
-          id="vxAnnouncementStatus"
-          class="vx-extras-status"
-          aria-live="polite"
-        ></p>
-
-        <div id="vxOwnerAnnouncementList"></div>
-      `;
-
-      ownerBox.appendChild(panel);
-    }
+    return { device, browser };
   }
 
-  function setStatus(id, message, isError = false) {
-    const element = $(id);
-    if (!element) return;
-
-    element.textContent = message;
-    element.style.color = isError ? '#ff9caa' : '#8fe9c0';
-  }
-
-  function isOwner() {
-    return role === 'owner';
-  }
-
-  function renderAnnouncements() {
-    const publicList = $('vxAnnouncements');
-    const ownerList = $('vxOwnerAnnouncementList');
-
-    // Pengumuman publik hanya untuk Member dan VIP.
-    if (publicList) {
-      publicList.innerHTML = isOwner()
-        ? ''
-        : announcements.map((item) => `
-            <article class="vx-announcement">
-              <h3>${escapeHTML(item.title)}</h3>
-              <p>${escapeHTML(item.message)}</p>
-              <small>${escapeHTML(
-                item.created_at
-                  ? new Date(item.created_at).toLocaleString('id-ID')
-                  : 'VEXORA'
-              )}</small>
-            </article>
-          `).join('');
+  async function getBatteryText() {
+    if (typeof navigator.getBattery !== "function") {
+      return "Tidak didukung browser";
     }
-
-    // Owner tetap dapat mengelola daftar pengumuman.
-    if (ownerList) {
-      ownerList.innerHTML = announcements.length
-        ? announcements.map((item) => `
-            <article class="vx-announcement">
-              <h3>${escapeHTML(item.title)}</h3>
-              <p>${escapeHTML(item.message)}</p>
-              <small>${escapeHTML(
-                item.created_at
-                  ? new Date(item.created_at).toLocaleString('id-ID')
-                  : ''
-              )}</small>
-              <button
-                class="vx-delete-announcement"
-                type="button"
-                data-vx-delete="${escapeHTML(item.id)}"
-              >Hapus Pengumuman</button>
-            </article>
-          `).join('')
-        : '<p class="vx-extras-status">Belum ada pengumuman.</p>';
-    }
-  }
-
-  function renderMaintenance() {
-    const overlay = $('vxMaintenanceOverlay');
-    if (!overlay) return;
-
-    const enabled = settings?.maintenance_enabled === true;
-    const shouldBlock = enabled && !isOwner();
-
-    overlay.hidden = !shouldBlock;
-
-    const message = $('vxMaintenanceMessage');
-
-    if (message) {
-      message.textContent = settings?.maintenance_message ||
-        'VEXORA sedang dalam pemeliharaan. Silakan kembali nanti.';
-    }
-
-    const input = $('vxMaintenanceMessageInput');
-
-    if (input && document.activeElement !== input) {
-      input.value = settings?.maintenance_message || '';
-    }
-
-    setStatus(
-      'vxMaintenanceStatus',
-      settings
-        ? `Status: ${enabled ? 'AKTIF' : 'NONAKTIF'}`
-        : 'Status maintenance belum berhasil dimuat.',
-      !settings
-    );
-  }
-
-  async function loadSettings() {
-    const { data, error } = await client
-      .from('vexora_site_settings')
-      .select('id,maintenance_enabled,maintenance_message,updated_at')
-      .eq('id', 1)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (!data) {
-      throw new Error(
-        'Pengaturan belum tersedia. Periksa SQL setup Supabase.'
-      );
-    }
-
-    settings = data;
-    renderMaintenance();
-  }
-
-  async function loadAnnouncements() {
-    const { data, error } = await client
-      .from('vexora_announcements')
-      .select('id,title,message,created_at')
-      .order('created_at', { ascending: false })
-      .limit(30);
-
-    if (error) throw error;
-
-    announcements = Array.isArray(data) ? data : [];
-    renderAnnouncements();
-  }
-
-  async function refreshAll() {
-    if (!client) return;
 
     try {
-      const { data, error } = await client.auth.getSession();
+      const battery = await navigator.getBattery();
+      const render = () => {
+        const percent = Math.round(battery.level * 100);
+        return `${percent}%${battery.charging ? " · Mengisi daya" : ""}`;
+      };
 
-      if (error) throw error;
-
-      const user = data?.session?.user;
-
-      if (!user) {
-        role = 'member';
-        settings = null;
-        announcements = [];
-
-        renderAnnouncements();
-        renderMaintenance();
-        return;
-      }
-
-      role = String(
-        user.app_metadata?.role || 'member'
-      ).toLowerCase();
-
-      await Promise.all([
-        loadSettings(),
-        loadAnnouncements()
-      ]);
-    } catch (error) {
-      console.error('[VEXORA Extras]', error);
-
-      setStatus(
-        'vxMaintenanceStatus',
-        `Gagal memuat data: ${error.message || 'Periksa koneksi dan RLS Supabase.'}`,
-        true
-      );
-
-      setStatus(
-        'vxAnnouncementStatus',
-        `Data belum dimuat: ${error.message || 'Periksa koneksi Supabase.'}`,
-        true
-      );
+      const value = render();
+      battery.addEventListener("levelchange", updateDeviceInfo);
+      battery.addEventListener("chargingchange", updateDeviceInfo);
+      return value;
+    } catch {
+      return "Tidak tersedia";
     }
   }
 
-  async function changeMaintenance(enabled) {
-    if (!isOwner() || busy) return;
+  function getCurrentUser() {
+    try {
+      const client = window.vexoraGetClient?.() ||
+        window.vexoraSupabase ||
+        window.supabaseClient ||
+        window.sb;
 
-    const message = (
-      $('vxMaintenanceMessageInput')?.value || ''
-    ).trim() ||
-      'VEXORA sedang dalam pemeliharaan. Silakan kembali nanti.';
-
-    if (message.length > 1000) {
-      setStatus(
-        'vxMaintenanceStatus',
-        'Pesan maksimal 1000 karakter.',
-        true
-      );
-      return;
+      return client?.auth?.getUser
+        ? client.auth.getUser()
+        : Promise.resolve({ data: { user: null }, error: null });
+    } catch {
+      return Promise.resolve({ data: { user: null }, error: null });
     }
+  }
 
-    busy = true;
+  function getRole(user) {
+    const role = String(
+      user?.app_metadata?.role ||
+      user?.user_metadata?.role ||
+      window.vexoraGetRole?.() ||
+      "member"
+    ).toLowerCase();
 
-    const buttons = [
-      $('vxMaintenanceOn'),
-      $('vxMaintenanceOff')
+    return role === "owner" ? "OWNER" : role === "vip" ? "VIP" : "MEMBER";
+  }
+
+  function infoCard(label, value, id) {
+    return `<div class="vx-info"><span>${escapeHTML(label)}</span><strong id="${id}">${escapeHTML(value)}</strong></div>`;
+  }
+
+  function addMenuDeviceCard() {
+    const menu = $("page-menu");
+    if (!menu || $("vxMenuDeviceCard")) return;
+
+    const card = document.createElement("section");
+    card.className = "vx-panel";
+    card.id = "vxMenuDeviceCard";
+    card.innerHTML = `
+      <div class="vx-kicker">Account snapshot</div>
+      <h2 style="font-size:17px;margin:9px 0 5px">Info Akun & Perangkat</h2>
+      <p class="vx-muted" style="margin:0">Ringkasan akun yang sedang kamu gunakan.</p>
+      <div class="vx-info-grid">
+        ${infoCard("EMAIL AKUN", "Memuat...", "vxMenuEmail")}
+        ${infoCard("ROLE AKUN", "MEMBER", "vxMenuRole")}
+        ${infoCard("PERANGKAT", "Memeriksa...", "vxMenuDevice")}
+        ${infoCard("BROWSER", "Memeriksa...", "vxMenuBrowser")}
+        ${infoCard("BATERAI", "Memeriksa...", "vxMenuBattery")}
+        ${infoCard("STATUS SESI", "Aktif di halaman ini", "vxMenuSession")}
+      </div>
+      <p class="vx-featured-note">Informasi perangkat berasal dari browser. Persentase baterai hanya muncul jika browser mendukungnya.</p>
+    `;
+
+    const stats = menu.querySelector(".stats");
+    if (stats) stats.insertAdjacentElement("afterend", card);
+    else menu.prepend(card);
+  }
+
+  function addProfileDetails() {
+    const page = $("page-profile");
+    if (!page || $("vxProfileDetails")) return;
+
+    const details = document.createElement("section");
+    details.className = "vx-panel";
+    details.id = "vxProfileDetails";
+    details.innerHTML = `
+      <div class="vx-kicker">Personal account</div>
+      <h2 style="font-size:18px;margin:9px 0 5px">Detail Akun</h2>
+      <p class="vx-muted" style="margin:0">Informasi sesi dan perangkat saat ini.</p>
+      <div class="vx-info-grid">
+        ${infoCard("EMAIL", "Memuat...", "vxProfileEmail")}
+        ${infoCard("ROLE", "MEMBER", "vxProfileRole")}
+        ${infoCard("PERANGKAT", "Memeriksa...", "vxProfileDevice")}
+        ${infoCard("BROWSER", "Memeriksa...", "vxProfileBrowser")}
+        ${infoCard("BATERAI", "Memeriksa...", "vxProfileBattery")}
+        ${infoCard("BAHASA BROWSER", navigator.language || "Tidak tersedia", "vxProfileLanguage")}
+        ${infoCard("LAYAR", `${screen.width} × ${screen.height}`, "vxProfileScreen")}
+        ${infoCard("STATUS", "Sesi lokal", "vxProfileSession")}
+      </div>
+      <p class="vx-featured-note">VEXORA tidak menampilkan IP publik atau lokasi presisi di halaman ini.</p>
+    `;
+
+    page.appendChild(details);
+  }
+
+  function addSettings() {
+    const page = $("page-settings");
+    if (!page || $("vxSettingsPanel")) return;
+
+    const panel = document.createElement("section");
+    panel.className = "vx-panel";
+    panel.id = "vxSettingsPanel";
+    panel.innerHTML = `
+      <div class="vx-kicker">Personalization</div>
+      <h2 style="font-size:19px;margin:9px 0 5px">Pengaturan VEXORA</h2>
+      <p class="vx-muted">Sesuaikan pengalaman dashboard kamu. Pilihan ini disimpan di browser perangkat ini.</p>
+
+      <div class="vx-setting-row">
+        <div><strong>Warna aksen</strong><p class="vx-muted">Pilih warna neon dashboard.</p></div>
+        <select id="vxAccent" class="vx-control" aria-label="Warna aksen">
+          <option value="cyan">Cyan Neon</option>
+          <option value="blue">Electric Blue</option>
+          <option value="purple">Neon Purple</option>
+        </select>
+      </div>
+
+      <div class="vx-setting-row">
+        <div><strong>Animasi</strong><p class="vx-muted">Aktifkan transisi visual.</p></div>
+        <input id="vxAnimations" class="vx-switch" type="checkbox" aria-label="Aktifkan animasi">
+      </div>
+
+      <div class="vx-setting-row">
+        <div><strong>Tampilan ringkas</strong><p class="vx-muted">Kurangi padding kartu tools.</p></div>
+        <input id="vxCompact" class="vx-switch" type="checkbox" aria-label="Tampilan ringkas">
+      </div>
+
+      <div class="vx-setting-row">
+        <div><strong>Preferensi notifikasi</strong><p class="vx-muted">Simpan pilihan notifikasi untuk fitur mendatang.</p></div>
+        <input id="vxNotifications" class="vx-switch" type="checkbox" aria-label="Preferensi notifikasi">
+      </div>
+
+      <div class="vx-setting-row">
+        <div><strong>Info aplikasi</strong><p class="vx-muted">VEXORA Tools Platform · Developed by Z4M OFFICIAL.</p></div>
+        <span class="vx-chip">WEB APP</span>
+      </div>
+
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:16px">
+        <button class="vx-action" id="vxResetSettings" type="button">Reset pengaturan</button>
+        <button class="vx-action" id="vxRefreshPage" type="button">Muat ulang dashboard</button>
+      </div>
+      <p id="vxSettingsStatus" class="vx-muted" aria-live="polite"></p>
+    `;
+
+    page.appendChild(panel);
+
+    $("vxAccent").value = settings.accent;
+    $("vxAnimations").checked = !!settings.animations;
+    $("vxCompact").checked = !!settings.compact;
+    $("vxNotifications").checked = !!settings.notifications;
+
+    $("vxAccent").addEventListener("change", () => {
+      settings.accent = $("vxAccent").value;
+      saveSettings();
+      $("vxSettingsStatus").textContent = "Warna aksen diperbarui.";
+    });
+
+    [
+      ["vxAnimations", "animations"],
+      ["vxCompact", "compact"],
+      ["vxNotifications", "notifications"]
+    ].forEach(([id, key]) => {
+      $(id).addEventListener("change", () => {
+        settings[key] = $(id).checked;
+        saveSettings();
+        $("vxSettingsStatus").textContent = "Pengaturan disimpan di browser ini.";
+      });
+    });
+
+    $("vxResetSettings").addEventListener("click", () => {
+      settings = {
+        accent: "cyan",
+        animations: true,
+        compact: false,
+        notifications: true
+      };
+      saveSettings();
+      $("vxAccent").value = settings.accent;
+      $("vxAnimations").checked = settings.animations;
+      $("vxCompact").checked = settings.compact;
+      $("vxNotifications").checked = settings.notifications;
+      $("vxSettingsStatus").textContent = "Pengaturan dikembalikan ke default.";
+    });
+
+    $("vxRefreshPage").addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
+
+  function addUpdates() {
+    const page = $("page-updates");
+    if (!page || $("vxUpdatesPanel")) return;
+
+    const panel = document.createElement("section");
+    panel.className = "vx-panel";
+    panel.id = "vxUpdatesPanel";
+    panel.innerHTML = `
+      <div class="vx-kicker">What's new</div>
+      <h2 style="font-size:19px;margin:9px 0 5px">Info Updates</h2>
+      <p class="vx-muted">Catatan fitur dashboard VEXORA. Informasi di bawah menjelaskan fitur yang tersedia di tampilan ini.</p>
+
+      <article class="vx-update">
+        <span class="vx-chip">DASHBOARD</span>
+        <h3>Ringkasan akun dan perangkat</h3>
+        <p>Menampilkan email akun, role, jenis perangkat, browser, bahasa, ukuran layar, serta baterai jika didukung browser.</p>
+      </article>
+
+      <article class="vx-update">
+        <span class="vx-chip">PERSONALIZATION</span>
+        <h3>Settings yang bisa disesuaikan</h3>
+        <p>Pilih warna aksen, animasi, dan tampilan ringkas. Preferensi disimpan secara lokal di browser perangkat ini.</p>
+      </article>
+
+      <article class="vx-update">
+        <span class="vx-chip">TOOLS</span>
+        <h3>Menu lebih ringkas</h3>
+        <p>Menu depan hanya menampilkan tools unggulan. Daftar lengkap tetap tersedia di halaman Tools.</p>
+      </article>
+
+      <article class="vx-update">
+        <span class="vx-chip">ACCOUNT</span>
+        <h3>Profil akun</h3>
+        <p>Periksa email, role, dan ringkasan perangkat dari halaman Profile.</p>
+      </article>
+
+      <div style="margin-top:17px">
+        <p class="vx-muted">Untuk pengumuman resmi, kunjungi WhatsApp Channel VEXORA.</p>
+        <a class="primary-btn" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O" target="_blank" rel="noopener noreferrer">BUKA WHATSAPP CHANNEL ↗</a>
+      </div>
+    `;
+
+    page.appendChild(panel);
+  }
+
+  function limitMenuTools() {
+    // Batasi kartu hanya di Menu. Halaman Tools tetap lengkap.
+    const rules = [
+      ["freeGrid", 3],
+      ["vipGrid", 2]
     ];
 
-    buttons.forEach((button) => {
-      if (button) button.disabled = true;
-    });
+    rules.forEach(([id, limit]) => {
+      const grid = $(id);
+      if (!grid) return;
 
-    try {
-      const { error } = await client
-        .from('vexora_site_settings')
-        .update({
-          maintenance_enabled: enabled,
-          maintenance_message: message,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', 1);
-
-      if (error) throw error;
-
-      await loadSettings();
-
-      setStatus(
-        'vxMaintenanceStatus',
-        `Maintenance berhasil ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+      const cards = Array.from(grid.children);
+      const actualCards = cards.filter((node) =>
+        node.classList.contains("tool-card")
       );
-    } catch (error) {
-      setStatus(
-        'vxMaintenanceStatus',
-        `Gagal menyimpan: ${error.message || 'Periksa izin Owner.'}`,
-        true
-      );
-    } finally {
-      busy = false;
 
-      buttons.forEach((button) => {
-        if (button) button.disabled = false;
+      actualCards.forEach((card, index) => {
+        card.hidden = index >= limit;
       });
-    }
-  }
 
-  async function publishAnnouncement(event) {
-    event.preventDefault();
+      const hiddenCount = Math.max(0, actualCards.length - limit);
+      const noteId = `vxMore-${id}`;
+      let note = $(noteId);
 
-    if (!isOwner() || busy) return;
-
-    const title = (
-      $('vxAnnouncementTitle')?.value || ''
-    ).trim();
-
-    const message = (
-      $('vxAnnouncementBody')?.value || ''
-    ).trim();
-
-    if (!title || !message) {
-      setStatus(
-        'vxAnnouncementStatus',
-        'Judul dan isi wajib diisi.',
-        true
-      );
-      return;
-    }
-
-    busy = true;
-
-    const submit = $('vxAnnouncementSubmit');
-    if (submit) submit.disabled = true;
-
-    try {
-      const { error } = await client
-        .from('vexora_announcements')
-        .insert({ title, message });
-
-      if (error) throw error;
-
-      $('vxAnnouncementForm')?.reset();
-
-      await loadAnnouncements();
-
-      setStatus(
-        'vxAnnouncementStatus',
-        'Pengumuman berhasil dipublikasikan.'
-      );
-    } catch (error) {
-      setStatus(
-        'vxAnnouncementStatus',
-        `Gagal menerbitkan: ${error.message || 'Periksa izin Owner.'}`,
-        true
-      );
-    } finally {
-      busy = false;
-      if (submit) submit.disabled = false;
-    }
-  }
-
-  async function deleteAnnouncement(id, button) {
-    if (!isOwner() || busy || !id) return;
-
-    if (!window.confirm('Hapus pengumuman ini untuk semua pengguna?')) {
-      return;
-    }
-
-    busy = true;
-    if (button) button.disabled = true;
-
-    try {
-      const { error } = await client
-        .from('vexora_announcements')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      await loadAnnouncements();
-
-      setStatus(
-        'vxAnnouncementStatus',
-        'Pengumuman berhasil dihapus.'
-      );
-    } catch (error) {
-      setStatus(
-        'vxAnnouncementStatus',
-        `Gagal menghapus: ${error.message || 'Periksa izin Owner.'}`,
-        true
-      );
-
-      if (button) button.disabled = false;
-    } finally {
-      busy = false;
-    }
-  }
-
-  function bindControls() {
-    $('vxMaintenanceOn')?.addEventListener(
-      'click',
-      () => changeMaintenance(true)
-    );
-
-    $('vxMaintenanceOff')?.addEventListener(
-      'click',
-      () => changeMaintenance(false)
-    );
-
-    $('vxAnnouncementForm')?.addEventListener(
-      'submit',
-      publishAnnouncement
-    );
-
-    $('vxOwnerAnnouncementList')?.addEventListener(
-      'click',
-      (event) => {
-        const button = event.target.closest('[data-vx-delete]');
-
-        if (button) {
-          deleteAnnouncement(button.dataset.vxDelete, button);
+      if (hiddenCount > 0) {
+        if (!note) {
+          note = document.createElement("div");
+          note.id = noteId;
+          note.className = "vx-featured-note";
+          grid.insertAdjacentElement("afterend", note);
         }
-      }
-    );
 
-    // Tombol kembali menuju halaman login.
-    $('vxBackToLogin')?.addEventListener('click', async () => {
-      const button = $('vxBackToLogin');
-
-      if (button) {
-        button.disabled = true;
-        button.textContent = 'Mengarahkan ke halaman login...';
-      }
-
-      try {
-        if (client) {
-          await client.auth.signOut();
-        }
-      } catch (error) {
-        console.error('[VEXORA logout]', error);
-      }
-
-      // Login ada di index.html.
-      window.location.replace('index.html');
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) refreshAll();
-    });
-  }
-
-  async function boot() {
-    addStyles();
-    createUI();
-    bindControls();
-
-    // Menunggu dashboard.js menyiapkan client Supabase.
-    for (let attempt = 0; attempt < 60; attempt++) {
-      if (typeof window.vexoraGetClient === 'function') {
-        client = window.vexoraGetClient();
-      }
-
-      if (client) break;
-
-      await new Promise((resolve) => {
-        window.setTimeout(resolve, 300);
-      });
-    }
-
-    if (!client) {
-      setStatus(
-        'vxMaintenanceStatus',
-        'Supabase belum siap. Periksa config.js dan dashboard.js.',
-        true
-      );
-      return;
-    }
-
-    await refreshAll();
-
-    client.auth.onAuthStateChange((_event, session) => {
-      role = String(
-        session?.user?.app_metadata?.role || 'member'
-      ).toLowerCase();
-
-      window.setTimeout(() => refreshAll(), 0);
-    });
-
-    window.setInterval(refreshAll, 60000);
-  }
-
-  window.vexoraExtrasRefresh = refreshAll;
-
-  if (document.readyState === 'loading') {
-    document.addEventListener(
-      'DOMContentLoaded',
-      () => {
-        boot().catch((error) => {
-          console.error('[VEXORA Extras boot]', error);
+        note.innerHTML = `${hiddenCount} tools lainnya tersedia di halaman <button type="button" class="vx-action" data-vx-open-tools style="padding:6px 9px">Lihat semua tools ↗</button>`;
+        note.querySelector("[data-vx-open-tools]")?.addEventListener("click", () => {
+          document.querySelector('.nav[data-page="tools"]')?.click();
         });
-      },
-      { once: true }
-    );
-  } else {
-    boot().catch((error) => {
-      console.error('[VEXORA Extras boot]', error);
+      } else if (note) {
+        note.remove();
+      }
     });
   }
-})();
-                     
+
+  async function updateDeviceInfo() {
+    const device = getDeviceInfo();
+    const battery = await getBatteryText();
+
+    const { data, error } = await getCurrentUser().catch(() => ({
+      data: { user: null },
+      error: true
+    }));
+
+    const user = !error ? data?.user : null;
+    const email = user?.email || $("profileEmail")?.textContent || "Tidak tersedia";
+    const role = getRole(user);
+
+    const values = {
+      vxMenuEmail: email,
+      vxMenuRole: role,
+      vxMenuDevice: device.device,
+      vxMenuBrowser: device.browser,
+      vxMenuBattery: battery,
+      vxProfileEmail: email,
+      vxProfileRole: role,
+      vxProfileDevice: device.device,
+      vxProfileBrowser: device.browser,
+      vxProfileBattery: battery,
+      vxProfileLanguage: navigator.language || "Tidak tersedia",
+      vxProfileScreen: `${screen.width} × ${screen.height}`,
+      vxProfileSession: user ? "Login terdeteksi" : "Status sesi tidak tersedia"
+    };
+
+    Object.entries(values).forEach(([id, value]) => {
+      if ($(id)) $(id).textContent = value;
+    });
+  }
+
+  function observeMenuTools() {
+    ["freeGrid", "vipGrid"].forEach((id) => {
+      const grid = $(id);
+      if (!grid || grid.dataset.vxObserved) return;
+
+      grid.dataset.vxObserved = "true";
+      new MutationObserver(() => limitMenuTools()).observe(grid, {
+        childList: true
+      });
+    });
+
+    limitMenuTools();
+  }
+
+  function init() {
+    addStyles();
+    applySettings();
+    addMenuDeviceCard();
+    addProfileDetails();
+    addSettings();
+    addUpdates();
+    observeMenuTools();
+    updateDeviceInfo().catch((error) => {
+      console.warn("[VEXORA] Device info:", error);
+    });
+
+    // Navigasi ke Profile/Settings/Updates akan memperbarui informasi.
+    document.querySelectorAll('.nav[data-page]').forEach((link
