@@ -234,6 +234,32 @@
   }
 
   async function downloadZip(tool) {
+    // ZIP disimpan di repo GitHub (folder tools-zip), diambil dari situs sendiri.
+    if (tool.zipSource === 'repo') {
+      let res;
+
+      try {
+        res = await fetch(
+          new URL(tool.zipPath, window.location.href).href + '?v=' + encodeURIComponent(tool.version || ''),
+          { cache: 'no-store' }
+        );
+      } catch (error) {
+        throw new Error('Gagal mengunduh ZIP. Periksa koneksi internet.');
+      }
+
+      if (!res.ok) {
+        throw new Error('File ZIP tools tidak ditemukan di situs (kode ' + res.status + '). Hubungi owner.');
+      }
+
+      const buf = await res.arrayBuffer();
+
+      if (buf.byteLength > MAX_ZIP_BYTES) {
+        throw new Error('File ZIP terlalu besar.');
+      }
+
+      return buf;
+    }
+
     if (!window.vexoraStorage) {
       throw new Error('Firebase Storage belum siap. Periksa storageBucket di config.js.');
     }

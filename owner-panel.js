@@ -19,8 +19,9 @@
   let busy = false;
   let editingId = '';
 
-  let zipFile = null;     // ZIP baru yang sudah lolos pengecekan
+  let zipInfo = null;     // ZIP baru yang sudah lolos pengecekan
   let iconBlob = null;    // icon baru (PNG 192x192) yang sudah diproses
+  let iconData = '';       // icon dalam bentuk data URL (disimpan di Firestore)
   let iconPreviewUrl = '';
 
   const escapeHTML = (value) =>
@@ -55,17 +56,79 @@
 
   function services() {
     const db = window.vexoraDb;
-    const storage = window.vexoraStorage;
 
     if (!db) {
       throw new Error('Firestore belum siap. Periksa config.js dan script Firebase.');
     }
 
-    if (!storage) {
-      throw new Error('Firebase Storage belum siap. Periksa storageBucket di config.js.');
+    return { db };
+  }
+
+  const ZIP_DIR = 'tools-zip/';
+  const isImg = (u) => /^(https:\/\/|data:image\/png;base64,)/i.test(String(u || ''));
+
+  function normalizeZipPath(raw) {
+    let name = String(raw || '').trim().replace(/^\/+/, '');
+
+    if (!name) throw new Error('Isi nama file ZIP dulu.');
+
+    if (!name.startsWith(ZIP_DIR)) name = ZIP_DIR + name;
+
+    if (!/^tools-zip\/[A-Za-z0-9_.\-]+\.zip$/i.test(name) || name.includes('..')) {
+      throw new Error('Nama file ZIP hanya boleh huruf, angka, - _ . dan harus berakhiran .zip (tanpa spasi).');
     }
 
-    return { db, storage };
+    return name;
+  }
+
+  // Cek file ZIP yang sudah di-upload ke GitHub (dan sudah ter-deploy ke Vercel).
+  async function checkRepoZip(raw) {
+    const path = normalizeZipPath(raw);
+    const helpers = window.vexoraZipHelpers;
+
+    if (!helpers || !window.JSZip) {
+      throw new Error('Library ZIP belum termuat. Muat ulang halaman lalu coba lagi.');
+    }
+
+    let res;
+
+    try {
+      res = await fetch(path + '?t=' + Date.now(), { cache: 'no-store' });
+    } catch (error) {
+      throw new Error('Gagal mengecek file. Periksa koneksi internet.');
+    }
+
+    if (!res.ok) {
+      throw new Error('File ' + path + ' belum ada di situs. Upload ke GitHub folder tools-zip, tunggu Vercel selesai deploy, lalu coba lagi.');
+    }
+
+    const buffer = await res.arrayBuffer();
+
+    if (buffer.byteLength > helpers.maxZipBytes) {
+      throw new Error('ZIP terlalu besar (' + formatSize(buffer.byteLength) + ').');
+    }
+
+    let zip;
+
+    try {
+      zip = await window.JSZip.loadAsync(buffer);
+    } catch (error) {
+      throw new Error('File di alamat itu bukan ZIP yang valid (mungkin belum ter-deploy atau nama salah).');
+    }
+
+    const names = Object.keys(zip.files).filter((n) => !zip.files[n].dir);
+
+    if (names.length > helpers.maxFiles) {
+      throw new Error('Isi ZIP terlalu banyak (maksimal ' + helpers.maxFiles + ' file).');
+    }
+
+    try {
+      helpers.planEntries(names);
+    } catch (error) {
+      throw new Error(error?.message || 'ZIP tidak punya index.html.');
+    }
+
+    return { path, size: buffer.byteLength, files: names.length };
   }
 
   function explain(error) {
@@ -157,7 +220,7 @@
       tbody.innerHTML = '<tr><td colspan="3">Belum ada tools.</td></tr>';
     } else {
       tbody.innerHTML = items.map((tool) => {
-        const icon = /^https:\/\//i.test(tool.iconUrl || '')
+        const icon = isImg(tool.iconUrl)
           ? `<img src="${escapeHTML(tool.iconUrl)}" alt="" width="28" height="28" style="border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:8px">`
           : '';
 
@@ -220,60 +283,20 @@
 
   async function onZipChange() {
     const input = $('ownerToolZip');
-    const file = input?.files?.[0];
+    const value = input?.value.trim();
 
-    zipFile = null;
+    zipInfo = null;
     setZipInfo('');
 
-    if (!file) return;
+    if (!value) return;
 
-    const helpers = window.vexoraZipHelpers;
-
-    if (!helpers || !window.JSZip) {
-      setZipInfo('Library ZIP belum termuat. Periksa koneksi internet lalu muat ulang halaman.', true);
-      input.value = '';
-      return;
-    }
-
-    if (!/\.zip$/i.test(file.name)) {
-      setZipInfo('File harus berformat .zip', true);
-      input.value = '';
-      return;
-    }
-
-    if (file.size > helpers.maxZipBytes) {
-      setZipInfo(`ZIP terlalu besar (${formatSize(file.size)}). Maksimal ${formatSize(helpers.maxZipBytes)}.`, true);
-      input.value = '';
-      return;
-    }
-
-    setZipInfo('Memeriksa isi ZIP...');
+    setZipInfo('Memeriksa file ZIP di situs...');
 
     try {
-      const zip = await window.JSZip.loadAsync(file);
-      const names = Object.keys(zip.files).filter((name) => !zip.files[name].dir);
-
-      if (names.length > helpers.maxFiles) {
-        throw new Error(`Isi ZIP terlalu banyak (maksimal ${helpers.maxFiles} file).`);
-      }
-
-      const plan = helpers.planEntries(names);
-
-      zipFile = file;
-      setZipInfo(`ZIP OK: ${plan.length} file, index.html ditemukan (${formatSize(file.size)}).`);
+      zipInfo = await checkRepoZip(value);
+      setZipInfo(`ZIP OK: ${zipInfo.files} file, index.html ditemukan (${formatSize(zipInfo.size)}).`);
     } catch (error) {
-      console.error('[VEXORA] Cek ZIP:', error);
-
-      setZipInfo(
-        error?.code === 'NO_INDEX'
-          ? error.message + ' Pastikan tools-mu punya index.html.'
-          : error?.message?.startsWith('Isi ZIP')
-            ? error.message
-            : 'File ZIP rusak atau tidak bisa dibuka.',
-        true
-      );
-
-      input.value = '';
+      setZipInfo(error.message, true);
     }
   }
 
@@ -346,6 +369,7 @@
     const file = input?.files?.[0];
 
     iconBlob = null;
+    iconData = '';
 
     if (!file) {
       setIconPreview(editingId ? tools.find((t) => t.id === editingId)?.iconUrl || '' : '');
@@ -366,6 +390,12 @@
 
     try {
       iconBlob = await makeIcon(file);
+      iconData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('Gagal membaca icon.'));
+        reader.readAsDataURL(iconBlob);
+      });
       setIconPreview(URL.createObjectURL(iconBlob));
       showStatus('Icon siap.');
     } catch (error) {
@@ -382,7 +412,8 @@
     if ($('ownerToolId')) $('ownerToolId').value = '';
 
     editingId = '';
-    zipFile = null;
+    zipInfo = null;
+    iconData = '';
     iconBlob = null;
 
     setZipInfo('');
@@ -402,72 +433,6 @@
     });
   }
 
-  function upload(storage, path, blob, contentType, label) {
-    return new Promise((resolve, reject) => {
-      // Jangan retry sampai 10 menit kalau koneksi/bucket bermasalah.
-      try {
-        storage.setMaxUploadRetryTime(20000);
-        storage.setMaxOperationRetryTime(20000);
-      } catch (error) {
-        /* abaikan */
-      }
-
-      const task = storage.ref(path).put(blob, { contentType });
-      let lastBytes = 0;
-      let lastMove = Date.now();
-
-      // Kalau 25 detik tidak ada kemajuan sama sekali, batalkan dan beri tahu penyebabnya.
-      const watchdog = setInterval(() => {
-        if (Date.now() - lastMove > 25000) {
-          clearInterval(watchdog);
-          task.cancel();
-          const err = new Error(
-            'Upload macet di ' + (lastBytes ? 'tengah jalan' : '0%') +
-            '. Periksa: Storage sudah dibuat di Firebase, storageBucket di config.js benar, dan koneksi internet stabil.'
-          );
-          err.code = 'vexora/upload-stalled';
-          reject(err);
-        }
-      }, 3000);
-
-      task.on(
-        'state_changed',
-        (snap) => {
-          if (snap.bytesTransferred !== lastBytes) {
-            lastBytes = snap.bytesTransferred;
-            lastMove = Date.now();
-          }
-
-          const pct = snap.totalBytes
-            ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100)
-            : 0;
-
-          showStatus(`Mengunggah ${label}... ${pct}%`);
-        },
-        (error) => {
-          clearInterval(watchdog);
-          reject(error);
-        },
-        () => {
-          clearInterval(watchdog);
-          resolve();
-        }
-      );
-    });
-  }
-
-  async function removeFile(storage, path) {
-    if (!path) return;
-
-    try {
-      await storage.ref(path).delete();
-    } catch (error) {
-      if (error?.code !== 'storage/object-not-found') {
-        console.warn('[VEXORA] Hapus file Storage:', path, error);
-      }
-    }
-  }
-
   async function saveTool(event) {
     event.preventDefault();
 
@@ -476,6 +441,7 @@
     const name = $('ownerToolName')?.value.trim();
     const category = $('ownerToolCategory')?.value === 'vip' ? 'vip' : 'free';
     const description = $('ownerToolDesc')?.value.trim() || '';
+    const zipName = $('ownerToolZip')?.value.trim() || '';
 
     const editing = Boolean(editingId);
     const current = editing ? tools.find((t) => t.id === editingId) : null;
@@ -500,21 +466,20 @@
       return;
     }
 
-    if (!editing && !zipFile) {
-      showStatus('Pilih file ZIP tools terlebih dahulu.', true);
+    if (!editing && !zipName) {
+      showStatus('Isi nama file ZIP yang sudah di-upload ke GitHub (folder tools-zip).', true);
       return;
     }
 
-    if (!editing && !iconBlob) {
+    if (!editing && !iconData) {
       showStatus('Pilih gambar icon terlebih dahulu.', true);
       return;
     }
 
     let db;
-    let storage;
 
     try {
-      ({ db, storage } = services());
+      ({ db } = services());
     } catch (error) {
       showStatus(error.message, true);
       return;
@@ -522,11 +487,9 @@
 
     setBusy(true);
 
-    const id = editing ? editingId : db.collection(COLLECTION).doc().id;
-    const version = Date.now();
-    const uploaded = [];
-
     try {
+      const id = editing ? editingId : db.collection(COLLECTION).doc().id;
+
       const data = {
         name,
         category,
@@ -536,25 +499,19 @@
         ownerEmail: window.vexoraAuth?.currentUser?.email || ''
       };
 
-      if (zipFile) {
-        const zipPath = `tools/${id}/app-${version}.zip`;
+      // Saat edit, ZIP di-cek ulang kalau nama diisi (ini juga memperbarui versi cache).
+      if (zipName) {
+        showStatus('Memeriksa file ZIP di situs...');
+        const info = await checkRepoZip(zipName);
 
-        await upload(storage, zipPath, zipFile, 'application/zip', 'ZIP');
-        uploaded.push(zipPath);
-
-        data.zipPath = zipPath;
-        data.zipSize = zipFile.size;
-        data.version = version;
+        data.zipPath = info.path;
+        data.zipSize = info.size;
+        data.zipSource = 'repo';
+        data.version = Date.now();
       }
 
-      if (iconBlob) {
-        const iconPath = `tools/${id}/icon-${version}.png`;
-
-        await upload(storage, iconPath, iconBlob, 'image/png', 'icon');
-        uploaded.push(iconPath);
-
-        data.iconPath = iconPath;
-        data.iconUrl = await storage.ref(iconPath).getDownloadURL();
+      if (iconData) {
+        data.iconUrl = iconData;
       }
 
       showStatus('Menyimpan data tools...');
@@ -566,22 +523,11 @@
         await db.collection(COLLECTION).doc(id).set(data);
       }
 
-      // File lama baru dihapus setelah data baru tersimpan.
-      if (editing) {
-        if (zipFile) await removeFile(storage, current.zipPath);
-        if (iconBlob) await removeFile(storage, current.iconPath);
-      }
-
       resetForm();
       await loadTools();
       refreshDashboard();
       showStatus(editing ? 'Tools berhasil diperbarui.' : 'Tools berhasil ditambahkan.');
     } catch (error) {
-      // Batalkan file yang sudah terlanjur terunggah.
-      if (storage) {
-        await Promise.all(uploaded.map((path) => removeFile(storage, path)));
-      }
-
       showStatus(explain(error), true);
     } finally {
       setBusy(false);
@@ -601,12 +547,12 @@
     $('ownerToolCategory').value = tool.category === 'vip' ? 'vip' : 'free';
     $('ownerToolDesc').value = tool.description || '';
 
-    setIconPreview(/^https:\/\//i.test(tool.iconUrl || '') ? tool.iconUrl : '');
+    setIconPreview(isImg(tool.iconUrl) ? tool.iconUrl : '');
 
     setZipInfo(
-      tool.zipSize
-        ? `ZIP saat ini: ${formatSize(tool.zipSize)}. Kosongkan jika tidak ingin mengganti.`
-        : 'Kosongkan jika tidak ingin mengganti ZIP.'
+      tool.zipPath
+        ? `ZIP saat ini: ${tool.zipPath}. Kosongkan jika tidak diganti. Isi lagi nama yang sama kalau kamu menimpa file ZIP-nya di GitHub.`
+        : 'Isi nama file ZIP di GitHub.'
     );
 
     const submit = $('ownerToolForm')?.querySelector('[type="submit"]');
@@ -624,10 +570,9 @@
     if (!confirm(`Hapus tools "${tool.name}"? File ZIP dan icon ikut terhapus.`)) return;
 
     let db;
-    let storage;
 
     try {
-      ({ db, storage } = services());
+      ({ db } = services());
     } catch (error) {
       showStatus(error.message, true);
       return;
@@ -639,9 +584,6 @@
       showStatus('Menghapus tools...');
 
       await db.collection(COLLECTION).doc(tool.id).delete();
-
-      await removeFile(storage, tool.zipPath);
-      await removeFile(storage, tool.iconPath);
 
       if (editingId === tool.id) resetForm();
 
