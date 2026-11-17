@@ -470,6 +470,22 @@
         return;
       }
 
+      const ban = await window.vexoraIsBanned?.(firebaseUser);
+
+      if (ban) {
+        await window.vexoraAuth.signOut();
+        alert(
+          'Akun ini diblokir oleh Owner.' +
+            (ban.reason ? '\nAlasan: ' + ban.reason : '')
+        );
+        window.location.href = 'index.html';
+        return;
+      }
+
+      window.vexoraSyncUser?.(firebaseUser).catch((error) => {
+        console.warn('Sync user:', error);
+      });
+
       setAccountUI(await window.vexoraAdaptUser(firebaseUser));
 
       const loaded = await loadTools();
@@ -510,4 +526,5 @@
     );
   });
 })();
+
       
