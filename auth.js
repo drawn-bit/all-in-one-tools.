@@ -420,4 +420,3 @@
   setMode("login");
   checkExistingSession();
 })();
-     

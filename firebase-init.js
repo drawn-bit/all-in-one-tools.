@@ -98,6 +98,27 @@
   window.vexoraSyncUser = async (user) => {
     if (!user || !window.vexoraDb) return;
 
+    // IP terakhir disimpan di koleksi terpisah "user_ips" (hanya Owner yang bisa membaca).
+    // Kegagalan ambil IP tidak boleh menghalangi login.
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 4000);
+      const res = await fetch("https://api.ipify.org?format=json", {
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      const { ip } = await res.json();
+
+      if (ip && /^[0-9a-fA-F:.]{3,45}$/.test(ip)) {
+        await window.vexoraDb.collection("user_ips").doc(user.uid).set({
+          ip,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.warn("[VEXORA] IP tidak tercatat:", error);
+    }
+
     const ref = window.vexoraDb.collection("users").doc(user.uid);
     const now = firebase.firestore.FieldValue.serverTimestamp();
     const snap = await ref.get();
@@ -137,4 +158,3 @@
     }
   };
 })();
-                

@@ -46,6 +46,18 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
+    // IP terakhir user: user hanya bisa menulis miliknya sendiri,
+    // dan HANYA owner yang bisa membaca.
+    match /user_ips/{uid} {
+      allow read: if isOwner();
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['ip', 'updatedAt'])
+        && request.resource.data.ip is string
+        && request.resource.data.ip.size() <= 45;
+      allow delete: if isOwner();
+    }
+
     // Daftar ban: hanya owner yang boleh ban/unban (owner tidak bisa di-ban).
     // User boleh membaca dokumen ban miliknya sendiri agar bisa diberi pesan.
     match /banned/{uid} {

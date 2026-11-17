@@ -12,6 +12,7 @@
 
   let users = [];
   let bans = new Map();
+  let ips = new Map();
   let page = 1;
   let busy = false;
 
@@ -65,7 +66,7 @@
     const slice = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     if (!slice.length) {
-      body.innerHTML = '<tr><td colspan="6">Belum ada akun.</td></tr>';
+      body.innerHTML = '<tr><td colspan="7">Belum ada akun.</td></tr>';
     } else {
       body.innerHTML = slice.map((u) => {
         const role = roleOf(u);
@@ -81,6 +82,7 @@
           <td><span class="u-badge u-${role}">${role.toUpperCase()}</span></td>
           <td>${esc(fmt(u.createdAt))}</td>
           <td>${esc(fmt(u.lastLogin))}</td>
+          <td>${esc(ips.get(u.id)?.ip || '—')}</td>
           <td>${ban
             ? `<span class="u-badge u-ban">BANNED</span>${ban.reason ? '<br><small>' + esc(ban.reason) + '</small>' : ''}`
             : '<span class="u-badge u-ok">AKTIF</span>'}</td>
@@ -127,10 +129,13 @@
     status('Memuat data akun...');
 
     try {
-      const [uSnap, bSnap] = await Promise.all([
+      const [uSnap, bSnap, iSnap] = await Promise.all([
         db.collection('users').get(),
-        db.collection('banned').get()
+        db.collection('banned').get(),
+        db.collection('user_ips').get()
       ]);
+
+      ips = new Map(iSnap.docs.map((d) => [d.id, d.data()]));
 
       users = uSnap.docs
         .map((d) => ({ id: d.id, ...d.data(), email: String(d.data().email || '').toLowerCase() }))
