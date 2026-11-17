@@ -404,19 +404,54 @@
 
   function upload(storage, path, blob, contentType, label) {
     return new Promise((resolve, reject) => {
+      // Jangan retry sampai 10 menit kalau koneksi/bucket bermasalah.
+      try {
+        storage.setMaxUploadRetryTime(20000);
+        storage.setMaxOperationRetryTime(20000);
+      } catch (error) {
+        /* abaikan */
+      }
+
       const task = storage.ref(path).put(blob, { contentType });
+      let lastBytes = 0;
+      let lastMove = Date.now();
+
+      // Kalau 25 detik tidak ada kemajuan sama sekali, batalkan dan beri tahu penyebabnya.
+      const watchdog = setInterval(() => {
+        if (Date.now() - lastMove > 25000) {
+          clearInterval(watchdog);
+          task.cancel();
+          const err = new Error(
+            'Upload macet di ' + (lastBytes ? 'tengah jalan' : '0%') +
+            '. Periksa: Storage sudah dibuat di Firebase, storageBucket di config.js benar, dan koneksi internet stabil.'
+          );
+          err.code = 'vexora/upload-stalled';
+          reject(err);
+        }
+      }, 3000);
 
       task.on(
         'state_changed',
         (snap) => {
+          if (snap.bytesTransferred !== lastBytes) {
+            lastBytes = snap.bytesTransferred;
+            lastMove = Date.now();
+          }
+
           const pct = snap.totalBytes
             ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100)
             : 0;
 
           showStatus(`Mengunggah ${label}... ${pct}%`);
         },
-        reject,
-        () => resolve()
+        (error) => {
+          clearInterval(watchdog);
+          reject(error);
+        },
+        () => {
+          clearInterval(watchdog);
+          resolve();
+        }
       );
     });
   }
