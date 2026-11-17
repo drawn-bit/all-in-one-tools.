@@ -89,4 +89,52 @@
       user_metadata: {}
     };
   };
+
+  /*
+   * Simpan data akun (email, tanggal daftar, login terakhir) ke Firestore
+   * koleksi "users/{uid}" supaya Owner bisa melihat daftar akun.
+   * TIDAK menyimpan password (Firebase memang tidak pernah memberi password).
+   */
+  window.vexoraSyncUser = async (user) => {
+    if (!user || !window.vexoraDb) return;
+
+    const ref = window.vexoraDb.collection("users").doc(user.uid);
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      await ref.set({
+        email: String(user.email || "").toLowerCase(),
+        emailVerified: !!user.emailVerified,
+        createdAt: now,
+        lastLogin: now
+      });
+    } else {
+      await ref.update({
+        emailVerified: !!user.emailVerified,
+        lastLogin: now
+      });
+    }
+  };
+
+  /*
+   * Cek apakah akun di-ban. Mengembalikan data ban (alasan, dll) atau null.
+   * Pemblokiran sebenarnya dijaga oleh Rules (Firestore & Storage).
+   */
+  window.vexoraIsBanned = async (user) => {
+    if (!user || !window.vexoraDb) return null;
+
+    try {
+      const snap = await window.vexoraDb
+        .collection("banned")
+        .doc(user.uid)
+        .get();
+
+      return snap.exists ? snap.data() || {} : null;
+    } catch (error) {
+      console.warn("[VEXORA] Gagal cek ban:", error);
+      return null;
+    }
+  };
 })();
+                
