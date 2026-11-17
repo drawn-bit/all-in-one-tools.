@@ -9,7 +9,7 @@ service firebase.storage {
     // GANTI dengan email owner (huruf kecil). Harus sama dengan firestore.rules.
     function isOwner() {
       return signedIn() &&
-        request.auth.token.email in ['isi_email_owner@gmail.com'];
+        request.auth.token.email in ['drawnstorejb@gmail.com'];
     }
 
     // ZIP dan icon tools.
