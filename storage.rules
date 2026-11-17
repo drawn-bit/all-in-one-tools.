@@ -4,7 +4,7 @@ service firebase.storage {
 
     // GANTI dengan email owner (huruf kecil). Harus sama dengan firestore.rules.
     function ownerEmails() {
-      return ['isi_email_owner@gmail.com'];
+      return ['drawnstorejb@gmail.com'];
     }
 
     function notBanned() {
