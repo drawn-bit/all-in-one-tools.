@@ -2,14 +2,23 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    function signedIn() {
-      return request.auth != null && request.auth.token.email_verified == true;
+    // GANTI dengan email owner (huruf kecil). Harus sama dengan firestore.rules.
+    function ownerEmails() {
+      return ['isi_email_owner@gmail.com'];
     }
 
-    // GANTI dengan email owner (huruf kecil). Harus sama dengan firestore.rules.
+    function notBanned() {
+      return !firestore.exists(/databases/(default)/documents/banned/$(request.auth.uid));
+    }
+
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && notBanned();
+    }
+
     function isOwner() {
-      return signedIn() &&
-        request.auth.token.email in ['drawnstorejb@gmail.com'];
+      return signedIn() && request.auth.token.email in ownerEmails();
     }
 
     // ZIP dan icon tools.
