@@ -14,11 +14,13 @@
 */
 window.VEXORA_CONFIG = {
   FIREBASE: {
-    apiKey: "ISI_FIREBASE_API_KEY",
-    authDomain: "ISI_PROJECT_ID.firebaseapp.com",
-    projectId: "ISI_PROJECT_ID",
-    storageBucket: "ISI_PROJECT_ID.firebasestorage.app",
-    appId: "ISI_FIREBASE_APP_ID"
+    apiKey: "AIzaSyBjeWQXykXBCy3FXYL9ERrCrq-J9n1WeX0",
+  authDomain: "vexora-tools.firebaseapp.com",
+  projectId: "vexora-tools",
+  storageBucket: "vexora-tools.firebasestorage.app",
+  messagingSenderId: "55687040556",
+  appId: "1:55687040556:web:df6bb513ee2bbc9883cb89",
+  measurementId: "G-6WP84TR2GP"
   },
 
   OWNER_EMAILS: ["isi_email_owner@gmail.com"]
