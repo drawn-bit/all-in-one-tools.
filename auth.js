@@ -237,6 +237,13 @@
       console.error("[VEXORA] Gagal kirim verifikasi:", error);
     }
 
+    // Catat akun baru agar muncul di Panel Owner.
+    try {
+      await window.vexoraSyncUser?.(credential.user);
+    } catch (error) {
+      console.warn("[VEXORA] Gagal mencatat akun:", error);
+    }
+
     // Wajib verifikasi email dulu sebelum masuk dashboard.
     await auth.signOut();
 
@@ -274,6 +281,25 @@
         "Email belum diverifikasi. Kami kirim ulang tautan verifikasi — periksa kotak masuk dan folder Spam."
       );
       return;
+    }
+
+    // Cek ban.
+    const ban = await window.vexoraIsBanned?.(user);
+
+    if (ban) {
+      await auth.signOut();
+
+      showMessage(
+        "Akun ini diblokir oleh Owner." +
+          (ban.reason ? " Alasan: " + ban.reason : "")
+      );
+      return;
+    }
+
+    try {
+      await window.vexoraSyncUser?.(user);
+    } catch (error) {
+      console.warn("[VEXORA] Gagal mencatat akun:", error);
     }
 
     showMessage(
@@ -381,6 +407,7 @@
       off();
 
       if (user && user.emailVerified) {
+        // dashboard.js yang akan memeriksa ban dan mengeluarkan akun terblokir.
         window.location.replace("dashboard.html");
       }
     });
@@ -393,3 +420,4 @@
   setMode("login");
   checkExistingSession();
 })();
+     
