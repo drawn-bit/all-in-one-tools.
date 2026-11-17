@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f3e9">
+  <title>VEXORA Tools — Workspace</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <section id="authView" class="auth-layout">
+      <div class="brand-panel">
+        <div class="brand-mark">VEXORA<span>✳</span></div>
+        <div class="brand-copy">
+          <p class="eyebrow">YOUR CREATIVE TOOLBOX</p>
+          <h1>MAKE<br>THINGS<br><span>HAPPEN.</span></h1>
+          <p class="brand-desc">Satu tempat untuk tools, ide, dan produktivitas digital.</p>
+        </div>
+        <div class="brand-sticker">EST.<br>2026</div>
+        <div class="brand-footer">VEXORA TOOLS <span>●</span> BUILT TO CREATE</div>
+      </div>
+      <div class="auth-panel">
+        <div class="auth-top"><span class="tiny-dot"></span> WORKSPACE ACCESS <span class="auth-version">v1.0</span></div>
+        <div class="auth-card">
+          <div class="mini-logo">VEXORA✳</div>
+          <p class="eyebrow" id="authEyebrow">WELCOME BACK</p>
+          <h2 id="authTitle">Login dulu.</h2>
+          <p class="muted" id="authSubtitle">Masuk untuk membuka workspace kamu.</p>
+          <form id="authForm">
+            <label for="username">USERNAME</label>
+            <input id="username" name="username" autocomplete="username" placeholder="Masukkan username" required minlength="3" maxlength="24">
+            <label for="password">PASSWORD</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required minlength="6">
+            <button class="button button-dark full" id="authSubmit" type="submit">MASUK <span>↗</span></button>
+          </form>
+          <p class="auth-switch" id="authSwitch">Belum punya akun? <button type="button" id="switchAuth">Daftar sekarang</button></p>
+          <p class="auth-error" id="authError" role="status"></p>
+        </div>
+        <p class="auth-note">SECURED BY FIREBASE AUTHENTICATION</p>
+      </div>
+    </section>
+
+    <section id="dashboardView" class="dashboard hidden">
+      <aside class="sidebar">
+        <a class="side-brand" href="#"><span>VEXORA✳</span><small>MEDIA.YTTA</small></a>
+        <div class="side-label">WORKSPACE</div>
+        <button class="nav-item active" data-page="home"><span>▦</span> Overview</button>
+        <button class="nav-item" data-page="tools"><span>✳</span> All tools</button>
+        <button class="nav-item" data-page="saved"><span>☆</span> Saved</button>
+        <div class="sidebar-bottom">
+          <div class="profile-chip"><div class="avatar" id="avatarInitial">Z</div><div><b id="sideUsername">User</b><small>MEMBER</small></div></div>
+          <button class="logout" id="logoutBtn">↪ Keluar</button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar"><div><span class="status-pill"><i></i> SYSTEM ONLINE</span></div><div class="top-user">VEXORA TOOLS <span class="top-avatar" id="topInitial">Z</span></div></header>
+        <div class="page-wrap" id="homePage">
+          <div class="welcome-row"><div><p class="eyebrow">TUESDAY / YOUR WORKSPACE</p><h1>Halo, <span id="welcomeName">Creator</span>! <span class="wave">✳</span></h1><p class="muted">Mau bikin sesuatu hari ini?</p></div><div class="hero-stamp">IDEA<br>→ ACTION</div></div>
+          <div class="hero-banner"><div><p class="eyebrow">VEXORA TOOLS TOOLKIT</p><h2>Tools buat<br>gerak lebih cepat.</h2><p>Simple tools. Big ideas. All in one place.</p><button class="button button-yellow" id="exploreBtn">JELAJAHI TOOLS ↗</button></div><div class="banner-art"><div class="art-square sq1">✳</div><div class="art-square sq2">V</div><div class="art-circle">X</div></div></div>
+          <div class="section-heading"><div><p class="eyebrow">PICK YOUR TOOL</p><h2>Quick access</h2></div><button class="text-link" id="viewAllBtn">Lihat semua ↗</button></div>
+          <div class="tool-grid" id="quickTools"></div>
+          <div class="bottom-note"><span>✳</span> Keep creating. Keep experimenting. <b>— VEXORA TOOLS</b></div>
+        </div>
+        <div class="page-wrap hidden" id="toolsPage">
+          <p class="eyebrow">THE TOOLBOX</p><h1 class="page-title">All tools<span>✳</span></h1><p class="muted">Pilih tools yang mau kamu gunakan.</p>
+          <div class="tool-grid all-tools" id="allTools"></div>
+        </div>
+        <div class="page-wrap hidden" id="savedPage">
+          <p class="eyebrow">YOUR COLLECTION</p><h1 class="page-title">Saved tools<span>☆</span></h1><p class="muted">Tools favorit kamu akan muncul di sini.</p>
+          <div class="tool-grid" id="savedTools"></div>
+        </div>
+      </main>
+    </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="toolModal">
+    <div class="tool-modal"><button class="modal-close" id="closeModal">×</button><p class="eyebrow" id="modalCategory">QUICK TOOL</p><h2 id="modalTitle">Tool title</h2><div id="toolBody"></div></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
