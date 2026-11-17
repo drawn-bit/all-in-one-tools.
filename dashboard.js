@@ -256,7 +256,7 @@
 
     const iconHtml = /^(https:\/\/|data:image\/png;base64,)/i.test(iconUrl)
       ? `<img src="${safeText(iconUrl)}" alt="" loading="lazy" ` +
-        'style="width:100%;height:100%;object-fit:cover;border-radius:12px">'
+        'style="width:100%;height:100%;object-fit:contain">'
       : category === 'vip'
         ? '✦'
         : '▦';
@@ -286,7 +286,7 @@
     return `
       <article class="tool-card">
         <div class="tool-top">
-          <div class="tool-icon">${iconHtml}</div>
+          <div class="tool-icon"${iconHtml.startsWith('<img') ? ' style="background:transparent"' : ''}>${iconHtml}</div>
           <span class="pill ${category}">
             ${category.toUpperCase()}
           </span>

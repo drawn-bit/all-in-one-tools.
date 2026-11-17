@@ -340,22 +340,24 @@
     });
   }
 
-  // Potong tengah (cover) lalu perkecil jadi PNG 192x192.
+  // Perkecil agar muat penuh di 192x192 (tidak dipotong). Latar transparan tetap transparan.
   async function makeIcon(file) {
     const img = await loadImage(file);
 
-    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    if (!img.naturalWidth || !img.naturalHeight) throw new Error('Gambar tidak valid.');
 
-    if (!side) throw new Error('Gambar tidak valid.');
-
-    const sx = (img.naturalWidth - side) / 2;
-    const sy = (img.naturalHeight - side) / 2;
+    const scale = Math.min(ICON_SIZE / img.naturalWidth, ICON_SIZE / img.naturalHeight);
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
 
     const canvas = document.createElement('canvas');
     canvas.width = ICON_SIZE;
     canvas.height = ICON_SIZE;
 
-    canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, ICON_SIZE, ICON_SIZE);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, ICON_SIZE, ICON_SIZE);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, Math.round((ICON_SIZE - w) / 2), Math.round((ICON_SIZE - h) / 2), w, h);
 
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 

@@ -18,10 +18,51 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith(PREFIX)) return;
   if (request.method !== "GET" && request.method !== "HEAD") return;
 
-  event.respondWith(serve(request, url));
+  // Alamat virtual tools: dilayani dari Cache Storage.
+  if (url.pathname.startsWith(PREFIX)) {
+    event.respondWith(serve(request, url));
+    return;
+  }
+
+  // Tools sering memakai path absolut seperti /style.css atau /assets/app.js.
+  // Kalau permintaan datang dari dalam sebuah tools, cari dulu di isi ZIP tools itu.
+  const origin = self.location.origin;
+  const refPrefix = origin + PREFIX;
+  const referrer = request.referrer || "";
+
+  if (referrer.startsWith(refPrefix)) {
+    const toolDir = referrer.slice(refPrefix.length).split("/")[0];
+
+    if (toolDir) {
+      const scopePath = new URL(self.registration.scope).pathname;
+      let rest = url.pathname;
+
+      if (scopePath !== "/" && rest.startsWith(scopePath)) {
+        rest = rest.slice(scopePath.length);
+      } else {
+        rest = rest.replace(/^\/+/, "");
+      }
+
+      const mapped = new URL(PREFIX + toolDir + "/" + rest, origin);
+
+      event.respondWith(
+        (async () => {
+          const cache = await caches.open(CACHE);
+          const hit =
+            (await cache.match(mapped.origin + mapped.pathname)) ||
+            (rest.endsWith("/") || rest === ""
+              ? await cache.match(mapped.origin + mapped.pathname + "index.html")
+              : null);
+
+          if (hit) return serve(request, mapped);
+
+          return fetch(request);
+        })()
+      );
+    }
+  }
 });
 
 async function serve(request, url) {
