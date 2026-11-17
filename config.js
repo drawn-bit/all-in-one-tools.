@@ -23,5 +23,5 @@ window.VEXORA_CONFIG = {
   measurementId: "G-6WP84TR2GP"
   },
 
-  OWNER_EMAILS: ["isi_email_owner@gmail.com"]
+  OWNER_EMAILS: ["drawnstorejb@gmail.com"]
 };
