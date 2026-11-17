@@ -33,10 +33,17 @@
     })[ch]);
 
   function showStatus(message, isError = false) {
-    const el = $('ownerToolsStatus');
-    if (!el) return;
-    el.textContent = message;
-    el.style.color = isError ? '#ff778b' : '';
+    // Pesan juga ditampilkan tepat di bawah tombol Simpan supaya langsung terlihat.
+    ['ownerToolsStatus', 'ownerToolFormStatus'].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = isError ? '#ff778b' : '';
+    });
+
+    if (isError) {
+      $('ownerToolFormStatus')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
   }
 
   function formatSize(bytes) {
