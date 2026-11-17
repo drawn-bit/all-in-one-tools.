@@ -4,7 +4,7 @@ service cloud.firestore {
 
     // GANTI dengan email owner (huruf kecil). Boleh lebih dari satu.
     function ownerEmails() {
-      return ['isi_email_owner@gmail.com'];
+      return ['drawnstorejb@gmail.com'];
     }
 
     // Akun yang di-ban otomatis kehilangan semua akses data.
