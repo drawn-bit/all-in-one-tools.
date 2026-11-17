@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    // GANTI dengan email owner (huruf kecil). Boleh lebih dari satu.
+    function isOwner() {
+      return signedIn() &&
+        request.auth.token.email in ['isi_email_owner@gmail.com'];
+    }
+
+    // Daftar tools: semua user yang sudah login & terverifikasi boleh membaca,
+    // hanya owner yang boleh menambah / mengubah / menghapus.
+    match /vexora_tools/{toolId} {
+      allow read: if signedIn();
+      allow write: if isOwner();
+    }
+  }
+}

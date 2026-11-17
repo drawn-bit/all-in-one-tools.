@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070814">
+  <meta name="description" content="VEXORA - All-in-One Digital Tools">
+  <title>VEXORA — Digital Workspace</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #070814;
+      --panel: #111426;
+      --cyan: #48e6ff;
+      --amber: #ffbd59;
+      --text: #f3f6ff;
+      --muted: #929bb5;
+      --border: rgba(151,171,220,.16);
+      --green: #67f5b0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 12% 10%, rgba(22,169,208,.14), transparent 38%),
+        radial-gradient(ellipse at 90% 90%, rgba(255,189,89,.07), transparent 35%),
+        var(--bg);
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar, .main, .footer {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(72,230,255,.45);
+      border-radius: 13px;
+      color: var(--cyan);
+      background: linear-gradient(145deg,#193047,#101322);
+      font-family: "Orbitron",sans-serif;
+      font-size: 21px;
+      font-weight: 800;
+      box-shadow: 0 0 28px rgba(72,230,255,.1);
+    }
+
+    .brand-name {
+      font-family: "Orbitron",sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .brand-name span {
+      color: var(--cyan);
+    }
+
+    .brand-caption {
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    .online {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 10px 13px;
+      font-size: 10px;
+      color: #cbd3e9;
+    }
+
+    .online-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .main {
+      flex: 1;
+      padding: 35px 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 430px;
+      gap: 65px;
+      align-items: center;
+    }
+
+    .hero {
+      animation: enter .7s ease both;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 13px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(72,230,255,.23);
+      border-radius: 30px;
+      background: rgba(72,230,255,.05);
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+    }
+
+    .eyebrow i {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: var(--amber);
+      transform: rotate(45deg);
+    }
+
+    .hero h1 {
+      font-family: "Orbitron",sans-serif;
+      font-size: clamp(39px,5.4vw,66px);
+      line-height: 1.15;
+      letter-spacing: -2px;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      display: block;
+      color: var(--cyan);
+      text-shadow: 0 0 35px rgba(72,230,255,.15);
+    }
+
+    .hero-description {
+      max-width: 455px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.9;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 30px;
+      max-width: 465px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .feature-icon {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(72,230,255,.08);
+      color: var(--cyan);
+      font-size: 16px;
+    }
+
+    .feature strong {
+      display: block;
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
+
+    .feature small {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .credit {
+      margin-top: 27px;
+      color: #7c86a0;
+      font-size: 11px;
+    }
+
+    .credit strong {
+      color: var(--amber);
+      letter-spacing: 1px;
+    }
+
+    .auth-card {
+      padding: 30px;
+      border: 1px solid rgba(157,180,225,.17);
+      border-radius: 22px;
+      background: rgba(17,20,38,.91);
+      box-shadow: 0 25px 80px rgba(0,0,0,.28);
+      backdrop-filter: blur(15px);
+      animation: enter .8s .1s ease both;
+    }
+
+    .mini-label {
+      margin-bottom: 11px;
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .card-heading h2 {
+      margin-bottom: 9px;
+      font-size: 25px;
+      letter-spacing: -.7px;
+    }
+
+    .card-heading p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin: 24px 0;
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #090b18;
+    }
+
+    .mode-btn {
+      padding: 12px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mode-btn.active {
+      color: var(--cyan);
+      background: #19283a;
+      box-shadow: inset 0 0 0 1px rgba(72,230,255,.17);
+    }
+
+    .form-group {
+      margin-bottom: 17px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 9px;
+      color: #d5dbee;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px;
+      border: 1px solid rgba(157,180,225,.16);
+      border-radius: 11px;
+      outline: none;
+      background: #090b17;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .input-wrap input:focus {
+      border-color: rgba(72,230,255,.7);
+      box-shadow: 0 0 0 3px rgba(72,230,255,.07);
+    }
+
+    .input-wrap input::placeholder {
+      color: #606a85;
+    }
+
+    .password-input {
+      padding-right: 65px !important;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 2px 0 20px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .remember input {
+      accent-color: var(--cyan);
+    }
+
+    .primary-btn {
+      width: 100%;
+      min-height: 49px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 11px;
+      background: linear-gradient(100deg,var(--cyan),#8cefff);
+      color: #071019;
+      font-size: 12px;
+      font-weight: 800;
+      transition: .2s;
+    }
+
+    .primary-btn:hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:disabled {
+      opacity: .6;
+      cursor: wait;
+      transform: none;
+    }
+
+    .form-message {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .form-message.show {
+      display: block;
+    }
+
+    .form-message.error {
+      display: block;
+      color: #ffb5bd;
+      background: rgba(255,114,127,.08);
+      border: 1px solid rgba(255,114,127,.2);
+    }
+
+    .form-message.success {
+      display: block;
+      color: #a5ffd0;
+      background: rgba(103,245,176,.07);
+      border: 1px solid rgba(103,245,176,.2);
+    }
+
+    .security-note {
+      display: flex;
+      gap: 9px;
+      margin-top: 20px;
+      padding-top: 17px;
+      border-top: 1px solid var(--border);
+      color: #7f89a4;
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .security-note span {
+      color: var(--green);
+    }
+
+    .terms {
+      margin-top: 17px;
+      color: #7c86a0;
+      text-align: center;
+      font-size: 9px;
+      line-height: 1.8;
+    }
+
+    .terms a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 20px 24px 25px;
+      border-top: 1px solid rgba(157,180,225,.08);
+      color: #6e7892;
+      font-size: 10px;
+    }
+
+    .footer strong {
+      color: #b5bfd8;
+      font-weight: 600;
+    }
+
+    /* Intro loading */
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: grid;
+      place-items: center;
+      background: #070814;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .45s ease, visibility .45s ease;
+    }
+
+    .intro.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .intro-content {
+      padding: 25px;
+      text-align: center;
+    }
+
+    .intro-logo {
+      width: 78px;
+      height: 78px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 23px;
+      border: 1px solid rgba(72,230,255,.45);
+      border-radius: 23px;
+      background: linear-gradient(145deg,#193047,#101322);
+      color: var(--cyan);
+      font-family: "Orbitron",sans-serif;
+      font-size: 35px;
+      font-weight: 800;
+      box-shadow: 0 0 50px rgba(72,230,255,.13);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    .intro-title {
+      font-family: "Orbitron",sans-serif;
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: 5px;
+    }
+
+    .intro-title span {
+      color: var(--cyan);
+    }
+
+    .intro-subtitle {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 3px;
+    }
+
+    .loader-track {
+      width: 200px;
+      height: 3px;
+      margin: 28px auto 13px;
+      overflow: hidden;
+      border-radius: 5px;
+      background: #20243a;
+    }
+
+    .loader-bar {
+      width: 0;
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(90deg,var(--cyan),var(--amber));
+      animation: load 1.8s ease forwards;
+    }
+
+    .loading-text {
+      color: #7c86a0;
+      font-size: 9px;
+      letter-spacing: 2px;
+    }
+
+    @keyframes load {
+      to { width: 100%; }
+    }
+
+    @keyframes pulse {
+      50% {
+        transform: scale(1.04);
+        box-shadow: 0 0 70px rgba(72,230,255,.23);
+      }
+    }
+
+    @keyframes enter {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 850px) {
+      .main {
+        grid-template-columns: 1fr 390px;
+        gap: 28px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .topbar {
+        padding: 18px;
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 28px;
+        padding: 25px 18px 40px;
+      }
+
+      .hero h1 {
+        font-size: clamp(38px,10vw,54px);
+        letter-spacing: -1.7px;
+        margin-bottom: 15px;
+      }
+
+      .hero-description {
+        font-size: 12px;
+      }
+
+      .features {
+        display: none;
+      }
+
+      .credit {
+        margin-top: 16px;
+      }
+
+      .auth-card {
+        padding: 24px 20px;
+      }
+
+      .footer {
+        padding: 18px;
+        font-size: 9px;
+      }
+    }
+
+    @media (max-width: 370px) {
+      .brand-name { font-size: 16px; }
+      .brand-caption { font-size: 8px; }
+      .online { font-size: 8px; padding: 8px; }
+      .auth-card { padding: 21px 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Intro: tidak bergantung pada Firebase atau auth.js -->
+  <div class="intro" id="intro">
+    <div class="intro-content">
+      <div class="intro-logo">V</div>
+      <div class="intro-title">VE<span>X</span>ORA</div>
+      <div class="intro-subtitle">ALL-IN-ONE TOOLS PLATFORM</div>
+      <div class="loader-track">
+        <div class="loader-bar"></div>
+      </div>
+      <div class="loading-text" id="loadingText">INITIALIZING VEXORA...</div>
+    </div>
+  </div>
+
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">V</div>
+        <div>
+          <div class="brand-name">VE<span>X</span>ORA</div>
+          <div class="brand-caption">DIGITAL TOOLKIT</div>
+        </div>
+      </div>
+
+      <div class="online">
+        <span class="online-dot"></span>
+        PLATFORM ONLINE
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="hero">
+        <div class="eyebrow">
+          <i></i>
+          YOUR DIGITAL WORKSPACE
+        </div>
+
+        <h1>
+          Build more.
+          <span>Do it smarter.</span>
+        </h1>
+
+        <p class="hero-description">
+          Selamat datang di VEXORA. Satu tempat untuk mengakses berbagai
+          tools digital dengan tampilan modern, pengalaman simpel, dan
+          workspace yang dirancang untuk produktivitas kamu.
+        </p>
+
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">⌘</div>
+            <div>
+              <strong>All-in-One Tools</strong>
+              <small>Berbagai tools dalam satu tempat</small>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">◇</div>
+            <div>
+              <strong>Modern Workspace</strong>
+              <small>Antarmuka modern dan nyaman</small>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">↗</div>
+            <div>
+              <strong>Easy Access</strong>
+              <small>Akses tools dengan mudah</small>
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="feature-icon">⬡</div>
+            <div>
+              <strong>Account System</strong>
+              <small>Login melalui akun kamu</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="credit">
+          Developed by <strong>Z4M OFFICIAL</strong>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="card-heading">
+          <div class="mini-label">MEMBER ACCESS / 01</div>
+          <h2 id="formTitle">Welcome back.</h2>
+          <p id="formSubtitle">Masuk ke akun kamu untuk melanjutkan.</p>
+        </div>
+
+        <div class="mode-switch">
+          <button class="mode-btn active" id="loginTab" type="button">Login</button>
+          <button class="mode-btn" id="registerTab" type="button">Register</button>
+        </div>
+
+        <div class="form-message" id="formMessage" role="status" aria-live="polite"></div>
+
+        <form id="authForm" novalidate>
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <div class="input-wrap">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="nama@email.com"
+                autocomplete="email"
+                maxlength="254"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+              <input
+                class="password-input"
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+                minlength="6"
+                maxlength="128"
+                required
+              >
+              <button class="toggle-password" id="togglePassword" type="button">LIHAT</button>
+            </div>
+          </div>
+
+          <div class="form-group" id="confirmGroup" hidden>
+            <label for="confirmPassword">Konfirmasi password</label>
+            <div class="input-wrap">
+              <input
+                class="password-input"
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Ulangi password"
+                autocomplete="new-password"
+                minlength="6"
+                maxlength="128"
+              >
+            </div>
+          </div>
+
+          <div class="form-options" id="loginOptions">
+            <label class="remember">
+              <input id="rememberMe" type="checkbox" checked>
+              Ingat sesi login
+            </label>
+          </div>
+
+          <button class="primary-btn" id="submitBtn" type="submit">
+            <span id="submitText">Masuk ke Dashboard</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+        </form>
+
+        <div class="security-note">
+          <span>●</span>
+          <div>Gunakan email dan password milik kamu sendiri. Jangan bagikan password kepada siapa pun.</div>
+        </div>
+
+        <p class="terms">
+          Gunakan platform secara bertanggung jawab.<br>
+          VEXORA · <a href="#" id="switchLink">Belum punya akun? Daftar</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>© <span id="currentYear"></span> <strong>VEXORA</strong></span>
+      <span>Built by <strong>Z4M OFFICIAL</strong></span>
+    </footer>
+  </div>
+
+  <!-- Library dan file auth dimuat terpisah -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="config.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="auth.js"></script>
+
+  <!-- Loading selalu punya batas waktu -->
+  <script>
+    (function () {
+      function hideIntro() {
+        var intro = document.getElementById("intro");
+        if (!intro) return;
+
+        intro.classList.add("hide");
+
+        // Cadangan jika CSS transisi tidak berjalan.
+        setTimeout(function () {
+          if (intro && intro.parentNode) {
+            intro.style.display = "none";
+          }
+        }, 700);
+      }
+
+      function initPage() {
+        var year = document.getElementById("currentYear");
+        var loadingText = document.getElementById("loadingText");
+
+        if (year) {
+          year.textContent = new Date().getFullYear();
+        }
+
+        if (loadingText) {
+          setTimeout(function () {
+            loadingText.textContent = "WELCOME TO VEXORA.";
+          }, 900);
+        }
+
+        // Waktu normal.
+        setTimeout(hideIntro, 2200);
+
+        // Batas cadangan.
+        setTimeout(hideIntro, 3500);
+      }
+
+      // Jalankan tanpa menunggu Supabase atau auth.js.
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initPage);
+      } else {
+        initPage();
+      }
+
+      // Pengaman tambahan bila event halaman terlambat.
+      setTimeout(hideIntro, 5000);
+    })();
+  </script>
+</body>
+</html>
