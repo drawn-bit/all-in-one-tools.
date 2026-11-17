@@ -361,6 +361,18 @@
   cursor: pointer;
   }  
 </style>
+<style>
+.users-wrap{overflow-x:auto;border:1px solid #23334e;border-radius:11px;margin-top:12px}
+.users-table{width:100%;min-width:760px;border-collapse:collapse;font-size:11px}
+.users-table th,.users-table td{text-align:left;padding:12px;border-bottom:1px solid #23334e;vertical-align:middle;overflow-wrap:anywhere}
+.users-table th{color:#9bb3d4;background:#111e33;white-space:nowrap}
+.users-table tr:last-child td{border-bottom:0}
+.users-table button{width:auto;margin:0;padding:8px 11px}
+.u-badge{display:inline-block;padding:4px 9px;border-radius:30px;font-size:10px;font-weight:800;white-space:nowrap}
+.u-owner{background:#102b40;color:#5fe4ff}.u-member{background:#173a2b;color:#69e8a5}
+.u-ok{background:#173a2b;color:#69e8a5}.u-ban{background:#3d1520;color:#ff778b}
+.u-danger{border-color:#7a2a3a!important;background:#2a1019!important;color:#ff9caa!important}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -435,7 +447,25 @@
     </div>
     <div class="owner-section">
       <h3>Manajemen Akun</h3>
-      <p class="owner-help">Akun pengguna sekarang dikelola di Firebase Console → Authentication (lihat, nonaktifkan, atau hapus akun di sana).</p>
+      <p class="owner-help">Daftar akun terdaftar. Password tidak bisa dilihat siapa pun (Firebase hanya menyimpan hash).</p>
+      <div class="owner-stat-grid">
+        <div class="owner-stat"><span>Total Akun</span><strong id="usersTotal">—</strong></div>
+        <div class="owner-stat"><span>Owner</span><strong id="usersOwner">—</strong></div>
+        <div class="owner-stat"><span>Member</span><strong id="usersMember">—</strong></div>
+        <div class="owner-stat"><span>Diblokir</span><strong id="usersBanned">—</strong></div>
+      </div>
+      <div class="owner-inline-actions">
+        <input class="search" id="usersSearch" type="search" placeholder="Cari email...">
+        <button type="button" class="tool-open" id="usersRefresh">Muat Ulang</button>
+      </div>
+      <p class="owner-status" id="usersStatus" aria-live="polite">Menunggu data akun...</p>
+      <div class="users-wrap">
+        <table class="users-table">
+          <thead><tr><th>Email</th><th>Role</th><th>Terdaftar</th><th>Login Terakhir</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="6">Memuat daftar akun...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="owner-inline-actions" id="usersPager" hidden></div>
     </div>
     <div class="owner-section">
       <h3>Manajemen Tools</h3><p class="owner-help">Tambah tools baru dengan upload ZIP + nama + icon, atau edit dan hapus tools yang sudah ada.</p>
@@ -512,8 +542,9 @@
 <script src="tool-runner.js"></script>
 <script src="dashboard.js"></script>
 <script src="owner-panel.js"></script>
+<script src="owner-users.js"></script>
 <script src="vexora-extras.js"></script>
 <!-- vexora-owner-extras.js (maintenance/pengumuman) dimatikan: butuh Edge Function Supabase yang tidak terhubung ke login Firebase. -->
 </body>
-</html>
-
+  </html>
+                                                                                                                       
