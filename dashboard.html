@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080d1b">
+<meta name="theme-color" content="#050a17">
 <title>VEXORA — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#080d1b;--panel:#10192b;--panel2:#131f35;--line:#23334e;--text:#f4f7ff;--muted:#91a2bd;--blue:#3985ff;--cyan:#38d9ff;--green:#25d366}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#10203a 0,transparent 38%),var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.layout{min-height:100vh}.sidebar{width:240px;background:#0b1221;border-right:1px solid var(--line);padding:22px 15px;position:fixed;inset:0 auto 0 0;z-index:10;display:flex;flex-direction:column}.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 25px}.logo{width:43px;height:43px;flex-shrink:0}.brand-name{font-size:21px;font-weight:900;letter-spacing:2px}.brand-sub{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1.7px}.nav-label{font-size:10px;color:#7285a3;font-weight:800;letter-spacing:1.8px;padding:13px 12px 9px}.sidebar nav{display:flex;flex-direction:column}.nav{display:flex;align-items:center;gap:12px;padding:12px;border-radius:11px;color:#a9b8ce;margin:3px 0;font-size:13px;font-weight:600;border:1px solid transparent;cursor:pointer}.nav[hidden]{display:none!important}.nav:hover,.nav.active{color:white;background:#172744;border-color:#243d64}.nav.active .nav-icon{color:var(--cyan)}.nav-icon{width:20px;text-align:center;font-size:17px}.sidebar-bottom{margin-top:auto}.dev-credit{font-size:10px;letter-spacing:1.2px;color:#8da1c0;text-align:center;padding:16px 0 5px;border-top:1px solid var(--line)}.dev-credit b{display:block;color:#53cfff;margin-top:6px;font-size:12px}.main{width:calc(100% - 240px);margin-left:240px;padding:25px 30px 50px;max-width:1700px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px}.greeting small{color:var(--muted);font-size:12px}.greeting h1{font-size:25px;margin:7px 0 0;font-weight:800;overflow-wrap:anywhere}.top-actions{display:flex;align-items:center;gap:12px}.status{border:1px solid #24523e;background:#10291f;color:#6df0aa;border-radius:30px;padding:9px 12px;font-size:11px}.avatar{width:41px;height:41px;border-radius:50%;background:#080a0f;border:1px solid #33435d;display:grid;place-items:center;overflow:hidden}.avatar svg{width:28px;height:28px}.menu-wrap{position:relative}.dots{width:41px;height:41px;border:1px solid var(--line);background:var(--panel);color:white;border-radius:12px;font-size:24px}.dropdown{display:none;position:absolute;right:0;top:49px;z-index:30;width:190px;background:#121d31;border:1px solid var(--line);border-radius:12px;padding:7px;box-shadow:0 15px 40px #0008}.dropdown.open{display:block}.dropdown button{display:block;width:100%;text-align:left;padding:11px;border:0;background:none;color:#d9e5f8;border-radius:8px;font-size:12px}.dropdown button:hover{background:#20314d}.page{display:none}.page.active{display:block}.hero{position:relative;overflow:hidden;border:1px solid #25466c;border-radius:19px;background:linear-gradient(120deg,#10294b,#12213b 55%,#10162a);margin-bottom:25px;min-height:205px}.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#081329ef,#081329a8 58%,#08132933);pointer-events:none}.hero-content{position:relative;z-index:2;padding:28px;max-width:620px}.eyebrow{font-size:10px;letter-spacing:2px;font-weight:800;color:var(--cyan)}.hero h2{font-size:clamp(23px,3vw,34px);line-height:1.2;margin:12px 0}.hero p{font-size:12px;line-height:1.8;color:#c0cee4;max-width:480px}.hero-controls{position:absolute;right:13px;bottom:13px;z-index:4;display:flex;gap:8px}.small-btn{background:#081326d9;color:white;border:1px solid #ffffff35;padding:9px 11px;border-radius:9px;font-size:11px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:25px}.stat{padding:17px;background:var(--panel);border:1px solid var(--line);border-radius:14px}.stat-label{font-size:11px;color:var(--muted)}.stat-value{font-size:21px;font-weight:800;margin-top:9px}.stat-note{font-size:10px;color:#61caff;margin-top:6px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 14px}.section-head h2{font-size:17px;margin:0}.section-head p{font-size:11px;color:var(--muted);margin:6px 0 0}.pill{font-size:10px;padding:6px 9px;border-radius:30px;font-weight:800;white-space:nowrap}.pill.free{background:#173a2b;color:#69e8a5}.pill.vip{background:#3b2c12;color:#ffd46c}.tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.tool-card{background:linear-gradient(145deg,#111d31,#0d1525);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}.tool-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.tool-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#1a3152;color:#68cfff;font-size:20px}.tool-card h3{font-size:13px;margin:14px 0 7px}.tool-card p{font-size:11px;line-height:1.7;color:var(--muted);min-height:34px;margin:0}.tool-open{margin-top:15px;width:100%;border:1px solid #2c4b73;background:#172a47;color:#e9f5ff;padding:10px;border-radius:9px;font-size:11px;font-weight:700}.tool-open:hover{background:#21436d}.tool-open:disabled{opacity:.55;cursor:not-allowed}.tool-open.locked{border-color:#65512a;background:#282215;color:#ffd779}.vip-box{padding:18px;border:1px solid #594622;background:linear-gradient(130deg,#211d17,#141827);border-radius:15px;margin-top:16px}.vip-box h3{margin:0 0 8px;font-size:14px}.vip-box p{color:#b8b9c2;font-size:11px;line-height:1.7;margin:0 0 14px}.primary-btn{display:inline-block;border:0;background:linear-gradient(100deg,#2875f5,#28b6ec);color:white;border-radius:9px;padding:11px 15px;font-size:11px;font-weight:800}.contacts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:15px}.contact{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);padding:15px;border-radius:14px;min-width:0}.contact-icon{width:39px;height:39px;flex-shrink:0;display:grid;place-items:center;border-radius:12px;background:#172843;font-size:19px}.contact-icon svg{width:23px;height:23px}.contact strong{font-size:11px;display:block}.contact span{display:block;color:var(--muted);font-size:10px;margin-top:5px;line-height:1.5}.contact:hover{border-color:#4279bb}.profile-box,.settings-box,.updates-box,.owner-box{padding:22px;border:1px solid var(--line);background:linear-gradient(145deg,#101b30,#0b1323);border-radius:15px;overflow:hidden}.profile-box h2,.settings-box h2,.updates-box h2,.owner-box h2{margin-top:0}.profile-box p,.settings-box p,.updates-box p,.owner-box p{font-size:12px;color:var(--muted);line-height:1.8}.search{width:100%;padding:13px 15px;background:var(--panel);color:white;border:1px solid var(--line);border-radius:11px;outline:none;margin:3px 0 12px}.search:focus{border-color:var(--blue)}.notice{display:none;margin-top:12px;padding:12px;background:#152742;border:1px solid #294c79;border-radius:10px;color:#d4eaff;font-size:12px;line-height:1.6}.notice.show{display:block}.owner-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}.owner-heading h2{margin:0;font-size:22px}.owner-tag{color:#5fe4ff;background:#102b40;border:1px solid #24516c;padding:7px 11px;border-radius:30px;font-size:10px;font-weight:800}.owner-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 25px}.owner-stat{padding:15px;border-radius:12px;background:#0b1425;border:1px solid #223653;min-width:0}.owner-stat span{display:block;color:#91a2bd;font-size:10px}.owner-stat strong{display:block;margin-top:9px;font-size:23px;overflow-wrap:anywhere}.owner-section{margin-top:28px}.owner-section h3{font-size:15px;margin-bottom:8px}.owner-help,.owner-status{color:#91a2bd;font-size:11px;line-height:1.7}.owner-table-wrap{overflow-x:auto;border:1px solid #23334e;border-radius:11px;margin-top:12px}.owner-table{width:100%;min-width:650px;border-collapse:collapse;font-size:11px}.owner-table th,.owner-table td{text-align:left;padding:12px;border-bottom:1px solid #23334e;vertical-align:middle}.owner-table th{color:#9bb3d4;background:#111e33;white-space:nowrap}.owner-table td{overflow-wrap:anywhere}.owner-table tr:last-child td{border-bottom:0}.owner-table select,.owner-form input,.owner-form select,.owner-form textarea{width:100%;min-width:100px;padding:10px;color:#f4f7ff;background:#091326;border:1px solid #2a3d5b;border-radius:8px;outline:none}.owner-table button{width:auto;margin:5px 4px 5px 0;padding:9px 11px}.owner-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}.owner-field{min-width:0}.owner-field label{display:block;margin-bottom:7px;color:#a9bad3;font-size:11px}.owner-field.full{grid-column:1/-1}.owner-form textarea{min-height:85px;resize:vertical}.owner-form-actions{display:flex;gap:8px;flex-wrap:wrap;grid-column:1/-1}.owner-form-actions button{width:auto;margin-top:0}.owner-inline-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.owner-inline-actions .search{flex:1;min-width:150px;margin:0}.footer{text-align:center;color:#7487a5;font-size:10px;padding:35px 0 0}
@@ -373,6 +373,225 @@
 .u-ok{background:#173a2b;color:#69e8a5}.u-ban{background:#3d1520;color:#ff778b}
 .u-danger{border-color:#7a2a3a!important;background:#2a1019!important;color:#ff9caa!important}
 </style>
+<style>
+/* =========================================================
+   VEXORA — Nexus redesign (tetap biru)
+   Ditaruh paling akhir supaya menimpa style lama.
+   ========================================================= */
+:root{
+  --nx-bg:#050a17;
+  --nx-card:rgba(10,20,44,.78);
+  --nx-line:rgba(96,150,255,.2);
+  --nx-blue:#3b82f6;
+  --nx-sky:#38bdf8;
+  --nx-text:#eef4ff;
+  --nx-mute:#8da2c8;
+  --nx-display:"Space Grotesk",Inter,Arial,sans-serif;
+}
+body{
+  background:
+    radial-gradient(ellipse at 50% -8%,rgba(37,99,235,.28),transparent 52%),
+    radial-gradient(ellipse at 100% 60%,rgba(56,189,248,.08),transparent 40%),
+    var(--nx-bg);
+  color:var(--nx-text);
+}
+.sidebar{background:#060d1f;border-right-color:var(--nx-line)}
+.nav:hover,.nav.active{background:rgba(59,130,246,.16);border-color:rgba(96,150,255,.35)}
+.nav.active .nav-icon{color:var(--nx-sky)}
+
+/* ---------- Topbar ---------- */
+.topbar{align-items:center;gap:10px;margin-bottom:16px}
+.nx-info-wrap{position:relative;min-width:0}
+.nx-info{
+  display:flex;align-items:center;gap:11px;min-width:0;
+  padding:7px 14px 7px 8px;border-radius:16px;
+  background:var(--nx-card);border:1px solid var(--nx-line);color:var(--nx-text);text-align:left;
+}
+.nx-info-ico{
+  width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:12px;
+  background:linear-gradient(145deg,#1e4fbf,#0f2a63);color:#bfe0ff;
+}
+.nx-info-ico svg{width:20px;height:20px}
+.nx-info-txt{min-width:0;line-height:1.25}
+.nx-info-txt b{display:block;font-family:var(--nx-display);font-size:14px;font-weight:600}
+.nx-info-txt small{display:block;color:var(--nx-mute);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nx-pop{
+  display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:40;width:230px;padding:7px;
+  background:#0b1630;border:1px solid var(--nx-line);border-radius:14px;box-shadow:0 18px 44px #000a;
+}
+.nx-pop.open{display:block}
+.nx-pop a{display:block;padding:11px 12px;border-radius:9px;font-size:13px;color:#d6e4ff}
+.nx-pop a small{display:block;color:var(--nx-mute);font-size:11px;margin-top:2px}
+.nx-pop a:hover,.nx-pop a:focus-visible{background:rgba(59,130,246,.2);outline:none}
+
+.nx-music{
+  display:flex;align-items:center;gap:6px;padding:5px 6px 5px 14px;border-radius:999px;
+  background:var(--nx-card);border:1px solid var(--nx-line);margin-left:auto;
+}
+.nx-eq{display:flex;align-items:flex-end;gap:3px;height:18px;margin-right:6px}
+.nx-eq i{width:3px;height:30%;border-radius:2px;background:var(--nx-sky);transition:height .2s}
+.nx-eq.on i{animation:nxEq 1s ease-in-out infinite}
+.nx-eq.on i:nth-child(2){animation-delay:-.3s}
+.nx-eq.on i:nth-child(3){animation-delay:-.6s}
+.nx-eq.on i:nth-child(4){animation-delay:-.15s}
+@keyframes nxEq{0%,100%{height:25%}50%{height:100%}}
+.nx-music button,.nx-ham{
+  width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:50%;
+  background:rgba(59,130,246,.18);color:#cfe3ff;
+}
+.nx-music button:hover,.nx-ham:hover{background:rgba(59,130,246,.34)}
+.nx-music svg,.nx-ham svg{width:18px;height:18px}
+.nx-ham{border-radius:14px;width:44px;height:44px;border:1px solid var(--nx-line);background:var(--nx-card)}
+.nx-ham svg{width:22px;height:22px}
+.nx-music button:focus-visible,.nx-ham:focus-visible,.nx-info:focus-visible,.nx-chip:focus-visible,.tool-open:focus-visible{
+  outline:2px solid var(--nx-sky);outline-offset:2px;
+}
+
+/* ---------- Hero ---------- */
+.nx-hero{
+  position:relative;overflow:hidden;height:clamp(240px,40vw,360px);
+  border-radius:26px;border:1px solid var(--nx-line);
+  background:linear-gradient(135deg,#123a8a,#0a1a44 60%,#050a17);
+}
+.nx-hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.nx-hero::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(5,10,23,0) 25%,rgba(5,10,23,.55) 62%,var(--nx-bg) 100%);
+}
+.nx-hero::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(120deg,rgba(37,99,235,.28),transparent 55%);mix-blend-mode:screen;
+}
+.nx-hero-text{position:absolute;z-index:2;left:22px;bottom:52px}
+.nx-hero-text h2{
+  margin:0;font-family:var(--nx-display);font-weight:700;letter-spacing:.14em;
+  font-size:clamp(30px,6vw,48px);line-height:1;
+  background:linear-gradient(100deg,#ffffff,#9fd2ff 60%,#4fb4ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.nx-hero-text p{margin:8px 0 0;color:#b9cdf0;font-size:12px;letter-spacing:.18em}
+
+/* ---------- Kartu info akun ---------- */
+.nx-profile{
+  position:relative;z-index:3;margin:-38px 8px 0;padding:16px;border-radius:22px;
+  background:var(--nx-card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--nx-line);
+  display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;
+}
+.nx-avatar{
+  width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(145deg,#3b82f6,#1d4ed8);box-shadow:0 8px 24px rgba(37,99,235,.4);
+}
+.nx-avatar svg{width:30px;height:30px}
+.nx-who{min-width:0}
+.nx-who small{display:block;color:var(--nx-mute);font-size:11px}
+.nx-who h1{
+  margin:4px 0 0;font-family:var(--nx-display);font-size:19px;font-weight:600;
+  overflow-wrap:anywhere;line-height:1.25;
+}
+.nx-meta{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin:0;padding:14px 0 2px;border-top:1px solid var(--nx-line)}
+.nx-meta div{min-width:0}
+.nx-meta dt{color:var(--nx-mute);font-size:11px}
+.nx-meta dd{margin:3px 0 0;font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.nx-meta dd.on::before,.nx-meta dd.off::before{
+  content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px;
+}
+.nx-meta dd.on{color:#6df0aa}.nx-meta dd.on::before{background:#34d399;box-shadow:0 0 8px #34d399}
+.nx-meta dd.off{color:#ff9caa}.nx-meta dd.off::before{background:#fb7185}
+.nx-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.nx-chipinfo{
+  display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;
+  border:1px solid var(--nx-line);background:rgba(59,130,246,.1);font-size:12px;font-weight:600;color:#cfe3ff;
+}
+.nx-chipinfo b{color:#fff}
+.nx-vip{
+  flex:1 1 140px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 15px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;
+  background:linear-gradient(100deg,#2563eb,#38bdf8);box-shadow:0 8px 22px rgba(37,99,235,.35);
+}
+.nx-vip svg{width:16px;height:16px}
+
+/* ---------- Chip kategori ---------- */
+.nx-chips{
+  display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 6px;margin:22px 0 8px;
+  -webkit-overflow-scrolling:touch;
+}
+.nx-chips::-webkit-scrollbar{display:none}
+.nx-chip{
+  flex:none;display:flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;
+  border:1px solid var(--nx-line);background:var(--nx-card);color:var(--nx-mute);font-size:13px;font-weight:700;
+}
+.nx-chip svg{width:17px;height:17px}
+.nx-chip em{font-style:normal;font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.1)}
+.nx-chip[aria-pressed="true"]{
+  color:#fff;border-color:transparent;background:linear-gradient(120deg,#2563eb,#38bdf8);
+  box-shadow:0 8px 22px rgba(37,99,235,.35);
+}
+.nx-sec[hidden]{display:none!important}
+
+/* ---------- Judul seksi di menu ---------- */
+#page-menu .section-head{margin:24px 0 14px}
+#page-menu .section-head h2{font-family:var(--nx-display);font-size:19px;font-weight:600}
+#page-menu .section-head p{color:var(--nx-mute)}
+
+/* ---------- Kartu tools ---------- */
+.tool-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:12px}
+@media(min-width:760px){.tool-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}}
+.tool-grid .tool-card{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:20px 12px 14px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(24,46,96,.5),rgba(7,14,32,.85));
+  border:1px solid var(--nx-line);
+}
+.tool-grid .tool-card:hover{border-color:rgba(96,165,250,.55)}
+.tool-grid .tool-top{display:contents}
+.tool-grid .tool-icon{
+  order:1;width:54px;height:54px;border-radius:17px;overflow:hidden;font-size:22px;color:#8ccbff;
+  background:linear-gradient(145deg,#1e449b,#0e2150);
+  box-shadow:0 10px 26px rgba(37,99,235,.28),inset 0 0 0 1px rgba(130,180,255,.25);
+}
+.tool-grid .tool-card h3{order:2;margin:14px 0 6px;font-family:var(--nx-display);font-size:14px;font-weight:600}
+.tool-grid .tool-card p{order:3;flex:1;min-height:0;margin:0 0 12px;font-size:11.5px;color:var(--nx-mute)}
+.tool-grid .tool-top .pill{order:4;margin-bottom:12px}
+.tool-grid .tool-open{
+  order:5;width:100%;padding:10px;border-radius:13px;font-size:12px;font-weight:700;
+  background:rgba(59,130,246,.15);border:1px solid rgba(96,165,250,.38);color:#d4e6ff;
+}
+.tool-grid .tool-open:hover:not(:disabled){background:rgba(59,130,246,.32)}
+.tool-grid .tool-open.locked{background:rgba(99,102,241,.16);border-color:rgba(129,140,248,.45);color:#c7d2fe}
+.pill.free{background:rgba(56,189,248,.14);color:#7dd3fc}
+.pill.vip{background:rgba(129,140,248,.18);color:#c7d2fe}
+
+/* ---------- Kotak VIP & kontak (tetap biru) ---------- */
+.vip-box{
+  border:1px solid rgba(129,140,248,.4);margin-top:18px;border-radius:20px;
+  background:linear-gradient(130deg,rgba(49,46,129,.5),rgba(10,20,44,.9));
+}
+.vip-box p{color:#b7c3e6}
+.contact{border-radius:18px;background:var(--nx-card);border-color:var(--nx-line)}
+.contact-icon{background:rgba(59,130,246,.2);color:#9fd0ff}
+.contact:hover{border-color:rgba(96,165,250,.6)}
+
+/* Info akun lama dari vexora-extras tidak dipakai lagi di Menu */
+#vxMenuDeviceCard{display:none!important}
+
+/* ---------- Desktop lebar ---------- */
+@media(min-width:960px){
+  .nx-profile{grid-template-columns:auto minmax(170px,1fr) 2.2fr auto;margin:-44px 18px 0;padding:18px 22px}
+  .nx-meta{grid-column:auto;grid-template-columns:repeat(4,1fr);border-top:0;padding:0}
+  .nx-row{grid-column:auto;flex-wrap:nowrap}
+}
+@media(max-width:700px){
+  .nx-info-txt small{display:none}
+  .nx-hero{border-radius:22px}
+  .nx-hero-text{left:18px}
+}
+@media(max-width:380px){
+  .nx-eq{display:none}
+  .nx-music{padding-left:6px}
+}
+@media(prefers-reduced-motion:reduce){.nx-eq.on i{animation:none;height:70%}}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -395,34 +614,73 @@
 </aside>
 <main class="main">
 <header class="topbar">
-  <div class="greeting"><small id="dateText">VEXORA PLATFORM</small><h1 id="greetingText">Welcome back!</h1></div>
-  <div class="top-actions">
-    <span class="status">● SYSTEM ONLINE</span>
-    <div class="avatar" title="Default profile avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="13" r="8" fill="#8b929d"/><path d="M5 38c0-10 6-16 15-16s15 6 15 16" fill="#8b929d"/></svg></div>
-    <div class="menu-wrap"><button class="dots" id="dotsBtn" aria-label="Open menu">⋮</button><div class="dropdown" id="dropdown"><button data-go="profile">◉ &nbsp; Profile</button><button data-go="settings">⚙ &nbsp; Settings</button><button data-go="updates">◷ &nbsp; Updates</button><button id="dropdownLogout">⇥ &nbsp; Logout</button></div></div>
+  <div class="nx-info-wrap">
+    <button class="nx-info" id="nxInfoBtn" type="button" aria-expanded="false" aria-controls="nxInfoMenu">
+      <span class="nx-info-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg></span>
+      <span class="nx-info-txt"><b>Menu Informasi</b><small>Developer, lapor bug, saluran</small></span>
+    </button>
+    <div class="nx-pop" id="nxInfoMenu">
+      <a target="_blank" rel="noopener" href="https://www.tiktok.com/@z4m.offical">Tentang Developer<small>Z4M OFFICIAL di TikTok</small></a>
+      <a target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20lapor%20bug%20di%20VEXORA.">Lapor Bug<small>Chat admin lewat WhatsApp</small></a>
+      <a target="_blank" rel="noopener" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O">Saluran WhatsApp<small>Update dan info terbaru</small></a>
+    </div>
+  </div>
+
+  <div class="nx-music" role="group" aria-label="Kontrol video banner">
+    <span class="nx-eq" id="nxEq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <button id="nxMute" type="button" aria-label="Nyalakan suara"></button>
+    <button id="nxPlay" type="button" aria-label="Jeda video"></button>
+  </div>
+
+  <div class="menu-wrap">
+    <button class="nx-ham" id="dotsBtn" type="button" aria-label="Buka menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div class="dropdown" id="dropdown"><button data-go="profile">◉ &nbsp; Profile</button><button data-go="settings">⚙ &nbsp; Settings</button><button data-go="updates">◷ &nbsp; Updates</button><button id="dropdownLogout">⇥ &nbsp; Logout</button></div>
   </div>
 </header>
 
 <section class="page active" id="page-menu">
-  <section class="hero">
+  <section class="nx-hero">
     <video id="bannerVideo" autoplay muted loop playsinline preload="metadata"><source src="banner.mp4" type="video/mp4"></video>
-    <div class="hero-content"><div class="eyebrow">WELCOME TO VEXORA</div><h2>All Your Tools.<br>One Platform.</h2><p>Platform tools digital dengan tampilan modern. Pilih tools yang tersedia dan jelajahi fitur VEXORA.</p></div>
-    <div class="hero-controls"><button class="small-btn" id="playVideo">Ⅱ Pause</button><button class="small-btn" id="muteVideo">♩ Unmute</button></div>
+    <div class="nx-hero-text"><h2>VEXORA</h2><p>by Z4M OFFICIAL</p></div>
   </section>
-  <div class="stats">
-    <div class="stat"><div class="stat-label">YOUR ROLE</div><div class="stat-value" id="roleValue">FREE</div><div class="stat-note">Account access level</div></div>
-    <div class="stat"><div class="stat-label">AVAILABLE FREE TOOLS</div><div class="stat-value" id="freeCount">0</div><div class="stat-note">Tools for everyone</div></div>
-    <div class="stat"><div class="stat-label">VIP TOOLS</div><div class="stat-value" id="vipCount">0</div><div class="stat-note">Premium access</div></div>
+
+  <section class="nx-profile" aria-label="Info akun">
+    <div class="nx-avatar"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="13" r="8" fill="#eaf3ff"/><path d="M5 38c0-10 6-16 15-16s15 6 15 16" fill="#eaf3ff"/></svg></div>
+    <div class="nx-who"><small id="dateText">VEXORA PLATFORM</small><h1 id="greetingText">Welcome back!</h1></div>
+    <dl class="nx-meta">
+      <div><dt>Bahasa</dt><dd id="nxLang">–</dd></div>
+      <div><dt>Perangkat</dt><dd id="nxDevice">–</dd></div>
+      <div><dt>Browser</dt><dd id="nxBrowser">–</dd></div>
+      <div><dt>Status</dt><dd id="nxStatus" class="on">Online</dd></div>
+    </dl>
+    <div class="nx-row">
+      <span class="nx-chipinfo" id="nxBatteryChip" hidden>Baterai <b id="nxBattery">–</b></span>
+      <span class="nx-chipinfo">Role <b id="roleValue">FREE</b></span>
+      <a class="nx-vip" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP."><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>Upgrade VIP</a>
+    </div>
+  </section>
+
+  <nav class="nx-chips" id="nxChips" aria-label="Filter tools">
+    <button class="nx-chip" type="button" data-filter="all" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Semua</button>
+    <button class="nx-chip" type="button" data-filter="free" aria-pressed="false">Gratis <em id="freeCount">0</em></button>
+    <button class="nx-chip" type="button" data-filter="vip" aria-pressed="false">VIP <em id="vipCount">0</em></button>
+  </nav>
+
+  <div class="nx-sec" id="nxFree">
+    <div class="section-head"><div><h2>Tools gratis</h2><p>Bisa dipakai semua pengguna.</p></div><span class="pill free">FREE</span></div>
+    <div class="tool-grid" id="freeGrid"></div>
   </div>
-  <div class="section-head"><div><h2>FREE TOOLS</h2><p>Tools yang tersedia untuk semua pengguna.</p></div><span class="pill free">FREE ACCESS</span></div>
-  <div class="tool-grid" id="freeGrid"></div>
-  <div class="vip-box"><h3>✦ Upgrade ke VIP</h3><p>Buka akses VIP melalui admin. Hubungi WhatsApp untuk menanyakan paket dan harga terbaru.</p><a class="primary-btn" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">CHAT ADMIN WHATSAPP ↗</a></div>
-  <div class="section-head"><div><h2>VIP TOOLS</h2><p>Bagian VIP terpisah dari tools gratis.</p></div><span class="pill vip">✦ VIP ONLY</span></div>
-  <div class="tool-grid" id="vipGrid"></div>
-  <div class="section-head"><div><h2>CONNECT WITH US</h2><p>Ikuti kanal resmi VEXORA.</p></div></div>
+
+  <div class="nx-sec" id="nxVip">
+    <div class="vip-box"><h3>✦ Upgrade ke VIP</h3><p>Buka akses VIP lewat admin. Hubungi WhatsApp untuk tanya paket dan harga terbaru.</p><a class="primary-btn" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP.">Chat admin WhatsApp ↗</a></div>
+    <div class="section-head"><div><h2>Tools VIP</h2><p>Khusus akun VIP.</p></div><span class="pill vip">✦ VIP</span></div>
+    <div class="tool-grid" id="vipGrid"></div>
+  </div>
+
+  <div class="section-head"><div><h2>Hubungi kami</h2><p>Kanal resmi VEXORA.</p></div></div>
   <div class="contacts">
-    <a class="contact" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP."><div class="contact-icon">◉</div><div><strong>WhatsApp Admin</strong><span>Mau up role ke VIP? Chat WhatsApp.</span></div></a>
-    <a class="contact" target="_blank" rel="noopener" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O"><div class="contact-icon">◉</div><div><strong>WhatsApp Channel</strong><span>Gabung untuk update dan informasi terbaru.</span></div></a>
+    <a class="contact" target="_blank" rel="noopener" href="https://wa.me/6289682380778?text=Halo%2C%20saya%20mau%20upgrade%20role%20ke%20VIP."><div class="contact-icon">◉</div><div><strong>WhatsApp Admin</strong><span>Mau naik role ke VIP? Chat admin.</span></div></a>
+    <a class="contact" target="_blank" rel="noopener" href="https://whatsapp.com/channel/0029Vb74WeWL7UVUjEQj8h2O"><div class="contact-icon">◉</div><div><strong>WhatsApp Channel</strong><span>Gabung untuk update dan info terbaru.</span></div></a>
     <a class="contact" target="_blank" rel="noopener" href="https://www.tiktok.com/@z4m.offical"><div class="contact-icon">♪</div><div><strong>TikTok @z4m.offical</strong><span>Follow untuk konten dan update VEXORA.</span></div></a>
   </div>
 </section>
@@ -546,6 +804,113 @@
 <script src="owner-users.js"></script>
 <script src="vexora-extras.js"></script>
 <!-- vexora-owner-extras.js (maintenance/pengumuman) dimatikan: butuh Edge Function Supabase yang tidak terhubung ke login Firebase. -->
+<script>
+/* VEXORA — Nexus UI (tidak mengubah dashboard.js) */
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+
+  const ICON = {
+    volOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>',
+    volOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="m16 9.5 5 5m0-5-5 5"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.8v14.4a1 1 0 0 0 1.5.86l11.7-7.2a1 1 0 0 0 0-1.72L8.5 3.94A1 1 0 0 0 7 4.8z"/></svg>'
+  };
+
+  /* ---- Kontrol video banner ---- */
+  const video = $('bannerVideo');
+  const playBtn = $('nxPlay');
+  const muteBtn = $('nxMute');
+  const eq = $('nxEq');
+
+  function syncMedia() {
+    if (!video) return;
+    const playing = !video.paused;
+    playBtn.innerHTML = playing ? ICON.pause : ICON.play;
+    playBtn.setAttribute('aria-label', playing ? 'Jeda video' : 'Putar video');
+    muteBtn.innerHTML = video.muted ? ICON.volOff : ICON.volOn;
+    muteBtn.setAttribute('aria-label', video.muted ? 'Nyalakan suara' : 'Matikan suara');
+    eq.classList.toggle('on', playing && !video.muted);
+  }
+
+  if (video) {
+    playBtn.addEventListener('click', async () => {
+      try { video.paused ? await video.play() : video.pause(); }
+      catch (e) { console.warn('Video tidak dapat diputar:', e); }
+      syncMedia();
+    });
+    muteBtn.addEventListener('click', () => { video.muted = !video.muted; syncMedia(); });
+    ['play', 'pause', 'volumechange'].forEach((ev) => video.addEventListener(ev, syncMedia));
+  }
+  syncMedia();
+
+  /* ---- Popover Menu Informasi ---- */
+  const infoBtn = $('nxInfoBtn');
+  const infoMenu = $('nxInfoMenu');
+  function setInfo(open) {
+    infoMenu.classList.toggle('open', open);
+    infoBtn.setAttribute('aria-expanded', String(open));
+  }
+  infoBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setInfo(!infoMenu.classList.contains('open'));
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nx-info-wrap')) setInfo(false);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setInfo(false); });
+
+  /* ---- Info perangkat ---- */
+  const ua = navigator.userAgent || '';
+  const device =
+    /Android/i.test(ua) ? 'Android' :
+    /iPhone|iPad|iPod/i.test(ua) ? 'iOS' :
+    /Windows/i.test(ua) ? 'Windows' :
+    /Mac OS X|Macintosh/i.test(ua) ? 'macOS' :
+    /CrOS/i.test(ua) ? 'ChromeOS' :
+    /Linux/i.test(ua) ? 'Linux' : 'Tidak diketahui';
+  const browser =
+    /Edg\//i.test(ua) ? 'Edge' :
+    /OPR\/|Opera/i.test(ua) ? 'Opera' :
+    /SamsungBrowser/i.test(ua) ? 'Samsung Internet' :
+    /Firefox|FxiOS/i.test(ua) ? 'Firefox' :
+    /Chrome|CriOS/i.test(ua) ? 'Chrome' :
+    /Safari/i.test(ua) ? 'Safari' : 'Tidak diketahui';
+  $('nxDevice').textContent = device;
+  $('nxBrowser').textContent = browser;
+  $('nxLang').textContent = navigator.language || '–';
+
+  function syncOnline() {
+    const on = navigator.onLine;
+    const el = $('nxStatus');
+    el.textContent = on ? 'Online' : 'Offline';
+    el.className = on ? 'on' : 'off';
+  }
+  window.addEventListener('online', syncOnline);
+  window.addEventListener('offline', syncOnline);
+  syncOnline();
+
+  if (navigator.getBattery) {
+    navigator.getBattery().then((b) => {
+      const draw = () => { $('nxBattery').textContent = Math.round(b.level * 100) + '%'; };
+      draw();
+      b.addEventListener('levelchange', draw);
+      $('nxBatteryChip').hidden = false;
+    }).catch(() => {});
+  }
+
+  /* ---- Chip kategori ---- */
+  const chips = document.querySelectorAll('.nx-chip');
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const f = chip.dataset.filter;
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      $('nxFree').hidden = f === 'vip';
+      $('nxVip').hidden = f === 'free';
+    });
+  });
+})();
+</script>
 </body>
 </html>
 
