@@ -252,6 +252,16 @@
 
   let typeFilter = 'all';
 
+  const ICON_GRID = '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
+  const ICON_CROWN = '<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>';
+
+  // Seluruh kartu bisa diklik (tombol di dalamnya disembunyikan oleh CSS)
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.tool-grid .tool-card');
+    if (!card || e.target.closest('.tool-open')) return;
+    card.querySelector('.tool-open:not(:disabled)')?.click();
+  });
+
   function drawTypeTabs() {
     const box = $('typeTabs');
     if (!box) return;
@@ -260,7 +270,7 @@
     if (typeFilter !== 'all' && !counts[typeFilter]) typeFilter = 'all';
     const items = [['all', 'ALL', tools.length], ...Object.keys(counts).sort().map((k) => [k, k, counts[k]])];
     box.innerHTML = items.map(([k, label, n]) =>
-      `<button class="ty-tab" type="button" data-type="${safeText(k)}" aria-pressed="${k === typeFilter}">${safeText(label)} <em>${n}</em></button>`
+      `<button class="ty-tab" type="button" data-type="${safeText(k)}" aria-pressed="${k === typeFilter}">${k === 'all' ? ICON_GRID : ''}${safeText(label)} <em>${n}</em></button>`
     ).join('');
     box.querySelectorAll('.ty-tab').forEach((b) => {
       b.addEventListener('click', () => { typeFilter = b.dataset.type; renderTools(); });
@@ -292,8 +302,8 @@
       ? `<img src="${safeText(iconUrl)}" alt="" loading="lazy" ` +
         'style="width:100%;height:100%;object-fit:contain">'
       : category === 'vip'
-        ? '✦'
-        : '▦';
+        ? ICON_CROWN
+        : ICON_GRID;
 
     let action;
 
@@ -318,7 +328,7 @@
     }
 
     return `
-      <article class="tool-card">
+      <article class="tool-card${locked ? ' locked' : ''}">
         <div class="tool-top">
           <div class="tool-icon"${iconHtml.startsWith('<img') ? ' style="background:transparent"' : ''}>${iconHtml}</div>
           <span class="pill ${category}">
