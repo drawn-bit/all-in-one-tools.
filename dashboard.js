@@ -233,50 +233,6 @@
     })[char]);
   }
 
-  // JENIS TOOLS: pakai field "type" kalau ada, kalau tidak ditebak dari nama
-  const TYPE_RULES = [
-    ['Downloader', /download|unduh/i],
-    ['Uploader', /to link|uploader/i],
-    ['Generator', /generator|card|quote|brat/i],
-    ['Pencarian', /finder|search|cari/i],
-    ['Utilitas', /calculator|kalkulator|convert/i]
-  ];
-
-  function typeOf(tool) {
-    const own = String(tool.type || '').trim();
-    if (own) return own.slice(0, 20);
-    const name = String(tool.name || tool.title || '');
-    for (const [label, re] of TYPE_RULES) if (re.test(name)) return label;
-    return 'Lainnya';
-  }
-
-  let typeFilter = 'all';
-
-  const ICON_GRID = '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
-  const ICON_CROWN = '<svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>';
-
-  // Seluruh kartu bisa diklik (tombol di dalamnya disembunyikan oleh CSS)
-  document.addEventListener('click', (e) => {
-    const card = e.target.closest('.tool-grid .tool-card');
-    if (!card || e.target.closest('.tool-open')) return;
-    card.querySelector('.tool-open:not(:disabled)')?.click();
-  });
-
-  function drawTypeTabs() {
-    const box = $('typeTabs');
-    if (!box) return;
-    const counts = {};
-    tools.forEach((t) => { const k = typeOf(t); counts[k] = (counts[k] || 0) + 1; });
-    if (typeFilter !== 'all' && !counts[typeFilter]) typeFilter = 'all';
-    const items = [['all', 'ALL', tools.length], ...Object.keys(counts).sort().map((k) => [k, k, counts[k]])];
-    box.innerHTML = items.map(([k, label, n]) =>
-      `<button class="ty-tab" type="button" data-type="${safeText(k)}" aria-pressed="${k === typeFilter}">${k === 'all' ? ICON_GRID : ''}${safeText(label)} <em>${n}</em></button>`
-    ).join('');
-    box.querySelectorAll('.ty-tab').forEach((b) => {
-      b.addEventListener('click', () => { typeFilter = b.dataset.type; renderTools(); });
-    });
-  }
-
   // MEMBUAT KARTU TOOLS
   function renderCard(tool) {
     const category =
@@ -302,8 +258,8 @@
       ? `<img src="${safeText(iconUrl)}" alt="" loading="lazy" ` +
         'style="width:100%;height:100%;object-fit:contain">'
       : category === 'vip'
-        ? ICON_CROWN
-        : ICON_GRID;
+        ? '✦'
+        : '▦';
 
     let action;
 
@@ -328,7 +284,7 @@
     }
 
     return `
-      <article class="tool-card${locked ? ' locked' : ''}">
+      <article class="tool-card">
         <div class="tool-top">
           <div class="tool-icon"${iconHtml.startsWith('<img') ? ' style="background:transparent"' : ''}>${iconHtml}</div>
           <span class="pill ${category}">
@@ -336,7 +292,6 @@
           </span>
         </div>
         <h3>${name}</h3>
-        <span class="tool-type">${safeText(typeOf(tool))}</span>
         <p>${desc}</p>
         ${action}
       </article>
@@ -369,8 +324,6 @@
         String(tool.category || 'free').toLowerCase() === 'vip'
     );
 
-    const shown = filtered.filter((t) => typeFilter === 'all' || typeOf(t) === typeFilter);
-
     function fill(id, items, emptyMessage) {
       const node = $(id);
       if (!node) return;
@@ -386,18 +339,11 @@
       'Belum ada FREE tools. Owner bisa menambahkan tools dari Panel Owner.'
     );
 
-    const ordered = [
-      ...shown.filter((t) => String(t.category || 'free').toLowerCase() !== 'vip'),
-      ...shown.filter((t) => String(t.category || 'free').toLowerCase() === 'vip')
-    ];
-
-    fill('allGrid2', ordered, 'Tidak ada tools yang cocok.');
-    drawTypeTabs();
-
-    if ($('toolsTitle')) {
-      $('toolsTitle').textContent =
-        (typeFilter === 'all' ? 'Semua Tools' : typeFilter) + ' (' + ordered.length + ')';
-    }
+    fill(
+      'freeGrid2',
+      free,
+      'Tidak ada FREE tools yang cocok.'
+    );
 
     fill(
       'vipGrid',
@@ -405,11 +351,17 @@
       'Belum ada VIP tools.'
     );
 
+    fill(
+      'vipGrid2',
+      vip,
+      'Tidak ada VIP tools yang cocok.'
+    );
 
     [
       'freeGrid',
-      'allGrid2',
-      'vipGrid'
+      'freeGrid2',
+      'vipGrid',
+      'vipGrid2'
     ].forEach((id) => {
       $(id)?.querySelectorAll('[data-tool-id]').forEach((button) => {
         button.addEventListener('click', () => {
