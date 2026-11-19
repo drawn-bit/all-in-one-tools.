@@ -144,7 +144,12 @@
     const style = document.createElement('style');
     style.textContent = `
       #vxRunner{position:fixed;inset:0;z-index:2000;background:#050a14;display:none;flex-direction:column}
-      #vxRunner.open{display:flex}
+      #vxRunner.open{display:flex;animation:vxRunIn .36s cubic-bezier(.22,.8,.3,1)}
+      @keyframes vxRunIn{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+      #vxRunnerBar{animation:vxRunBar .5s .12s cubic-bezier(.22,.8,.3,1) backwards}
+      @keyframes vxRunBar{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+      #vxRunnerBar button:active{transform:scale(.94)}
+      @media(prefers-reduced-motion:reduce){#vxRunner.open,#vxRunnerBar{animation:none}}
       #vxRunnerBar{display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:#0b1221;border-bottom:1px solid #1d2c47;color:#fff}
       #vxRunnerTitle{flex:1;min-width:0;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       #vxRunnerBar button{border:1px solid #2c4b73;background:#172a47;color:#e9f5ff;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}

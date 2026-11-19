@@ -648,38 +648,41 @@ body{
 @media(min-width:960px){.nx-profile{margin:-38px 16px 0;padding:14px 20px}}
 @media(max-width:700px){.main{padding:14px 10px 84px}.nx-info-txt small{display:none}}
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ---- Tampilan Tools: meniru All-Tools-Yanz, versi biru dan sudut membulat ---- */
-.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px;font-family:"JetBrains Mono",ui-monospace,monospace}
-.tool-grid .tool-card{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px 12px;background:#040916;border:1px solid #1f3a6b;border-radius:18px;cursor:pointer;transition:border-color .2s}
-.tool-grid .tool-card:hover{border-color:#3b82f6}
-.tool-grid .tool-card::after{content:"";position:absolute;right:-20px;bottom:-20px;width:80px;height:80px;background:rgba(59,130,246,.07);border-radius:20px;transform:rotate(45deg);pointer-events:none}
-.tool-grid .tool-card.locked{opacity:.7}
-.tool-grid .tool-top{display:contents}
-.tool-grid .tool-icon{order:1;display:grid;place-items:center;width:48px;height:48px;padding:6px;margin-bottom:12px;background:#000!important;border:1px solid #1f3a6b;border-radius:14px;box-shadow:none;color:#60a5fa;overflow:hidden}
-.tool-grid .tool-icon svg{width:24px;height:24px;stroke:#60a5fa;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.tool-grid .tool-card h3{order:2;margin:0 0 6px;font-family:inherit;font-size:.85rem;font-weight:700;line-height:1.3}
-.tool-type{order:3;margin:0 0 6px;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#60a5fa}
-.tool-grid .tool-card p{order:4;flex:0 0 auto;margin:0;font-size:.7rem;line-height:1.4;color:#8da2c8}
-.tool-grid .tool-top .pill{position:absolute;top:8px;right:8px;margin:0;padding:2px 7px;font-size:9px;border-radius:99px}
-.tool-grid .tool-open{display:none}
-.ty-search{position:relative;margin-bottom:16px}
-.ty-search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:#8da2c8;fill:none;stroke-width:2;pointer-events:none}
-.ty-search .search{width:100%;margin:0;padding:16px 16px 16px 48px;background:#040916;border:1px solid #1f3a6b;border-radius:14px;color:#e0e8ff;font:.95rem "JetBrains Mono",ui-monospace,monospace;outline:none}
-.ty-search .search:focus{border-color:#3b82f6}
-.ty-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:24px}
-.ty-tabs::-webkit-scrollbar{display:none}
-.ty-tab{flex:1 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:12px 16px;background:#040916;border:1px solid #1f3a6b;border-radius:14px;color:#e0e8ff;font:700 .85rem "JetBrains Mono",ui-monospace,monospace}
-.ty-tab svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
-.ty-tab em{font-style:normal;font-size:.7rem;color:#8da2c8}
-.ty-tab[aria-pressed="true"]{border-color:#3b82f6;background:rgba(37,99,235,.2);color:#fff}
-.ty-tab:focus-visible{outline:3px solid #60a5fa;outline-offset:2px}
-.ty-title{display:flex;align-items:center;gap:10px;margin-bottom:16px;font:700 1rem "JetBrains Mono",ui-monospace,monospace}
-.ty-title svg{width:20px;height:20px;stroke:#60a5fa;fill:none;stroke-width:2;flex:none}
-.ty-title::after{content:"";flex:1;height:1px;background:#1f3a6b}
+/* ===== Animasi VEXORA: pindah halaman, kartu, tombol, menu ===== */
+:root{--vx-ease:cubic-bezier(.22,.8,.3,1)}
+@keyframes vxFade{from{opacity:0}to{opacity:1}}
+@keyframes vxPageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes vxCardIn{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes vxPop{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes vxGlow{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}50%{box-shadow:0 0 18px 0 rgba(59,130,246,.35)}}
+body{animation:vxFade .5s ease}
+.page.active{animation:vxPageIn .42s var(--vx-ease)}
+.tool-card,.stat,.contact{animation:vxCardIn .5s var(--vx-ease) backwards}
+.tool-grid>:nth-child(1){animation-delay:.04s}
+.tool-grid>:nth-child(2){animation-delay:0.09s}
+.tool-grid>:nth-child(3){animation-delay:0.14s}
+.tool-grid>:nth-child(4){animation-delay:0.19s}
+.tool-grid>:nth-child(5){animation-delay:0.24s}
+.tool-grid>:nth-child(6){animation-delay:0.29s}
+.tool-grid>:nth-child(7){animation-delay:0.34s}
+.tool-grid>:nth-child(8){animation-delay:0.39s}
+.tool-grid>:nth-child(9){animation-delay:0.44s}
+.tool-grid>:nth-child(10){animation-delay:0.49s}
+.tool-grid>:nth-child(11){animation-delay:0.54s}
+.tool-grid>:nth-child(12){animation-delay:0.59s}
+.stats>:nth-child(2),.contacts>:nth-child(2){animation-delay:.1s}.stats>:nth-child(3),.contacts>:nth-child(3){animation-delay:.18s}
+.tool-card,.contact,.nav,.tool-open,.primary-btn,.dots,.avatar{transition:transform .22s var(--vx-ease),border-color .22s,box-shadow .22s,background .22s,color .22s}
+.tool-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(37,99,235,.22)}
+.tool-card:active{transform:scale(.97)}
+.contact:hover{transform:translateY(-2px)}
+.tool-open:active,.primary-btn:active,.dots:active{transform:scale(.95)}
+.nav:hover{transform:translateX(3px)}
+.nav.active{box-shadow:inset 3px 0 0 #38bdf8}
+.dropdown.open,.notice.show{animation:vxPop .2s var(--vx-ease)}
+.status{animation:vxGlow 2.6s ease-in-out infinite}
+@media(max-width:700px){.nav:hover{transform:none}.nav.active{box-shadow:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -775,13 +778,10 @@ body{
 </section>
 
 <section class="page" id="page-tools">
-  <div class="ty-search">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input class="search" id="toolSearch" type="search" placeholder="Cari tools...">
-  </div>
-  <div class="ty-tabs" id="typeTabs" aria-label="Jenis tools"></div>
-  <div class="ty-title"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span id="toolsTitle">Semua Tools</span></div>
-  <div class="tool-grid" id="allGrid2"></div>
+  <div class="section-head"><div><h2>TOOLS CENTER</h2><p>Cari tools berdasarkan nama.</p></div></div>
+  <input class="search" id="toolSearch" type="search" placeholder="Cari tools...">
+  <div class="section-head"><div><h2>FREE TOOLS</h2></div><span class="pill free">FREE</span></div><div class="tool-grid" id="freeGrid2"></div>
+  <div class="section-head"><div><h2>VIP TOOLS</h2></div><span class="pill vip">VIP</span></div><div class="tool-grid" id="vipGrid2"></div>
 </section>
 
 <section class="page" id="page-profile"><div class="profile-box"><h2>My Profile</h2><p>Informasi akun VEXORA yang sedang login.</p><p>Email: <strong id="profileEmail">Memuat...</strong></p><p>Role: <strong id="profileRole">FREE</strong></p><p>DEVELOPED BY <strong>Z4M OFFICIAL</strong></p></div></section>
