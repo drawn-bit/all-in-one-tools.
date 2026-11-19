@@ -648,6 +648,31 @@ body{
 @media(min-width:960px){.nx-profile{margin:-38px 16px 0;padding:14px 20px}}
 @media(max-width:700px){.main{padding:14px 10px 84px}.nx-info-txt small{display:none}}
 </style>
+<style>
+/* ---- Tampilan kartu tools bergaya kotak (biru) ---- */
+.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}
+@media(min-width:760px){.tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+.tool-grid .tool-card{position:relative;overflow:hidden;background:#050a16;border:1px solid #223457;border-radius:8px;padding:16px 12px 12px;transition:border-color .2s,box-shadow .2s}
+.tool-grid .tool-card::after{content:"";position:absolute;right:-22px;bottom:-22px;width:80px;height:80px;background:rgba(96,165,250,.06);border-radius:20px;transform:rotate(45deg);pointer-events:none}
+.tool-grid .tool-card:hover{border-color:#3b82f6;box-shadow:0 0 0 1px rgba(59,130,246,.25),0 0 18px rgba(59,130,246,.18)}
+.tool-grid .tool-icon{display:grid;place-items:center;width:54px;height:54px;padding:7px;border-radius:8px;background:#02050d!important;border:1px solid #2f4f86;box-shadow:none;color:#60a5fa}
+.tool-grid .tool-card h3{font-size:13.5px;margin:12px 0 6px}
+.tool-type{order:2;margin:0 0 8px;padding:2px 8px;border:1px solid #2f4f86;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd}
+.tool-grid .tool-open{border-radius:8px}
+/* ---- Halaman Tools: pencarian, jenis, judul ---- */
+.ty-search{position:relative;margin-bottom:14px}
+.ty-search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:19px;height:19px;stroke:#8da2c8;fill:none;stroke-width:2;pointer-events:none}
+.ty-search .search{width:100%;margin:0;padding:15px 16px 15px 46px;background:#050a16;border:1px solid #223457;border-radius:8px;color:#e8f0ff;outline:none}
+.ty-search .search:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+.ty-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:20px;padding-bottom:2px}
+.ty-tabs::-webkit-scrollbar{display:none}
+.ty-tab{flex:none;display:flex;align-items:center;gap:7px;min-height:44px;padding:10px 16px;background:#050a16;border:1px solid #223457;border-radius:8px;color:#c9d8f5;font-size:12.5px;font-weight:700}
+.ty-tab em{font-style:normal;font-size:10.5px;color:#8da2c8}
+.ty-tab[aria-pressed="true"]{border-color:#3b82f6;color:#fff;background:rgba(37,99,235,.22);box-shadow:0 0 14px rgba(59,130,246,.25)}
+.ty-tab:focus-visible{outline:3px solid #60a5fa;outline-offset:2px}
+.ty-title{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:15px;font-weight:700}
+.ty-title::after{content:"";flex:1;height:1px;background:#223457}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -742,10 +767,13 @@ body{
 </section>
 
 <section class="page" id="page-tools">
-  <div class="section-head"><div><h2>TOOLS CENTER</h2><p>Cari tools berdasarkan nama.</p></div></div>
-  <input class="search" id="toolSearch" type="search" placeholder="Cari tools...">
-  <div class="section-head"><div><h2>FREE TOOLS</h2></div><span class="pill free">FREE</span></div><div class="tool-grid" id="freeGrid2"></div>
-  <div class="section-head"><div><h2>VIP TOOLS</h2></div><span class="pill vip">VIP</span></div><div class="tool-grid" id="vipGrid2"></div>
+  <div class="ty-search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search" id="toolSearch" type="search" placeholder="Cari tools...">
+  </div>
+  <div class="ty-tabs" id="typeTabs" aria-label="Jenis tools"></div>
+  <div class="ty-title" id="toolsTitle">Semua Tools</div>
+  <div class="tool-grid" id="allGrid2"></div>
 </section>
 
 <section class="page" id="page-profile"><div class="profile-box"><h2>My Profile</h2><p>Informasi akun VEXORA yang sedang login.</p><p>Email: <strong id="profileEmail">Memuat...</strong></p><p>Role: <strong id="profileRole">FREE</strong></p><p>DEVELOPED BY <strong>Z4M OFFICIAL</strong></p></div></section>
