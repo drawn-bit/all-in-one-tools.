@@ -28,5 +28,5 @@ window.VEXORA_CONFIG = {
 
   USERNAME_DOMAIN: "vexora.local",
 
-  OWNER_EMAILS: ["drawnstorejb@vexora.local"]
+  OWNER_EMAILS: ["z4m@vexora.local"]
 };
