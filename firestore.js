@@ -2,9 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // GANTI dengan email owner (huruf kecil). Boleh lebih dari satu.
+    // GANTI dengan akun owner dalam bentuk <username>@vexora.local (huruf kecil).
+    // Contoh: username "drawnstorejb" -> 'drawnstorejb@vexora.local'. Boleh lebih dari satu.
     function ownerEmails() {
-      return ['drawnstorejb@gmail.com'];
+      return ['drawnstorejb@vexora.local'];
     }
 
     // Akun yang di-ban otomatis kehilangan semua akses data.
@@ -14,7 +15,6 @@ service cloud.firestore {
 
     function signedIn() {
       return request.auth != null
-        && request.auth.token.email_verified == true
         && notBanned();
     }
 
@@ -22,7 +22,7 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email in ownerEmails();
     }
 
-    // Daftar tools: user terverifikasi & tidak di-ban boleh membaca, hanya owner menulis.
+    // Daftar tools: user yang login & tidak di-ban boleh membaca, hanya owner menulis.
     match /vexora_tools/{toolId} {
       allow read: if signedIn();
       allow write: if isOwner();
@@ -35,13 +35,13 @@ service cloud.firestore {
 
       allow create: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['email', 'emailVerified', 'createdAt', 'lastLogin'])
+        && request.resource.data.keys().hasOnly(['username', 'email', 'createdAt', 'lastLogin'])
         && request.resource.data.email == request.auth.token.email.lower();
 
       allow update: if request.auth != null
         && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['emailVerified', 'lastLogin']);
+             .hasOnly(['lastLogin']);
 
       allow delete: if isOwner();
     }

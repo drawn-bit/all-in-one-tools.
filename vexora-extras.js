@@ -334,7 +334,7 @@
       <h2 style="font-size:17px;margin:9px 0 5px">Info Akun & Perangkat</h2>
       <p class="vx-muted" style="margin:0">Ringkasan akun yang sedang kamu gunakan.</p>
       <div class="vx-info-grid">
-        ${infoCard("EMAIL AKUN", "Memuat...", "vxMenuEmail")}
+        ${infoCard("USERNAME AKUN", "Memuat...", "vxMenuEmail")}
         ${infoCard("ROLE AKUN", "MEMBER", "vxMenuRole")}
         ${infoCard("PERANGKAT", "Memeriksa...", "vxMenuDevice")}
         ${infoCard("BROWSER", "Memeriksa...", "vxMenuBrowser")}
@@ -361,7 +361,7 @@
       <h2 style="font-size:18px;margin:9px 0 5px">Detail Akun</h2>
       <p class="vx-muted" style="margin:0">Informasi sesi dan perangkat saat ini.</p>
       <div class="vx-info-grid">
-        ${infoCard("EMAIL", "Memuat...", "vxProfileEmail")}
+        ${infoCard("USERNAME", "Memuat...", "vxProfileEmail")}
         ${infoCard("ROLE", "MEMBER", "vxProfileRole")}
         ${infoCard("PERANGKAT", "Memeriksa...", "vxProfileDevice")}
         ${infoCard("BROWSER", "Memeriksa...", "vxProfileBrowser")}
@@ -484,7 +484,7 @@
       <article class="vx-update">
         <span class="vx-chip">DASHBOARD</span>
         <h3>Ringkasan akun dan perangkat</h3>
-        <p>Menampilkan email akun, role, jenis perangkat, browser, bahasa, ukuran layar, serta baterai jika didukung browser.</p>
+        <p>Menampilkan username akun, role, jenis perangkat, browser, bahasa, ukuran layar, serta baterai jika didukung browser.</p>
       </article>
 
       <article class="vx-update">
@@ -502,7 +502,7 @@
       <article class="vx-update">
         <span class="vx-chip">ACCOUNT</span>
         <h3>Profil akun</h3>
-        <p>Periksa email, role, dan ringkasan perangkat dari halaman Profile.</p>
+        <p>Periksa username, role, dan ringkasan perangkat dari halaman Profile.</p>
       </article>
 
       <div style="margin-top:17px">
@@ -566,7 +566,7 @@
     }));
 
     const user = !error ? data?.user : null;
-    const email = user?.email || $("profileEmail")?.textContent || "Tidak tersedia";
+    const email = user?.username || window.vexoraUsernameOf?.(user?.email) || $("profileEmail")?.textContent || "Tidak tersedia";
     const role = getRole(user);
 
     const values = {

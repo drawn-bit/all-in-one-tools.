@@ -10,7 +10,7 @@ Developer: Z4M OFFICIAL
 - `auth.js`: login/register Firebase Authentication.
 - `firebase-init.js`: menyiapkan Firebase dan membaca role dari custom claim.
 - `dashboard.html` dan `dashboard.js`: dashboard awal setelah login.
-- `config.js`: konfigurasi publik Firebase dan daftar email owner.
+- `config.js`: konfigurasi publik Firebase dan daftar akun owner (format `username@vexora.local`).
 - `tool-runner.js` + `sw.js`: membuka tools dari ZIP di dalam website.
 - `firestore.rules`, `storage.rules`, `cors.json`: aturan keamanan Firebase.
 - `README_TOOLS_ZIP.md`: panduan tools dari ZIP.
@@ -28,9 +28,8 @@ Developer: Z4M OFFICIAL
 3. Authentication → Settings → Authorized domains → tambahkan domain website kamu (domain Vercel dan domain sendiri bila ada).
 4. Project settings → General → Your apps → tambah **Web app**, lalu salin `apiKey`, `authDomain`, `projectId`, `appId`.
 5. Buka `config.js` dan isi blok `FIREBASE` dengan nilai tersebut.
-6. Opsional: Authentication → Templates → ubah bahasa/isi email verifikasi.
 
-Catatan: pendaftaran mengirim email verifikasi, dan user baru bisa masuk dashboard setelah email diverifikasi.
+Catatan: login memakai **username + password**. Username dipetakan ke `<username>@vexora.local` (hanya internal, tidak ada email yang dikirim dan tidak ada verifikasi email). Username: 3-20 karakter, huruf kecil/angka/titik/underscore.
 
 ## 3. Tools dari ZIP (Firestore + Storage)
 Daftar tools disimpan di Firestore dan file ZIP + icon di Firebase Storage. Ikuti panduan lengkap di `README_TOOLS_ZIP.md` (Rules, CORS bucket, email owner).
@@ -45,12 +44,12 @@ Daftar tools disimpan di Firestore dan file ZIP + icon di Firebase Storage. Ikut
 - Ini starter login/register, bukan sistem role final.
 - Dashboard saat ini menampilkan role placeholder “Member”; jangan gunakan teks itu sebagai bukti hak akses.
 - Jangan pernah membuat dropdown role saat register atau membiarkan user mengedit role sendiri.
-- OWNER ditentukan dari `OWNER_EMAILS` di `config.js` dan dijaga oleh Firebase Rules. VIP memakai custom claim `role` yang hanya bisa diisi lewat Firebase Admin SDK (server). Tetapkan Owner pertama lewat langkah admin satu kali yang aman, bukan lewat JavaScript publik.
+- OWNER ditentukan dari `OWNER_EMAILS` (berisi `username@vexora.local`) di `config.js` dan dijaga oleh Firebase Rules. VIP memakai custom claim `role` yang hanya bisa diisi lewat Firebase Admin SDK (server). Tetapkan Owner pertama lewat langkah admin satu kali yang aman, bukan lewat JavaScript publik.
 - Proteksi tool/API harus diperiksa di backend/database, bukan hanya menyembunyikan tombol di frontend.
 
 ## Troubleshooting
 - “Koneksi belum siap”: periksa blok `FIREBASE` di `config.js`.
 - `auth/unauthorized-domain`: tambahkan domain di Authentication → Settings → Authorized domains.
 - `auth/operation-not-allowed`: aktifkan Email/Password di Firebase Console.
-- Email verifikasi tidak masuk: cek folder Spam; login ulang akan mengirim ulang tautan.
+- Username dipakai orang lain: daftarkan akun Owner LEBIH DULU supaya username owner tidak diambil orang lain.
 - Jika ada error, jangan menghapus file downloader lama. Catat pesan error dan perbaiki file terkait.

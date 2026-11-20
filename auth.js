@@ -2,7 +2,7 @@
 /* =========================================================
    VEXORA AUTH SYSTEM
    Firebase Authentication
-   Login • Register • Email Verification • Password Toggle
+   Login • Register (username + password) • Password Toggle
    ========================================================= */
 (() => {
   "use strict";
@@ -159,15 +159,15 @@
 
     switch (code) {
       case "auth/email-already-in-use":
-        return "Email ini sudah terdaftar. Silakan login.";
+        return "Username ini sudah dipakai. Pilih username lain atau login.";
 
       case "auth/invalid-credential":
       case "auth/wrong-password":
       case "auth/user-not-found":
-        return "Email atau password salah.";
+        return "Username atau password salah.";
 
       case "auth/invalid-email":
-        return "Format email tidak valid. Periksa kembali email kamu.";
+        return "Username tidak valid. Gunakan 3-20 karakter: huruf, angka, titik, atau underscore.";
 
       case "auth/weak-password":
         return "Password belum memenuhi persyaratan.";
@@ -197,22 +197,20 @@
   }
 
   // ---------------------------------------------------------
-  // URL VERIFIKASI EMAIL
+  // USERNAME
   // ---------------------------------------------------------
 
-  function getEmailRedirectUrl() {
-    return new URL("index.html", window.location.href).href;
-  }
+  const USERNAME_PATTERN = /^[a-z0-9._]{3,20}$/;
 
-  async function sendVerification(user) {
-    await user.sendEmailVerification({ url: getEmailRedirectUrl() });
-  }
+  // Firebase Auth butuh format email, jadi username dipetakan ke
+  // <username>@vexora.local (tidak ada email yang dikirim).
+  const toAuthEmail = (username) => window.vexoraUsernameToEmail(username);
 
   // ---------------------------------------------------------
   // REGISTER
   // ---------------------------------------------------------
 
-  async function handleRegister(email, password, confirmPassword) {
+  async function handleRegister(username, password, confirmPassword) {
     if (password.length < 8) {
       showMessage("Password minimal 8 karakter.");
       return;
@@ -229,13 +227,7 @@
     }
 
     const credential =
-      await auth.createUserWithEmailAndPassword(email, password);
-
-    try {
-      await sendVerification(credential.user);
-    } catch (error) {
-      console.error("[VEXORA] Gagal kirim verifikasi:", error);
-    }
+      await auth.createUserWithEmailAndPassword(toAuthEmail(username), password);
 
     // Catat akun baru agar muncul di Panel Owner.
     try {
@@ -244,44 +236,20 @@
       console.warn("[VEXORA] Gagal mencatat akun:", error);
     }
 
-    // Wajib verifikasi email dulu sebelum masuk dashboard.
-    await auth.signOut();
+    showMessage("Akun berhasil dibuat. Membuka dashboard...", "success");
 
-    if ($("password")) $("password").value = "";
-    if ($("confirmPassword")) $("confirmPassword").value = "";
-
-    setMode("login");
-
-    showMessage(
-      "Akun berhasil dibuat. Kami sudah mengirim tautan verifikasi — periksa kotak masuk dan folder Spam, lalu login.",
-      "success"
-    );
+    window.location.replace("dashboard.html");
   }
 
   // ---------------------------------------------------------
   // LOGIN
   // ---------------------------------------------------------
 
-  async function handleLogin(email, password) {
+  async function handleLogin(username, password) {
     const credential =
-      await auth.signInWithEmailAndPassword(email, password);
+      await auth.signInWithEmailAndPassword(toAuthEmail(username), password);
 
     const user = credential.user;
-
-    if (!user.emailVerified) {
-      try {
-        await sendVerification(user);
-      } catch (error) {
-        console.error("[VEXORA] Gagal kirim ulang verifikasi:", error);
-      }
-
-      await auth.signOut();
-
-      showMessage(
-        "Email belum diverifikasi. Kami kirim ulang tautan verifikasi — periksa kotak masuk dan folder Spam."
-      );
-      return;
-    }
 
     // Cek ban.
     const ban = await window.vexoraIsBanned?.(user);
@@ -321,31 +289,29 @@
 
     clearMessage();
 
-    const email = $("email")?.value.trim().toLowerCase() || "";
+    const username = $("username")?.value.trim().toLowerCase() || "";
     const password = $("password")?.value || "";
     const confirmPassword = $("confirmPassword")?.value || "";
 
-    if (!email || !password) {
-      showMessage("Isi email dan password terlebih dahulu.");
+    if (!username || !password) {
+      showMessage("Isi username dan password terlebih dahulu.");
       return;
     }
 
-    if (mode === "register") {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!emailPattern.test(email)) {
-        showMessage("Masukkan alamat email yang valid.");
-        return;
-      }
+    if (!USERNAME_PATTERN.test(username)) {
+      showMessage(
+        "Username 3-20 karakter: hanya huruf, angka, titik (.), atau underscore (_)."
+      );
+      return;
     }
 
     setBusy(true);
 
     try {
       if (mode === "register") {
-        await handleRegister(email, password, confirmPassword);
+        await handleRegister(username, password, confirmPassword);
       } else {
-        await handleLogin(email, password);
+        await handleLogin(username, password);
       }
     } catch (error) {
       showMessage(explainError(error));
@@ -406,7 +372,7 @@
     const off = auth.onAuthStateChanged((user) => {
       off();
 
-      if (user && user.emailVerified) {
+      if (user) {
         // dashboard.js yang akan memeriksa ban dan mengeluarkan akun terblokir.
         window.location.replace("dashboard.html");
       }

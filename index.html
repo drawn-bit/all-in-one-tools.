@@ -734,15 +734,17 @@
 
         <form id="authForm" novalidate>
           <div class="form-group">
-            <label for="email">Email address</label>
+            <label for="username">Username</label>
             <div class="input-wrap">
               <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="nama@email.com"
-                autocomplete="email"
-                maxlength="254"
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Masukkan username"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                maxlength="20"
                 required
               >
             </div>
@@ -797,7 +799,7 @@
 
         <div class="security-note">
           <span>●</span>
-          <div>Gunakan email dan password milik kamu sendiri. Jangan bagikan password kepada siapa pun.</div>
+          <div>Gunakan username dan password milik kamu sendiri. Jangan bagikan password kepada siapa pun.</div>
         </div>
 
         <p class="terms">

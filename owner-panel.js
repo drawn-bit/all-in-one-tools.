@@ -137,7 +137,7 @@
     console.error('[VEXORA] Owner panel:', error);
 
     if (code === 'permission-denied' || code === 'storage/unauthorized') {
-      return 'Akses ditolak. Pastikan kamu login sebagai email owner, email itu sudah ditulis di config.js, firestore.rules, dan storage.rules, lalu Rules sudah dipublikasikan.';
+      return 'Akses ditolak. Pastikan kamu login sebagai akun owner, akun itu (username@vexora.local) sudah ditulis di config.js, firestore.rules, dan storage.rules, lalu Rules sudah dipublikasikan.';
     }
 
     if (code === 'storage/retry-limit-exceeded' || code === 'unavailable') {

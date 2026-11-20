@@ -16,11 +16,11 @@ langsung di dalam website (layar penuh) lewat service worker.
 2. **Firestore Database**: Build → Firestore Database → Create database.
 3. **Storage**: Build → Storage → Get started (butuh paket Blaze; ada kuota gratis bulanan).
 4. **Isi `config.js`**: blok `FIREBASE` (termasuk `storageBucket`) dan `OWNER_EMAILS`
-   (email owner, huruf kecil).
+   (akun owner: `username@vexora.local`, huruf kecil).
 5. **Pasang Rules**:
    - Firestore → Rules → tempel isi `firestore.rules` → Publish.
    - Storage → Rules → tempel isi `storage.rules` → Publish.
-   - Di kedua file, ganti `isi_email_owner@gmail.com` dengan email ownermu
+   - Di kedua file, ganti `drawnstorejb@vexora.local` dengan `<usernameowner>@vexora.local`
      (sama persis dengan di `config.js`).
 6. **Atur CORS bucket** (wajib, supaya ZIP bisa diunduh browser):
    1. Buka https://console.cloud.google.com → pilih project Firebase-mu.
@@ -31,12 +31,12 @@ langsung di dalam website (layar penuh) lewat service worker.
    - Untuk lebih aman, ganti `"*"` di `cors.json` dengan domain websitemu.
 7. Upload semua file paket ini ke root repository (termasuk `sw.js` dan `tool-runner.js`),
    deploy lewat Vercel. Situs harus dibuka lewat **https**.
-8. Login sebagai owner (email terverifikasi) → Panel Owner → Manajemen Tools → isi
+8. Login sebagai owner (username owner) → Panel Owner → Manajemen Tools → isi
    nama, pilih kategori, pilih ZIP, pilih icon → Simpan.
 
 ## Troubleshooting
-- "Akses ditolak": email owner belum sama di `config.js`, `firestore.rules`, `storage.rules`,
-  atau Rules belum di-Publish, atau email belum diverifikasi.
+- "Akses ditolak": akun owner belum sama di `config.js`, `firestore.rules`, `storage.rules`,
+  atau Rules belum di-Publish.
 - "Gagal mengunduh ZIP ... CORS": ulangi langkah 6.
 - "Firestore belum dibuat": lakukan langkah 2.
 - Tools tampil tapi layar kosong: cek isi ZIP — `index.html` harus memanggil file dengan

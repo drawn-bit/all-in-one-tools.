@@ -41,11 +41,13 @@
     el.style.color = isError ? '#ff778b' : '';
   };
 
+  const uname = (u) => window.vexoraUsernameOf ? window.vexoraUsernameOf(u.email) : u.email;
+
   const roleOf = (u) => (owners().includes(u.email) ? 'owner' : 'member');
 
   function filtered() {
     const q = ($('usersSearch')?.value || '').trim().toLowerCase();
-    return q ? users.filter((u) => u.email.includes(q)) : users;
+    return q ? users.filter((u) => u.email.includes(q) || uname(u).includes(q)) : users;
   }
 
   function renderStats() {
@@ -78,7 +80,7 @@
             : `<button class="tool-open u-danger" data-act="ban" data-id="${esc(u.id)}">Ban</button>`;
 
         return `<tr>
-          <td>${esc(u.email)}</td>
+          <td>${esc(uname(u))}</td>
           <td><span class="u-badge u-${role}">${role.toUpperCase()}</span></td>
           <td>${esc(fmt(u.createdAt))}</td>
           <td>${esc(fmt(u.lastLogin))}</td>
@@ -166,10 +168,10 @@
     let reason = '';
 
     if (shouldBan) {
-      const answer = window.prompt(`Ban ${user.email}?\nAlasan (boleh kosong):`, '');
+      const answer = window.prompt(`Ban ${uname(user)}?\nAlasan (boleh kosong):`, '');
       if (answer === null) return;
       reason = answer.trim().slice(0, 200);
-    } else if (!window.confirm(`Unban ${user.email}?`)) {
+    } else if (!window.confirm(`Unban ${uname(user)}?`)) {
       return;
     }
 
@@ -184,11 +186,11 @@
           bannedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         bans.set(id, { email: user.email, reason });
-        status(`${user.email} berhasil di-ban.`);
+        status(`${uname(user)} berhasil di-ban.`);
       } else {
         await db.collection('banned').doc(id).delete();
         bans.delete(id);
-        status(`${user.email} berhasil di-unban.`);
+        status(`${uname(user)} berhasil di-unban.`);
       }
       render();
     } catch (error) {

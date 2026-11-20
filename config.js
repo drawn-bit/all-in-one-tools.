@@ -7,8 +7,11 @@
   Nilai ini memang publik; keamanan diatur lewat Rules (lihat
   firestore.rules dan storage.rules).
 
-  OWNER_EMAILS: email yang menjadi OWNER (boleh upload/edit/hapus tools).
-  Tulis huruf kecil semua. Email yang sama juga harus ditulis di
+  Login memakai USERNAME + password. Di balik layar, username diubah jadi
+  alamat internal <username>@USERNAME_DOMAIN (tidak ada email yang dikirim).
+
+  OWNER_EMAILS: akun OWNER (boleh upload/edit/hapus tools), ditulis dalam
+  bentuk <username>@vexora.local, huruf kecil semua. Yang sama juga harus ditulis di
   firestore.rules dan storage.rules, karena Rules-lah yang benar-benar
   menjaga keamanan (bukan file ini).
 */
@@ -23,5 +26,7 @@ window.VEXORA_CONFIG = {
   measurementId: "G-6WP84TR2GP"
   },
 
-  OWNER_EMAILS: ["drawnstorejb@gmail.com"]
+  USERNAME_DOMAIN: "vexora.local",
+
+  OWNER_EMAILS: ["drawnstorejb@vexora.local"]
 };

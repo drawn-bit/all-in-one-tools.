@@ -184,7 +184,7 @@
     currentUser = user || null;
     currentRole = normalizeRole(user);
 
-    const email = user?.email || '—';
+    const email = user?.username || window.vexoraUsernameOf?.(user?.email) || '—';
 
     const roleLabel =
       currentRole === 'owner'
@@ -195,7 +195,7 @@
 
     if ($('greetingText')) {
       $('greetingText').textContent = user?.email
-        ? `Welcome back, ${user.email.split('@')[0]}!`
+        ? `Welcome back, ${email}!`
         : 'Welcome to VEXORA!';
     }
 
@@ -433,7 +433,7 @@
 
       notice(
         error?.code === 'permission-denied'
-          ? 'Daftar tools tidak bisa dibaca. Pastikan Firestore Rules sudah dipasang dan email sudah diverifikasi.'
+          ? 'Daftar tools tidak bisa dibaca. Pastikan Firestore Rules sudah dipasang dan kamu sudah login.'
           : 'Daftar tools gagal dimuat. Periksa koneksi internet.',
         true
       );
@@ -458,7 +458,7 @@
     try {
       const firebaseUser = await window.vexoraWaitForUser();
 
-      if (!firebaseUser || !firebaseUser.emailVerified) {
+      if (!firebaseUser) {
         notice(
           'Sesi login tidak ditemukan. Mengalihkan ke halaman login...'
         );

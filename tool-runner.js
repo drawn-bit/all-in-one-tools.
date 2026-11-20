@@ -279,7 +279,7 @@
       }
 
       if (error?.code === 'storage/unauthorized') {
-        throw new Error('Akses ke file tools ditolak. Pastikan sudah login dan email terverifikasi.');
+        throw new Error('Akses ke file tools ditolak. Pastikan sudah login.');
       }
 
       throw error;

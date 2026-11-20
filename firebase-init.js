@@ -41,6 +41,21 @@
     return;
   }
 
+  // Username <-> alamat internal Firebase (Firebase Auth butuh format email).
+  const DOMAIN = String(window.VEXORA_CONFIG?.USERNAME_DOMAIN || "vexora.local")
+    .trim()
+    .toLowerCase();
+
+  window.vexoraUsernameToEmail = (username) =>
+    String(username || "").trim().toLowerCase() + "@" + DOMAIN;
+
+  window.vexoraUsernameOf = (email) => {
+    const value = String(email || "").toLowerCase();
+    return value.endsWith("@" + DOMAIN)
+      ? value.slice(0, -(DOMAIN.length + 1))
+      : value;
+  };
+
   // Menunggu status login pertama selesai dibaca Firebase.
   window.vexoraWaitForUser = () =>
     new Promise((resolve) => {
@@ -72,17 +87,14 @@
     const owners = (window.VEXORA_CONFIG?.OWNER_EMAILS || [])
       .map((email) => String(email).trim().toLowerCase());
 
-    if (
-      user.emailVerified &&
-      owners.includes(String(user.email || "").toLowerCase())
-    ) {
+    if (owners.includes(String(user.email || "").toLowerCase())) {
       role = "owner";
     }
 
     return {
       id: user.uid,
       email: user.email,
-      emailVerified: user.emailVerified,
+      username: window.vexoraUsernameOf(user.email),
       created_at: user.metadata?.creationTime || null,
       last_sign_in_at: user.metadata?.lastSignInTime || null,
       app_metadata: { role },
@@ -125,14 +137,13 @@
 
     if (!snap.exists) {
       await ref.set({
+        username: window.vexoraUsernameOf(user.email),
         email: String(user.email || "").toLowerCase(),
-        emailVerified: !!user.emailVerified,
         createdAt: now,
         lastLogin: now
       });
     } else {
       await ref.update({
-        emailVerified: !!user.emailVerified,
         lastLogin: now
       });
     }
