@@ -5,7 +5,7 @@ service cloud.firestore {
     // GANTI dengan akun owner dalam bentuk <username>@vexora.local (huruf kecil).
     // Contoh: username "drawnstorejb" -> 'drawnstorejb@vexora.local'. Boleh lebih dari satu.
     function ownerEmails() {
-      return ['z4M@vexora.local'];
+      return ['z4m@vexora.local'];
     }
 
     // Akun yang di-ban otomatis kehilangan semua akses data.
