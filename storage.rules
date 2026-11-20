@@ -4,7 +4,7 @@ service firebase.storage {
 
     // GANTI dengan akun owner <username>@vexora.local (huruf kecil). Harus sama dengan firestore.rules.
     function ownerEmails() {
-      return ['drawnstorejb@vexora.local'];
+      return ['z4M@vexora.local'];
     }
 
     function notBanned() {
